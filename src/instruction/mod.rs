@@ -1,11 +1,11 @@
 //! Module for parsing instructions.
 
 mod config;
-use config::ConfigInstruction;
+pub use config::ConfigInstruction;
 
 /// A single instruction
 #[derive(Debug, PartialEq)]
-enum Instruction {
+pub enum Instruction {
     /// Persistent configuration instruction or metadata. (`@@`)
     PersistentConfig(ConfigInstruction),
     /// Temporary configuration instruction. (`@`)
@@ -22,10 +22,9 @@ enum Instruction {
     Continuation(String),
 }
 
-#[allow(dead_code)]
 impl Instruction {
     /// Parse a line into an `Instruction`.
-    fn parse(s: &str) -> Result<Self, ParseError> {
+    pub fn parse(s: &str) -> Result<Self, ParseError> {
         let s = s.trim();
         let Some(first) = s.chars().next() else {
             return Ok(Self::Empty);
@@ -53,7 +52,7 @@ impl Instruction {
 
 /// Possible errors that can occur while parsing a `.cwsh` file.
 #[derive(Debug, PartialEq)]
-enum ParseError {
+pub enum ParseError {
     // General parsing errors
     /// Unknown instruction: The first character of the line is not recognized.
     UnknownInstruction,
