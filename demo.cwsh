@@ -6,28 +6,26 @@
 # This will be printed as it is
 
 # Metadata or persistent configuration (`@@`)
-# Sets metadata for output asciicast,
-# or configuration for all FOLLOWING commands
-# Set the width of screen, default is auto
-@@width: auto
-# Set the height of screen, default is auto
-@@height: auto
-# Title of the asciicast
-@@title: Castwright Demo
+# Sets configuration for all FOLLOWING commands
+# Set the terminal width, default is current terminal width
+@@width auto
+# Set the terminal height, default is current terminal height
+@@height auto
+# Title of the asciicast (no point setting this using temporary configuration)
+@@title Castwright Demo
 # Terminal idle timeout
-@@idle: 1s
-# Typing speed
-@@type_speed: 100ms
+@@idle 1s
+# Delay between each character
+@@delay 100ms
 # ...
 
 # Temporary configuration (`@`): Configuration for this command only
-@hidden: true
+@hidden
 # The following command will be executed but not printed
 
 # Shell command (`$`, an extra space is recommended)
 $ echo "Hello, World!"
-# Output:
-# Hello, World!
+# No output
 
 # This command will be printed and executed
 $ echo "Hello, World again!"
