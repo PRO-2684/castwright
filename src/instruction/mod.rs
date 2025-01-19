@@ -34,7 +34,7 @@ impl Instruction {
         match first {
             '@' => {
                 let Some(second) = s.chars().nth(1) else {
-                    return Err(ParseError::InvalidInstruction);
+                    return Err(ParseError::MalformedInstruction);
                 };
                 match second {
                     '@' => Ok(Self::PersistentConfig(ConfigInstruction::parse(&s[2..])?)),
@@ -46,7 +46,7 @@ impl Instruction {
             '#' => Ok(Self::Empty),
             '$' => Ok(Self::Command(trimmed)),
             '>' => Ok(Self::Continuation(trimmed)),
-            _ => Err(ParseError::InvalidInstruction),
+            _ => Err(ParseError::UnknownInstruction),
         }
     }
 }
@@ -55,8 +55,10 @@ impl Instruction {
 #[derive(Debug, PartialEq)]
 enum ParseError {
     // General parsing errors
-    /// This line does not form a valid instruction.
-    InvalidInstruction,
+    /// Unknown instruction: The first character of the line is not recognized.
+    UnknownInstruction,
+    /// Malformed instruction: The instruction is not in the expected format.
+    MalformedInstruction,
     /// Did not expect a continuation line, but got one.
     UnexpectedContinuation,
 }
@@ -70,16 +72,16 @@ mod util {
         let split_at = s
             .chars()
             .position(|c| !c.is_digit(10))
-            .ok_or(ParseError::InvalidInstruction)?;
+            .ok_or(ParseError::MalformedInstruction)?;
         let (num, suffix) = s.split_at(split_at);
         // Parse the number
-        let num = num.parse().map_err(|_| ParseError::InvalidInstruction)?;
+        let num = num.parse().map_err(|_| ParseError::MalformedInstruction)?;
         // Parse the suffix
         match suffix {
             "s" => Ok(Duration::from_secs(num)),
             "ms" => Ok(Duration::from_millis(num)),
             "us" => Ok(Duration::from_micros(num)),
-            _ => Err(ParseError::InvalidInstruction),
+            _ => Err(ParseError::MalformedInstruction),
         }
     }
     /// Parse a `"`-wrapped string. If not wrapped, return the string as it is. Note that it is a rather loose implementation, disregarding any escape sequences.
@@ -99,7 +101,7 @@ mod tests {
     use std::time::Duration;
 
     #[test]
-    fn test_instruction_parse_with_space() {
+    fn instruction_with_space() {
         use Instruction::*;
         let instructions = [
             (
@@ -135,7 +137,7 @@ mod tests {
     }
 
     #[test]
-    fn test_instruction_parse_without_space() {
+    fn instruction_without_space() {
         use Instruction::*;
         let instructions = [
             (
@@ -158,26 +160,33 @@ mod tests {
     }
 
     #[test]
-    fn test_instruction_parse_empty() {
-        let empty_lines = ["", " ", "  ", "\t", "\t ", " \t", "\n"];
+    fn empty_instruction() {
+        let empty_lines = ["", " ", "\t", "\t ", " \t", "\n", "\r\n", "# some comment"];
         for line in empty_lines.iter() {
             assert_eq!(&Instruction::parse(line).unwrap(), &Instruction::Empty);
         }
     }
 
     #[test]
-    fn test_instruction_parse_invalid() {
-        let invalid_lines = ["invalid", "&", "~"];
-        for line in invalid_lines.iter() {
+    fn invalid_instruction() {
+        let unknown_instructions = ["invalid", "&", "~"];
+        for line in unknown_instructions.iter() {
             assert_eq!(
                 Instruction::parse(line).unwrap_err(),
-                ParseError::InvalidInstruction
+                ParseError::UnknownInstruction
+            );
+        }
+        let malformed_instructions = ["@", "@@"];
+        for line in malformed_instructions.iter() {
+            assert_eq!(
+                Instruction::parse(line).unwrap_err(),
+                ParseError::MalformedInstruction
             );
         }
     }
 
     #[test]
-    fn test_parse_duration() {
+    fn duration() {
         let durations = [
             ("1s", Duration::from_secs(1)),
             ("2ms", Duration::from_millis(2)),

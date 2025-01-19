@@ -39,19 +39,23 @@ impl ConfigInstruction {
         let s = s.trim();
         let mut iter = s.split_whitespace();
         let Some(first) = iter.next() else {
-            return Err(ParseError::InvalidInstruction);
+            return Err(ParseError::MalformedInstruction);
         };
         match first {
             "width" => {
-                let width = iter.next().ok_or(ParseError::InvalidInstruction)?;
+                let width = iter.next().ok_or(ParseError::MalformedInstruction)?;
                 Ok(Self::Width(
-                    width.parse().map_err(|_| ParseError::InvalidInstruction)?,
+                    width
+                        .parse()
+                        .map_err(|_| ParseError::MalformedInstruction)?,
                 ))
             }
             "height" => {
-                let height = iter.next().ok_or(ParseError::InvalidInstruction)?;
+                let height = iter.next().ok_or(ParseError::MalformedInstruction)?;
                 Ok(Self::Height(
-                    height.parse().map_err(|_| ParseError::InvalidInstruction)?,
+                    height
+                        .parse()
+                        .map_err(|_| ParseError::MalformedInstruction)?,
                 ))
             }
             "title" => {
@@ -67,7 +71,7 @@ impl ConfigInstruction {
                 Ok(Self::Quit(quit))
             }
             "idle" => {
-                let idle = iter.next().ok_or(ParseError::InvalidInstruction)?;
+                let idle = iter.next().ok_or(ParseError::MalformedInstruction)?;
                 Ok(Self::Idle(util::parse_duration(idle)?))
             }
             "prompt" => {
@@ -88,28 +92,31 @@ impl ConfigInstruction {
                     match word {
                         "true" => Ok(Self::Hidden(true)),
                         "false" => Ok(Self::Hidden(false)),
-                        _ => Err(ParseError::InvalidInstruction),
+                        _ => Err(ParseError::MalformedInstruction),
                     }
                 } else {
                     Ok(Self::Hidden(true)) // Default to true
                 }
             }
             "delay" => {
-                let delay = iter.next().ok_or(ParseError::InvalidInstruction)?;
+                let delay = iter.next().ok_or(ParseError::MalformedInstruction)?;
                 Ok(Self::Delay(util::parse_duration(delay)?))
             }
-            _ => Err(ParseError::InvalidInstruction),
+            _ => Err(ParseError::MalformedInstruction),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::ConfigInstruction::{self, *};
+    use super::{
+        ConfigInstruction::{self, *},
+        ParseError,
+    };
     use std::time::Duration;
 
     #[test]
-    fn test_parse_config_instruction() {
+    fn config_instruction() {
         let instructions = [
             ("width 123", Width(123)),
             ("height 456", Height(456)),
@@ -129,6 +136,17 @@ mod tests {
         ];
         for (input, expected) in instructions.iter() {
             assert_eq!(ConfigInstruction::parse(input).unwrap(), *expected);
+        }
+    }
+
+    #[test]
+    fn malformed_config_instruction() {
+        let malformed_instructions = ["invalid", "width", "hidden what", "delay", "delay 2"];
+        for line in malformed_instructions.iter() {
+            assert_eq!(
+                ConfigInstruction::parse(line).unwrap_err(),
+                ParseError::MalformedInstruction
+            );
         }
     }
 }
