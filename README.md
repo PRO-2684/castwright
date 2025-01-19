@@ -21,6 +21,10 @@ TBD
 
 TBD
 
+## Reference
+
+See [`REFERENCE.md`](./REFERENCE.md) for a detailed reference of the `castwright` script format (`.cw`).
+
 ## Credits
 
 - [asciinema](https://asciinema.org)

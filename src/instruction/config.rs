@@ -6,7 +6,7 @@ use std::time::Duration;
 /// A configuration instruction, either persistent or temporary.
 #[derive(Debug, PartialEq)]
 pub enum ConfigInstruction {
-    // Configuration that doesn't apply to commands (metadata)
+    // Configuration that doesn't apply to instructions (metadata)
     /// Terminal width.
     Width(usize),
     /// Terminal height.
@@ -20,7 +20,7 @@ pub enum ConfigInstruction {
     /// Idle time limit.
     Idle(Duration),
 
-    // Configuration that applies to commands
+    // Configuration that applies to other instructions (directive)
     /// The shell prompt to use in the asciicast output.
     Prompt(String),
     /// The shell secondary prompt to use in the asciicast (for continuation lines).
@@ -29,7 +29,7 @@ pub enum ConfigInstruction {
     LineSplit(String),
     /// Whether the command should be executed silently.
     Hidden(bool),
-    /// Delay between characters in a command.
+    /// Typing delay between characters in a command.
     Delay(Duration),
 }
 

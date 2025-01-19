@@ -12,7 +12,7 @@
 # Set the terminal height, default is current terminal height
 @@height auto
 # Title of the asciicast (no point setting this using temporary configuration)
-@@title Castwright Demo
+@@title Castwright Script
 # Terminal idle timeout
 @@idle 1s
 # Delay between each character

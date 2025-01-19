@@ -15,12 +15,12 @@ pub enum Instruction {
     Print(String),
     /// Marker. (`!`)
     Marker(String),
-    /// Comment (`#`) or empty line.
-    Empty,
     /// One-line shell command. (`$`)
     Command(String),
     /// Continuation of a multi-line shell command. (`>`)
     Continuation(String),
+    /// Comment (`#`) or empty line.
+    Empty,
 }
 
 impl Instruction {
