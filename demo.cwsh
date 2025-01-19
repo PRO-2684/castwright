@@ -1,0 +1,51 @@
+# Comments start with `#`, which won't have any effect on the outcome
+
+# To print some content as it is, prefix with `%`
+% This will be printed as it is
+# Output:
+# This will be printed as it is
+
+# Metadata or persistent configuration (`@@`)
+# Sets metadata for output asciicast,
+# or configuration for all FOLLOWING commands
+# Set the width of screen, default is auto
+@@width: auto
+# Set the height of screen, default is auto
+@@height: auto
+# Title of the asciicast
+@@title: Castwright Demo
+# Terminal idle timeout
+@@idle: 1s
+# Typing speed
+@@type_speed: 100ms
+# ...
+
+# Temporary configuration (`@`): Configuration for this command only
+@hidden: true
+# The following command will be executed but not printed
+
+# Shell command (`$`, an extra space is recommended)
+$ echo "Hello, World!"
+# Output:
+# Hello, World!
+
+# This command will be printed and executed
+$ echo "Hello, World again!"
+# Output:
+# $ echo "Hello, World again!"
+# Hello, World again!
+
+# Marker (`!`)
+!Multiline
+
+# Start a multiline command with a regular command
+$ echo "Multi-"
+# Use `>` as prefix to continue
+> "line"
+> "command"
+# Note that the trailing `\` is automatically added
+# Output:
+# $ echo "Multi-" \
+# > "line" \
+# > "command"
+# Multi- line command
