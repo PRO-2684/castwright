@@ -81,21 +81,6 @@ enum ConfigInstruction {
 }
 
 impl ConfigInstruction {
-    /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
-    fn parse_duration(s: &str) -> Result<Duration, ParseError> {
-        // Split the number and the suffix
-        let split_at = s.chars().position(|c| !c.is_digit(10)).ok_or(ParseError::InvalidInstruction)?;
-        let (num, suffix) = s.split_at(split_at);
-        // Parse the number
-        let num = num.parse().map_err(|_| ParseError::InvalidInstruction)?;
-        // Parse the suffix
-        match suffix {
-            "s" => Ok(Duration::from_secs(num)),
-            "ms" => Ok(Duration::from_millis(num)),
-            "us" => Ok(Duration::from_micros(num)),
-            _ => Err(ParseError::InvalidInstruction),
-        }
-    }
     /// Parse a line into a `ConfigInstruction`.
     fn parse(s: &str) -> Result<Self, ParseError> {
         let s = s.trim();
@@ -125,13 +110,8 @@ impl ConfigInstruction {
                 Ok(Self::Quit(quit))
             },
             "idle" => {
-                // There should be only one word after "idle"
                 let idle = iter.next().ok_or(ParseError::InvalidInstruction)?;
-                // Error if there is more
-                if iter.next().is_some() {
-                    return Err(ParseError::InvalidInstruction);
-                }
-                Ok(Self::Idle(Self::parse_duration(idle)?))
+                Ok(Self::Idle(util::parse_duration(idle)?))
             },
             "prompt" => {
                 let prompt = s[6..].trim().to_string();
@@ -159,7 +139,7 @@ impl ConfigInstruction {
             },
             "delay" => {
                 let delay = iter.next().ok_or(ParseError::InvalidInstruction)?;
-                Ok(Self::Delay(Self::parse_duration(delay)?))
+                Ok(Self::Delay(util::parse_duration(delay)?))
             },
             _ => Err(ParseError::InvalidInstruction),
         }
@@ -174,6 +154,26 @@ enum ParseError {
     InvalidInstruction,
     /// Did not expect a continuation line, but got one.
     UnexpectedContinuation,
+}
+
+mod util {
+    use std::time::Duration;
+    use super::ParseError;
+    /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
+    pub fn parse_duration(s: &str) -> Result<Duration, ParseError> {
+        // Split the number and the suffix
+        let split_at = s.chars().position(|c| !c.is_digit(10)).ok_or(ParseError::InvalidInstruction)?;
+        let (num, suffix) = s.split_at(split_at);
+        // Parse the number
+        let num = num.parse().map_err(|_| ParseError::InvalidInstruction)?;
+        // Parse the suffix
+        match suffix {
+            "s" => Ok(Duration::from_secs(num)),
+            "ms" => Ok(Duration::from_millis(num)),
+            "us" => Ok(Duration::from_micros(num)),
+            _ => Err(ParseError::InvalidInstruction),
+        }
+    }
 }
 
 #[cfg(test)]
@@ -257,7 +257,29 @@ mod tests {
             ("3us", Duration::from_micros(3)),
         ];
         for (input, expected) in durations.iter() {
-            assert_eq!(ConfigInstruction::parse_duration(input).unwrap(), *expected);
+            assert_eq!(util::parse_duration(input).unwrap(), *expected);
+        }
+    }
+
+    #[test]
+    fn test_parse_config_instruction() {
+        use ConfigInstruction::*;
+        let instructions = [
+            ("width 123", Width(123)),
+            ("height 456", Height(456)),
+            ("title castwright demo", Title("castwright demo".to_string())),
+            ("shell bash", Shell("bash".to_string())),
+            ("quit exit", Quit("exit".to_string())),
+            ("idle 1s", Idle(Duration::from_secs(1))),
+            ("prompt $ ", Prompt("$ ".to_string())),
+            ("secondary-prompt > ", SecondaryPrompt("> ".to_string())),
+            ("line-split \\", LineSplit("\\".to_string())),
+            ("hidden true", Hidden(true)),
+            ("hidden false", Hidden(false)),
+            ("delay 2ms", Delay(Duration::from_millis(2))),
+        ];
+        for (input, expected) in instructions.iter() {
+            assert_eq!(ConfigInstruction::parse(input).unwrap(), *expected);
         }
     }
 }
