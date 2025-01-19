@@ -40,7 +40,7 @@ impl Instruction {
                     '@' => Ok(Self::PersistentConfig(ConfigInstruction::parse(&s[2..])?)),
                     _ => Ok(Self::TemporaryConfig(ConfigInstruction::parse(&trimmed)?)),
                 }
-            },
+            }
             '%' => Ok(Self::Print(trimmed)),
             '!' => Ok(Self::Marker(trimmed)),
             '#' => Ok(Self::Empty),
@@ -62,12 +62,15 @@ enum ParseError {
 }
 
 mod util {
-    use std::time::Duration;
     use super::ParseError;
+    use std::time::Duration;
     /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
     pub fn parse_duration(s: &str) -> Result<Duration, ParseError> {
         // Split the number and the suffix
-        let split_at = s.chars().position(|c| !c.is_digit(10)).ok_or(ParseError::InvalidInstruction)?;
+        let split_at = s
+            .chars()
+            .position(|c| !c.is_digit(10))
+            .ok_or(ParseError::InvalidInstruction)?;
         let (num, suffix) = s.split_at(split_at);
         // Parse the number
         let num = num.parse().map_err(|_| ParseError::InvalidInstruction)?;
@@ -83,7 +86,7 @@ mod util {
     pub fn parse_quoted_string(s: &str) -> String {
         // FIXME: Check for escape sequences
         if s.starts_with('"') && s.ends_with('"') {
-            s[1..s.len()-1].to_string()
+            s[1..s.len() - 1].to_string()
         } else {
             s.to_string()
         }
@@ -99,15 +102,27 @@ mod tests {
     fn test_instruction_parse_with_space() {
         use Instruction::*;
         let instructions = [
-            (" @@width 123", PersistentConfig(ConfigInstruction::Width(123))),
-            (" @height 456", TemporaryConfig(ConfigInstruction::Height(456))),
+            (
+                " @@width 123",
+                PersistentConfig(ConfigInstruction::Width(123)),
+            ),
+            (
+                " @height 456",
+                TemporaryConfig(ConfigInstruction::Height(456)),
+            ),
             (" %print", Print("print".to_string())),
             (" !marker", Marker("marker".to_string())),
             (" #comment", Empty),
             (" $command", Command("command".to_string())),
             (" >continuation", Continuation("continuation".to_string())),
-            ("@@ width 123", PersistentConfig(ConfigInstruction::Width(123))),
-            ("@ height 456", TemporaryConfig(ConfigInstruction::Height(456))),
+            (
+                "@@ width 123",
+                PersistentConfig(ConfigInstruction::Width(123)),
+            ),
+            (
+                "@ height 456",
+                TemporaryConfig(ConfigInstruction::Height(456)),
+            ),
             ("% print", Print("print".to_string())),
             ("! marker", Marker("marker".to_string())),
             ("# comment", Empty),
@@ -123,8 +138,14 @@ mod tests {
     fn test_instruction_parse_without_space() {
         use Instruction::*;
         let instructions = [
-            ("@@width 123", PersistentConfig(ConfigInstruction::Width(123))),
-            ("@height 456", TemporaryConfig(ConfigInstruction::Height(456))),
+            (
+                "@@width 123",
+                PersistentConfig(ConfigInstruction::Width(123)),
+            ),
+            (
+                "@height 456",
+                TemporaryConfig(ConfigInstruction::Height(456)),
+            ),
             ("%print", Print("print".to_string())),
             ("!marker", Marker("marker".to_string())),
             ("#comment", Empty),
@@ -138,15 +159,7 @@ mod tests {
 
     #[test]
     fn test_instruction_parse_empty() {
-        let empty_lines = [
-            "",
-            " ",
-            "  ",
-            "\t",
-            "\t ",
-            " \t",
-            "\n",
-        ];
+        let empty_lines = ["", " ", "  ", "\t", "\t ", " \t", "\n"];
         for line in empty_lines.iter() {
             assert_eq!(&Instruction::parse(line).unwrap(), &Instruction::Empty);
         }
@@ -154,13 +167,12 @@ mod tests {
 
     #[test]
     fn test_instruction_parse_invalid() {
-        let invalid_lines = [
-            "invalid",
-            "&",
-            "~",
-        ];
+        let invalid_lines = ["invalid", "&", "~"];
         for line in invalid_lines.iter() {
-            assert_eq!(Instruction::parse(line).unwrap_err(), ParseError::InvalidInstruction);
+            assert_eq!(
+                Instruction::parse(line).unwrap_err(),
+                ParseError::InvalidInstruction
+            );
         }
     }
 

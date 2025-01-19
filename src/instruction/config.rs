@@ -1,7 +1,7 @@
 //! Module for parsing config instructions.
 
+use super::{util, ParseError};
 use std::time::Duration;
-use super::{ParseError, util};
 
 /// A configuration instruction, either persistent or temporary.
 #[derive(Debug, PartialEq)]
@@ -44,40 +44,44 @@ impl ConfigInstruction {
         match first {
             "width" => {
                 let width = iter.next().ok_or(ParseError::InvalidInstruction)?;
-                Ok(Self::Width(width.parse().map_err(|_| ParseError::InvalidInstruction)?))
-            },
+                Ok(Self::Width(
+                    width.parse().map_err(|_| ParseError::InvalidInstruction)?,
+                ))
+            }
             "height" => {
                 let height = iter.next().ok_or(ParseError::InvalidInstruction)?;
-                Ok(Self::Height(height.parse().map_err(|_| ParseError::InvalidInstruction)?))
-            },
+                Ok(Self::Height(
+                    height.parse().map_err(|_| ParseError::InvalidInstruction)?,
+                ))
+            }
             "title" => {
                 let title = util::parse_quoted_string(s[5..].trim());
                 Ok(Self::Title(title))
-            },
+            }
             "shell" => {
                 let shell = util::parse_quoted_string(s[5..].trim());
                 Ok(Self::Shell(shell))
-            },
+            }
             "quit" => {
                 let quit = util::parse_quoted_string(s[4..].trim());
                 Ok(Self::Quit(quit))
-            },
+            }
             "idle" => {
                 let idle = iter.next().ok_or(ParseError::InvalidInstruction)?;
                 Ok(Self::Idle(util::parse_duration(idle)?))
-            },
+            }
             "prompt" => {
                 let prompt = util::parse_quoted_string(s[6..].trim());
                 Ok(Self::Prompt(prompt))
-            },
+            }
             "secondary-prompt" => {
                 let prompt = util::parse_quoted_string(s[16..].trim());
                 Ok(Self::SecondaryPrompt(prompt))
-            },
+            }
             "line-split" => {
                 let split = util::parse_quoted_string(s[10..].trim());
                 Ok(Self::LineSplit(split))
-            },
+            }
             "hidden" => {
                 let hidden = iter.next();
                 if let Some(word) = hidden {
@@ -89,11 +93,11 @@ impl ConfigInstruction {
                 } else {
                     Ok(Self::Hidden(true)) // Default to true
                 }
-            },
+            }
             "delay" => {
                 let delay = iter.next().ok_or(ParseError::InvalidInstruction)?;
                 Ok(Self::Delay(util::parse_duration(delay)?))
-            },
+            }
             _ => Err(ParseError::InvalidInstruction),
         }
     }
@@ -109,7 +113,10 @@ mod tests {
         let instructions = [
             ("width 123", Width(123)),
             ("height 456", Height(456)),
-            ("title castwright demo", Title("castwright demo".to_string())),
+            (
+                "title castwright demo",
+                Title("castwright demo".to_string()),
+            ),
             ("shell bash ", Shell("bash".to_string())),
             ("quit \"exit \"", Quit("exit ".to_string())),
             ("idle 1s", Idle(Duration::from_secs(1))),
