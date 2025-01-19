@@ -98,15 +98,15 @@ impl ConfigInstruction {
                 Ok(Self::Height(height.parse().map_err(|_| ParseError::InvalidInstruction)?))
             },
             "title" => {
-                let title = s[5..].trim().to_string();
+                let title = util::parse_quoted_string(s[5..].trim());
                 Ok(Self::Title(title))
             },
             "shell" => {
-                let shell = s[5..].trim().to_string();
+                let shell = util::parse_quoted_string(s[5..].trim());
                 Ok(Self::Shell(shell))
             },
             "quit" => {
-                let quit = s[4..].trim().to_string();
+                let quit = util::parse_quoted_string(s[4..].trim());
                 Ok(Self::Quit(quit))
             },
             "idle" => {
@@ -114,15 +114,15 @@ impl ConfigInstruction {
                 Ok(Self::Idle(util::parse_duration(idle)?))
             },
             "prompt" => {
-                let prompt = s[6..].trim().to_string();
+                let prompt = util::parse_quoted_string(s[6..].trim());
                 Ok(Self::Prompt(prompt))
             },
             "secondary-prompt" => {
-                let prompt = s[16..].trim().to_string();
+                let prompt = util::parse_quoted_string(s[16..].trim());
                 Ok(Self::SecondaryPrompt(prompt))
             },
             "line-split" => {
-                let split = s[10..].trim().to_string();
+                let split = util::parse_quoted_string(s[10..].trim());
                 Ok(Self::LineSplit(split))
             },
             "hidden" => {
@@ -172,6 +172,15 @@ mod util {
             "ms" => Ok(Duration::from_millis(num)),
             "us" => Ok(Duration::from_micros(num)),
             _ => Err(ParseError::InvalidInstruction),
+        }
+    }
+    /// Parse a `"`-wrapped string. If not wrapped, return the string as it is. Note that it is a rather loose implementation, disregarding any escape sequences.
+    pub fn parse_quoted_string(s: &str) -> String {
+        // FIXME: Check for escape sequences
+        if s.starts_with('"') && s.ends_with('"') {
+            s[1..s.len()-1].to_string()
+        } else {
+            s.to_string()
         }
     }
 }
@@ -268,11 +277,11 @@ mod tests {
             ("width 123", Width(123)),
             ("height 456", Height(456)),
             ("title castwright demo", Title("castwright demo".to_string())),
-            ("shell bash", Shell("bash".to_string())),
-            ("quit exit", Quit("exit".to_string())),
+            ("shell bash ", Shell("bash".to_string())),
+            ("quit \"exit \"", Quit("exit ".to_string())),
             ("idle 1s", Idle(Duration::from_secs(1))),
-            ("prompt $ ", Prompt("$ ".to_string())),
-            ("secondary-prompt > ", SecondaryPrompt("> ".to_string())),
+            ("prompt \"$ \"", Prompt("$ ".to_string())),
+            ("secondary-prompt \"> \"", SecondaryPrompt("> ".to_string())),
             ("line-split \\", LineSplit("\\".to_string())),
             ("hidden true", Hidden(true)),
             ("hidden false", Hidden(false)),
