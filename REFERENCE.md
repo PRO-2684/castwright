@@ -88,11 +88,19 @@ A temporary instruction affects only the next instruction (that is not a configu
 
 ### Print
 
+A print instruction prints a string as it is. Note that it will still trim leading and trailing whitespace characters.
+
 ### Marker
+
+A marker instruction marks a point in the asciicast output. It can be used to indicate the start of a new section or to provide a reference point for the viewer.
 
 ### Command
 
+A command instruction prints, executes, and displays the output of a command. Usually, you'll use it the most in your script.
+
 ### Continuation
+
+A continuation instruction is a continuation of a multi-line shell command. It must be used after a command instruction or another continuation instruction.
 
 ### Empty
 

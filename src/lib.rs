@@ -1,7 +1,7 @@
 mod instruction;
 pub use instruction::{ConfigInstruction, Instruction};
 
-/// Possible errors that can occur while parsing a `.cwsh` file.
+/// Possible errors that can occur while parsing a `.cw` file.
 #[derive(Debug, PartialEq)]
 pub enum ParseError {
     // General parsing errors
