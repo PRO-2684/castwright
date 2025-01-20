@@ -134,12 +134,12 @@ mod tests {
         use Instruction::*;
         let instructions = [
             (
-                " @@width 123",
-                PersistentConfig(ConfigInstruction::Width(123)),
+                " @@width auto",
+                PersistentConfig(ConfigInstruction::Width(None)),
             ),
             (
                 " @height 456",
-                TemporaryConfig(ConfigInstruction::Height(456)),
+                TemporaryConfig(ConfigInstruction::Height(Some(456))),
             ),
             (" %print", Print("print".to_string())),
             (" !marker", Marker("marker".to_string())),
@@ -148,11 +148,11 @@ mod tests {
             (" >continuation", Continuation("continuation".to_string())),
             (
                 "@@ width 123",
-                PersistentConfig(ConfigInstruction::Width(123)),
+                PersistentConfig(ConfigInstruction::Width(Some(123))),
             ),
             (
                 "@ height 456",
-                TemporaryConfig(ConfigInstruction::Height(456)),
+                TemporaryConfig(ConfigInstruction::Height(Some(456))),
             ),
             ("% print", Print("print".to_string())),
             ("! marker", Marker("marker".to_string())),
@@ -170,12 +170,12 @@ mod tests {
         use Instruction::*;
         let instructions = [
             (
-                "@@width 123",
-                PersistentConfig(ConfigInstruction::Width(123)),
+                "@@width auto",
+                PersistentConfig(ConfigInstruction::Width(None)),
             ),
             (
                 "@height 456",
-                TemporaryConfig(ConfigInstruction::Height(456)),
+                TemporaryConfig(ConfigInstruction::Height(Some(456))),
             ),
             ("%print", Print("print".to_string())),
             ("!marker", Marker("marker".to_string())),
@@ -230,7 +230,7 @@ mod tests {
     fn script() {
         let script = r#"
             @@width 123
-            @height 456
+            @height auto
             %print
             !marker
             #comment
@@ -242,8 +242,8 @@ mod tests {
         let script = BufReader::new(script);
         let script = Script::parse(script).unwrap();
         let expected = vec![
-            Instruction::PersistentConfig(ConfigInstruction::Width(123)),
-            Instruction::TemporaryConfig(ConfigInstruction::Height(456)),
+            Instruction::PersistentConfig(ConfigInstruction::Width(Some(123))),
+            Instruction::TemporaryConfig(ConfigInstruction::Height(None)),
             Instruction::Print("print".to_string()),
             Instruction::Marker("marker".to_string()),
             Instruction::Empty,

@@ -8,9 +8,9 @@ use std::time::Duration;
 pub enum ConfigInstruction {
     // Configuration that doesn't apply to instructions (metadata)
     /// Terminal width.
-    Width(usize),
+    Width(Option<usize>),
     /// Terminal height.
-    Height(usize),
+    Height(Option<usize>),
     /// Title of the asciicast.
     Title(String),
     /// The shell to use.
@@ -34,6 +34,14 @@ pub enum ConfigInstruction {
 }
 
 impl ConfigInstruction {
+    /// Parse an optional integer, returning `None` if the string is `auto`.
+    fn parse_optional_int(s: &str) -> Result<Option<usize>, ParseError> {
+        if s == "auto" {
+            Ok(None)
+        } else {
+            s.parse().map(Some).map_err(|_| ParseError::MalformedInstruction)
+        }
+    }
     /// Parse a line into a `ConfigInstruction`.
     pub fn parse(s: &str) -> Result<Self, ParseError> {
         let s = s.trim();
@@ -45,17 +53,13 @@ impl ConfigInstruction {
             "width" => {
                 let width = iter.next().ok_or(ParseError::MalformedInstruction)?;
                 Ok(Self::Width(
-                    width
-                        .parse()
-                        .map_err(|_| ParseError::MalformedInstruction)?,
+                    Self::parse_optional_int(width)?,
                 ))
             }
             "height" => {
                 let height = iter.next().ok_or(ParseError::MalformedInstruction)?;
                 Ok(Self::Height(
-                    height
-                        .parse()
-                        .map_err(|_| ParseError::MalformedInstruction)?,
+                    Self::parse_optional_int(height)?,
                 ))
             }
             "title" => {
@@ -118,8 +122,10 @@ mod tests {
     #[test]
     fn config_instruction() {
         let instructions = [
-            ("width 123", Width(123)),
-            ("height 456", Height(456)),
+            ("width 123", Width(Some(123))),
+            ("height 456", Height(Some(456))),
+            ("width auto", Width(None)),
+            ("height auto", Height(None)),
             (
                 "title castwright demo",
                 Title("castwright demo".to_string()),
