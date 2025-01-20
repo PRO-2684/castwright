@@ -36,7 +36,7 @@ impl Instruction {
         match first {
             '@' => {
                 let Some(second) = s.chars().nth(1) else {
-                    return Err(ParseError::MalformedInstruction);
+                    return Err(ParseError::MalformedInstruction(None));
                 };
                 match second {
                     '@' => Ok(Self::PersistentConfig(ConfigInstruction::parse(&s[2..])?)),
@@ -48,7 +48,7 @@ impl Instruction {
             '#' => Ok(Self::Empty),
             '$' => Ok(Self::Command(trimmed)),
             '>' => Ok(Self::Continuation(trimmed)),
-            _ => Err(ParseError::UnknownInstruction),
+            _ => Err(ParseError::UnknownInstruction(None)),
         }
     }
 }
@@ -62,19 +62,19 @@ pub struct Script {
 impl Script {
     pub fn parse(reader: impl BufRead) -> Result<Self, ParseError> {
         let mut instructions = Vec::new();
-        for line in reader.lines() {
+        for (line_number, line) in reader.lines().enumerate() {
             let line = line.map_err(ParseError::Io)?;
-            let instruction = Instruction::parse(&line)?;
+            let instruction = Instruction::parse(&line).map_err(|e| e.with_line(line_number + 1))?;
             // Check for UnexpectedContinuation (a continuation instruction must follow another continuation instruction or a command instruction)
             if matches!(instruction, Instruction::Continuation(_)) {
                 if instructions.is_empty() {
-                    return Err(ParseError::UnexpectedContinuation);
+                    return Err(ParseError::UnexpectedContinuation(Some(line_number + 1)));
                 }
                 if !matches!(
                     instructions.last().unwrap(),
                     Instruction::Continuation(_) | Instruction::Command(_)
                 ) {
-                    return Err(ParseError::UnexpectedContinuation);
+                    return Err(ParseError::UnexpectedContinuation(Some(line_number + 1)));
                 }
             }
             instructions.push(instruction);
@@ -101,16 +101,16 @@ mod util {
         let split_at = s
             .chars()
             .position(|c| !c.is_digit(10))
-            .ok_or(ParseError::MalformedInstruction)?;
+            .ok_or(ParseError::MalformedInstruction(None))?;
         let (num, suffix) = s.split_at(split_at);
         // Parse the number
-        let num = num.parse().map_err(|_| ParseError::MalformedInstruction)?;
+        let num = num.parse().map_err(|_| ParseError::MalformedInstruction(None))?;
         // Parse the suffix
         match suffix {
             "s" => Ok(Duration::from_secs(num)),
             "ms" => Ok(Duration::from_millis(num)),
             "us" => Ok(Duration::from_micros(num)),
-            _ => Err(ParseError::MalformedInstruction),
+            _ => Err(ParseError::MalformedInstruction(None)),
         }
     }
     /// Parse a `"`-wrapped string. If not wrapped, return the string as it is. Note that it is a rather loose implementation, disregarding any escape sequences.
@@ -202,14 +202,14 @@ mod tests {
         for line in unknown_instructions.iter() {
             assert!(matches!(
                 Instruction::parse(line).unwrap_err(),
-                ParseError::UnknownInstruction
+                ParseError::UnknownInstruction(None)
             ));
         }
         let malformed_instructions = ["@", "@@"];
         for line in malformed_instructions.iter() {
             assert!(matches!(
                 Instruction::parse(line).unwrap_err(),
-                ParseError::MalformedInstruction
+                ParseError::MalformedInstruction(None)
             ));
         }
     }
@@ -270,7 +270,7 @@ mod tests {
         let script = BufReader::new(script);
         assert!(matches!(
             Script::parse(script).unwrap_err(),
-            ParseError::UnknownInstruction
+            ParseError::UnknownInstruction(Some(8))
         ));
     }
 
@@ -293,7 +293,7 @@ mod tests {
             let script = BufReader::new(script);
             assert!(matches!(
                 Script::parse(script).unwrap_err(),
-                ParseError::MalformedInstruction
+                ParseError::MalformedInstruction(Some(2))
             ));
         }
     }
@@ -310,7 +310,7 @@ mod tests {
         let script = BufReader::new(script);
         assert!(matches!(
             Script::parse(script).unwrap_err(),
-            ParseError::UnexpectedContinuation
+            ParseError::UnexpectedContinuation(Some(3))
         ));
     }
 }
