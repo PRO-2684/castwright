@@ -1,6 +1,8 @@
 //! Module for parsing instructions.
 
 mod config;
+use std::io::BufRead;
+
 use super::ParseError;
 pub use config::ConfigInstruction;
 
@@ -51,6 +53,45 @@ impl Instruction {
     }
 }
 
+/// A `.cw` script
+#[derive(Debug)]
+pub struct Script {
+    instructions: Vec<Instruction>,
+}
+
+impl Script {
+    pub fn parse(reader: impl BufRead) -> Result<Self, ParseError> {
+        let mut instructions = Vec::new();
+        for line in reader.lines() {
+            let line = line.map_err(ParseError::Io)?;
+            let instruction = Instruction::parse(&line)?;
+            // Check for UnexpectedContinuation (a continuation instruction must follow another continuation instruction or a command instruction)
+            if matches!(instruction, Instruction::Continuation(_)) {
+                if instructions.is_empty() {
+                    return Err(ParseError::UnexpectedContinuation);
+                }
+                if !matches!(
+                    instructions.last().unwrap(),
+                    Instruction::Continuation(_) | Instruction::Command(_)
+                ) {
+                    return Err(ParseError::UnexpectedContinuation);
+                }
+            }
+            instructions.push(instruction);
+        }
+        Ok(Self { instructions })
+    }
+
+    pub fn execute(&self) {
+        execute_instructions(&self.instructions);
+    }
+}
+
+fn execute_instructions(instructions: &[Instruction]) {
+    // TODO: Implement this function
+    println!("{:?}", instructions);
+}
+
 mod util {
     use super::ParseError;
     use std::time::Duration;
@@ -86,7 +127,7 @@ mod util {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::time::Duration;
+    use std::{io::BufReader, time::Duration};
 
     #[test]
     fn instruction_with_space() {
@@ -159,17 +200,17 @@ mod tests {
     fn invalid_instruction() {
         let unknown_instructions = ["invalid", "&", "~"];
         for line in unknown_instructions.iter() {
-            assert_eq!(
+            assert!(matches!(
                 Instruction::parse(line).unwrap_err(),
                 ParseError::UnknownInstruction
-            );
+            ));
         }
         let malformed_instructions = ["@", "@@"];
         for line in malformed_instructions.iter() {
-            assert_eq!(
+            assert!(matches!(
                 Instruction::parse(line).unwrap_err(),
                 ParseError::MalformedInstruction
-            );
+            ));
         }
     }
 
@@ -183,5 +224,93 @@ mod tests {
         for (input, expected) in durations.iter() {
             assert_eq!(util::parse_duration(input).unwrap(), *expected);
         }
+    }
+
+    #[test]
+    fn script() {
+        let script = r#"
+            @@width 123
+            @height 456
+            %print
+            !marker
+            #comment
+            $command
+            >continuation
+        "#;
+        let script = script.trim();
+        let script = script.as_bytes();
+        let script = BufReader::new(script);
+        let script = Script::parse(script).unwrap();
+        let expected = vec![
+            Instruction::PersistentConfig(ConfigInstruction::Width(123)),
+            Instruction::TemporaryConfig(ConfigInstruction::Height(456)),
+            Instruction::Print("print".to_string()),
+            Instruction::Marker("marker".to_string()),
+            Instruction::Empty,
+            Instruction::Command("command".to_string()),
+            Instruction::Continuation("continuation".to_string()),
+        ];
+        assert_eq!(script.instructions, expected);
+    }
+
+    #[test]
+    fn script_unknown_instruction() {
+        let script = r#"
+            @@width 123
+            @height 456
+            %print
+            !marker
+            #comment
+            $command
+            >continuation
+            unknown
+        "#;
+        let script = script.trim();
+        let script = script.as_bytes();
+        let script = BufReader::new(script);
+        assert!(matches!(
+            Script::parse(script).unwrap_err(),
+            ParseError::UnknownInstruction
+        ));
+    }
+
+    #[test]
+    fn script_malformed_instruction() {
+        let malformed_scripts = [
+            // Config instruction
+            "#abc\n@",                   // Expected character after @
+            "#abc\n@@",                  // Expected character after @@
+            "#abc\n@@wid",               // Unrecognized configuration instruction
+            "@@width 123\n@@height abc", // Malformed integer
+            "@@width 123\n@idle 1",      // Malformed duration - no suffix
+            "@@width 123\n@idle 1min",   // Malformed duration - invalid suffix
+            "@@width 123\n@delay",       // Malformed duration - no value
+            "@@width 123\n@hidden what", // Malformed boolean
+        ];
+        for script in malformed_scripts.iter() {
+            let script = script.trim();
+            let script = script.as_bytes();
+            let script = BufReader::new(script);
+            assert!(matches!(
+                Script::parse(script).unwrap_err(),
+                ParseError::MalformedInstruction
+            ));
+        }
+    }
+
+    #[test]
+    fn script_unexpected_continuation() {
+        let script = r#"
+            $command
+            @width 123
+            >continuation
+        "#; // This case should be supported in the future
+        let script = script.trim();
+        let script = script.as_bytes();
+        let script = BufReader::new(script);
+        assert!(matches!(
+            Script::parse(script).unwrap_err(),
+            ParseError::UnexpectedContinuation
+        ));
     }
 }

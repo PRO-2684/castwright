@@ -143,10 +143,10 @@ mod tests {
     fn malformed_config_instruction() {
         let malformed_instructions = ["invalid", "width", "hidden what", "delay", "delay 2"];
         for line in malformed_instructions.iter() {
-            assert_eq!(
+            assert!(matches!(
                 ConfigInstruction::parse(line).unwrap_err(),
                 ParseError::MalformedInstruction
-            );
+            ));
         }
     }
 }
