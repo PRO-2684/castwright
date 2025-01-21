@@ -8,9 +8,9 @@ use std::time::Duration;
 pub enum ConfigInstruction {
     // Configuration that doesn't apply to instructions (metadata)
     /// Terminal width.
-    Width(Option<usize>),
+    Width(usize),
     /// Terminal height.
-    Height(Option<usize>),
+    Height(usize),
     /// Title of the asciicast.
     Title(String),
     /// The shell to use.
@@ -34,12 +34,13 @@ pub enum ConfigInstruction {
 }
 
 impl ConfigInstruction {
-    /// Parse an optional integer, returning `None` if the string is `auto`.
-    fn parse_optional_int(s: &str) -> Result<Option<usize>, ParseError> {
+    /// Parse a positive integer, returning `0` if the string is `auto`.
+    fn parse_auto_usize(s: &str) -> Result<usize, ParseError> {
         if s == "auto" {
-            Ok(None)
+            Ok(0)
         } else {
-            s.parse().map(Some).map_err(|_| ParseError::MalformedInstruction(None))
+            s.parse()
+                .map_err(|_| ParseError::MalformedInstruction(None))
         }
     }
     /// Parse a line into a `ConfigInstruction`.
@@ -52,15 +53,11 @@ impl ConfigInstruction {
         match first {
             "width" => {
                 let width = iter.next().ok_or(ParseError::MalformedInstruction(None))?;
-                Ok(Self::Width(
-                    Self::parse_optional_int(width)?,
-                ))
+                Ok(Self::Width(Self::parse_auto_usize(width)?))
             }
             "height" => {
                 let height = iter.next().ok_or(ParseError::MalformedInstruction(None))?;
-                Ok(Self::Height(
-                    Self::parse_optional_int(height)?,
-                ))
+                Ok(Self::Height(Self::parse_auto_usize(height)?))
             }
             "title" => {
                 let title = util::parse_quoted_string(s[5..].trim());
@@ -122,10 +119,12 @@ mod tests {
     #[test]
     fn config_instruction() {
         let instructions = [
-            ("width 123", Width(Some(123))),
-            ("height 456", Height(Some(456))),
-            ("width auto", Width(None)),
-            ("height auto", Height(None)),
+            ("width 123", Width(123)),
+            ("height 456", Height(456)),
+            ("width auto", Width(0)),
+            ("height auto", Height(0)),
+            ("width 0", Width(0)),
+            ("height 0", Height(0)),
             (
                 "title castwright demo",
                 Title("castwright demo".to_string()),
@@ -147,7 +146,15 @@ mod tests {
 
     #[test]
     fn malformed_config_instruction() {
-        let malformed_instructions = ["invalid", "width", "hidden what", "delay", "delay 2"];
+        let malformed_instructions = [
+            "invalid",
+            "width",
+            "width -1",
+            "width what",
+            "hidden what",
+            "delay",
+            "delay 2",
+        ];
         for line in malformed_instructions.iter() {
             assert!(matches!(
                 ConfigInstruction::parse(line).unwrap_err(),

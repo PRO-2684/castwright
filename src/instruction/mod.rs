@@ -135,11 +135,11 @@ mod tests {
         let instructions = [
             (
                 " @@width auto",
-                PersistentConfig(ConfigInstruction::Width(None)),
+                PersistentConfig(ConfigInstruction::Width(0)),
             ),
             (
                 " @height 456",
-                TemporaryConfig(ConfigInstruction::Height(Some(456))),
+                TemporaryConfig(ConfigInstruction::Height(456)),
             ),
             (" %print", Print("print".to_string())),
             (" !marker", Marker("marker".to_string())),
@@ -148,11 +148,11 @@ mod tests {
             (" >continuation", Continuation("continuation".to_string())),
             (
                 "@@ width 123",
-                PersistentConfig(ConfigInstruction::Width(Some(123))),
+                PersistentConfig(ConfigInstruction::Width(123)),
             ),
             (
                 "@ height 456",
-                TemporaryConfig(ConfigInstruction::Height(Some(456))),
+                TemporaryConfig(ConfigInstruction::Height(456)),
             ),
             ("% print", Print("print".to_string())),
             ("! marker", Marker("marker".to_string())),
@@ -171,11 +171,11 @@ mod tests {
         let instructions = [
             (
                 "@@width auto",
-                PersistentConfig(ConfigInstruction::Width(None)),
+                PersistentConfig(ConfigInstruction::Width(0)),
             ),
             (
                 "@height 456",
-                TemporaryConfig(ConfigInstruction::Height(Some(456))),
+                TemporaryConfig(ConfigInstruction::Height(456)),
             ),
             ("%print", Print("print".to_string())),
             ("!marker", Marker("marker".to_string())),
@@ -242,8 +242,8 @@ mod tests {
         let script = BufReader::new(script);
         let script = Script::parse(script).unwrap();
         let expected = vec![
-            Instruction::PersistentConfig(ConfigInstruction::Width(Some(123))),
-            Instruction::TemporaryConfig(ConfigInstruction::Height(None)),
+            Instruction::PersistentConfig(ConfigInstruction::Width(123)),
+            Instruction::TemporaryConfig(ConfigInstruction::Height(0)),
             Instruction::Print("print".to_string()),
             Instruction::Marker("marker".to_string()),
             Instruction::Empty,
@@ -304,7 +304,7 @@ mod tests {
             $command
             @width 123
             >continuation
-        "#; // This case should be supported in the future
+        "#; // TODO: This case should be supported in the future
         let script = script.trim();
         let script = script.as_bytes();
         let script = BufReader::new(script);

@@ -27,11 +27,11 @@ A configuration instruction configures the behavior of the output or other instr
 
 - `width`: Set the width of the terminal.
     - **Effect**: Metadata; **Scope**: Persistent.
-    - **Parameter**: An [Integer](#integer) or `auto`. If `auto`, the width will be determined by the width of current terminal.
+    - **Parameter**: A positive [Integer](#integer) or `auto`. If `auto` or `0`, the width will be determined by the width of current terminal.
     - **Default**: `@@width auto`
 - `height`: Set the height of the terminal.
     - **Effect**: Metadata; **Scope**: Persistent.
-    - **Parameter**: An [Integer](#integer) or `auto`. If `auto`, the height will be determined by the height of current terminal.
+    - **Parameter**: A positive [Integer](#integer) or `auto`. If `auto` or `0`, the height will be determined by the height of current terminal.
     - **Default**: `@@height auto`
 - `title`: Set the title of the asciicast.
     - **Effect**: Metadata; **Scope**: Persistent.
