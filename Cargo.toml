@@ -10,4 +10,5 @@ description = "Scripted terminal recording."
 keywords = ["automation", "terminal", "asciinema", "recording", "asciicast"]
 
 [dependencies]
+disperror = "0.1.0"
 thiserror = "2.0.11"

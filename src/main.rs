@@ -1,13 +1,10 @@
-use castwright::Script;
+use castwright::{ParseError, Script};
+use disperror::DispError;
 
-fn main() {
+fn main() -> Result<(), DispError<ParseError>> {
     let file = std::fs::File::open("demo.cw").unwrap();
     let reader = std::io::BufReader::new(file);
-    match Script::parse(reader) {
-        Ok(script) => script.execute(),
-        Err(e) => {
-            eprintln!("Error: {}", e);
-            std::process::exit(1);
-        }
-    }
+    let script = Script::parse(reader)?;
+    script.execute();
+    Ok(())
 }

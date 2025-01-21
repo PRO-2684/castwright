@@ -6,8 +6,15 @@ version = 4
 name = "castwright"
 version = "0.0.1-alpha.1"
 dependencies = [
+ "disperror",
  "thiserror",
 ]
+
+[[package]]
+name = "disperror"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "909dacd3855b670b3d0395e6091fcbbeb1312cc4a37cde9aea306cf58e99ad83"
 
 [[package]]
 name = "proc-macro2"
