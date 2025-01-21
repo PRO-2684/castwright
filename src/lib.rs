@@ -1,7 +1,7 @@
 mod instruction;
 
 pub use instruction::{ConfigInstruction, Instruction, Script};
-use std::fmt::Display;
+use std::{error::Error, fmt::Display};
 
 /// Possible types of errors that can occur while parsing a `.cw` file.
 #[derive(Debug)]
@@ -74,3 +74,5 @@ impl Display for ParseError {
         }
     }
 }
+
+impl Error for ParseError {}
