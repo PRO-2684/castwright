@@ -1,5 +1,7 @@
 //! Module for parsing config instructions.
 
+use crate::ParseErrorType;
+
 use super::{util, ParseError};
 use std::time::Duration;
 
@@ -40,7 +42,7 @@ impl ConfigInstruction {
             Ok(0)
         } else {
             s.parse()
-                .map_err(|_| ParseError::MalformedInstruction(0))
+                .map_err(|_| ParseError::new(ParseErrorType::MalformedInstruction))
         }
     }
     /// Parse a line into a `ConfigInstruction`.
@@ -48,15 +50,15 @@ impl ConfigInstruction {
         let s = s.trim();
         let mut iter = s.split_whitespace();
         let Some(first) = iter.next() else {
-            return Err(ParseError::MalformedInstruction(0));
+            return Err(ParseError::new(ParseErrorType::MalformedInstruction));
         };
         match first {
             "width" => {
-                let width = iter.next().ok_or(ParseError::MalformedInstruction(0))?;
+                let width = iter.next().ok_or(ParseError::new(ParseErrorType::MalformedInstruction))?;
                 Ok(Self::Width(Self::parse_auto_usize(width)?))
             }
             "height" => {
-                let height = iter.next().ok_or(ParseError::MalformedInstruction(0))?;
+                let height = iter.next().ok_or(ParseError::new(ParseErrorType::MalformedInstruction))?;
                 Ok(Self::Height(Self::parse_auto_usize(height)?))
             }
             "title" => {
@@ -72,7 +74,7 @@ impl ConfigInstruction {
                 Ok(Self::Quit(quit))
             }
             "idle" => {
-                let idle = iter.next().ok_or(ParseError::MalformedInstruction(0))?;
+                let idle = iter.next().ok_or(ParseError::new(ParseErrorType::MalformedInstruction))?;
                 Ok(Self::Idle(util::parse_duration(idle)?))
             }
             "prompt" => {
@@ -93,23 +95,25 @@ impl ConfigInstruction {
                     match word {
                         "true" => Ok(Self::Hidden(true)),
                         "false" => Ok(Self::Hidden(false)),
-                        _ => Err(ParseError::MalformedInstruction(0)),
+                        _ => Err(ParseError::new(ParseErrorType::MalformedInstruction)),
                     }
                 } else {
                     Ok(Self::Hidden(true)) // Default to true
                 }
             }
             "delay" => {
-                let delay = iter.next().ok_or(ParseError::MalformedInstruction(0))?;
+                let delay = iter.next().ok_or(ParseError::new(ParseErrorType::MalformedInstruction))?;
                 Ok(Self::Delay(util::parse_duration(delay)?))
             }
-            _ => Err(ParseError::MalformedInstruction(0)),
+            _ => Err(ParseError::new(ParseErrorType::MalformedInstruction)),
         }
     }
 }
 
 #[cfg(test)]
 mod tests {
+    use crate::ParseErrorType;
+
     use super::{
         ConfigInstruction::{self, *},
         ParseError,
@@ -158,7 +162,10 @@ mod tests {
         for line in malformed_instructions.iter() {
             assert!(matches!(
                 ConfigInstruction::parse(line).unwrap_err(),
-                ParseError::MalformedInstruction(0)
+                ParseError {
+                    error: ParseErrorType::MalformedInstruction,
+                    line: 0
+                }
             ));
         }
     }
