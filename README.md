@@ -1,5 +1,8 @@
 # castwright
 
+> [!WARNING]
+> This project is still in the early stages of development and is not yet ready for use.
+
 Scripted terminal recording.
 
 ## Introduction
@@ -11,7 +14,7 @@ Have you re-recorded the same session over and over again, either to hit the rig
 
 ## Features
 
-- **Painless scripting**: `castwright` scripts are very intuitive and similar to shell scripts, making it easy to understand, write, and maintain.
+- **Painless scripting**: `castwright` scripts are very intuitive and similar to an interactive shell, making it easy to understand, write, and maintain.
 
 ## Installation
 
