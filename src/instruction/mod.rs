@@ -36,7 +36,7 @@ impl Instruction {
         match first {
             '@' => {
                 let Some(second) = s.chars().nth(1) else {
-                    return Err(ParseError::MalformedInstruction(None));
+                    return Err(ParseError::MalformedInstruction(0));
                 };
                 match second {
                     '@' => Ok(Self::PersistentConfig(ConfigInstruction::parse(&s[2..])?)),
@@ -48,7 +48,7 @@ impl Instruction {
             '#' => Ok(Self::Empty),
             '$' => Ok(Self::Command(trimmed)),
             '>' => Ok(Self::Continuation(trimmed)),
-            _ => Err(ParseError::UnknownInstruction(None)),
+            _ => Err(ParseError::UnknownInstruction(0)),
         }
     }
 }
@@ -68,13 +68,13 @@ impl Script {
             // Check for UnexpectedContinuation (a continuation instruction must follow another continuation instruction or a command instruction)
             if matches!(instruction, Instruction::Continuation(_)) {
                 if instructions.is_empty() {
-                    return Err(ParseError::UnexpectedContinuation(Some(line_number + 1)));
+                    return Err(ParseError::UnexpectedContinuation(line_number + 1));
                 }
                 if !matches!(
                     instructions.last().unwrap(),
                     Instruction::Continuation(_) | Instruction::Command(_)
                 ) {
-                    return Err(ParseError::UnexpectedContinuation(Some(line_number + 1)));
+                    return Err(ParseError::UnexpectedContinuation(line_number + 1));
                 }
             }
             instructions.push(instruction);
@@ -101,16 +101,16 @@ mod util {
         let split_at = s
             .chars()
             .position(|c| !c.is_digit(10))
-            .ok_or(ParseError::MalformedInstruction(None))?;
+            .ok_or(ParseError::MalformedInstruction(0))?;
         let (num, suffix) = s.split_at(split_at);
         // Parse the number
-        let num = num.parse().map_err(|_| ParseError::MalformedInstruction(None))?;
+        let num = num.parse().map_err(|_| ParseError::MalformedInstruction(0))?;
         // Parse the suffix
         match suffix {
             "s" => Ok(Duration::from_secs(num)),
             "ms" => Ok(Duration::from_millis(num)),
             "us" => Ok(Duration::from_micros(num)),
-            _ => Err(ParseError::MalformedInstruction(None)),
+            _ => Err(ParseError::MalformedInstruction(0)),
         }
     }
     /// Parse a `"`-wrapped string. If not wrapped, return the string as it is. Note that it is a rather loose implementation, disregarding any escape sequences.
@@ -202,14 +202,14 @@ mod tests {
         for line in unknown_instructions.iter() {
             assert!(matches!(
                 Instruction::parse(line).unwrap_err(),
-                ParseError::UnknownInstruction(None)
+                ParseError::UnknownInstruction(0)
             ));
         }
         let malformed_instructions = ["@", "@@"];
         for line in malformed_instructions.iter() {
             assert!(matches!(
                 Instruction::parse(line).unwrap_err(),
-                ParseError::MalformedInstruction(None)
+                ParseError::MalformedInstruction(0)
             ));
         }
     }
@@ -270,7 +270,7 @@ mod tests {
         let script = BufReader::new(script);
         assert!(matches!(
             Script::parse(script).unwrap_err(),
-            ParseError::UnknownInstruction(Some(8))
+            ParseError::UnknownInstruction(8)
         ));
     }
 
@@ -293,7 +293,7 @@ mod tests {
             let script = BufReader::new(script);
             assert!(matches!(
                 Script::parse(script).unwrap_err(),
-                ParseError::MalformedInstruction(Some(2))
+                ParseError::MalformedInstruction(2)
             ));
         }
     }
@@ -310,7 +310,7 @@ mod tests {
         let script = BufReader::new(script);
         assert!(matches!(
             Script::parse(script).unwrap_err(),
-            ParseError::UnexpectedContinuation(Some(3))
+            ParseError::UnexpectedContinuation(3)
         ));
     }
 }

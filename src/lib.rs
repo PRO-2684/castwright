@@ -7,20 +7,20 @@ pub enum ParseError {
     // General parsing errors
     /// An io error occurred while reading the file.
     Io(std::io::Error),
-    /// Unknown instruction: The first character of the line is not recognized. The contained `Option<usize>` is the line number, starting at 1.
-    UnknownInstruction(Option<usize>),
-    /// Malformed instruction: The instruction is not in the expected format. The contained `Option<usize>` is the line number, starting at 1.
-    MalformedInstruction(Option<usize>),
-    /// Did not expect a continuation line, but got one. The contained `Option<usize>` is the line number, starting at 1.
-    UnexpectedContinuation(Option<usize>),
+    /// Unknown instruction: The first character of the line is not recognized. The contained `usize` is the line number, starting at 1.
+    UnknownInstruction(usize),
+    /// Malformed instruction: The instruction is not in the expected format. The contained `usize` is the line number, starting at 1.
+    MalformedInstruction(usize),
+    /// Did not expect a continuation line, but got one. The contained `usize` is the line number, starting at 1.
+    UnexpectedContinuation(usize),
 }
 
 impl ParseError {
     pub fn with_line(self, line: usize) -> Self {
         match self {
-            ParseError::UnknownInstruction(_) => ParseError::UnknownInstruction(Some(line)),
-            ParseError::MalformedInstruction(_) => ParseError::MalformedInstruction(Some(line)),
-            ParseError::UnexpectedContinuation(_) => ParseError::UnexpectedContinuation(Some(line)),
+            ParseError::UnknownInstruction(_) => ParseError::UnknownInstruction(line),
+            ParseError::MalformedInstruction(_) => ParseError::MalformedInstruction(line),
+            ParseError::UnexpectedContinuation(_) => ParseError::UnexpectedContinuation(line),
             other => other,
         }
     }
