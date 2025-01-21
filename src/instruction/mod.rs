@@ -1,10 +1,10 @@
 //! Module for parsing instructions.
 
 mod config;
-use std::io::BufRead;
 
 use super::ParseError;
 pub use config::ConfigInstruction;
+use std::io::BufRead;
 
 /// A single instruction
 #[derive(Debug, PartialEq)]
@@ -69,15 +69,13 @@ impl Script {
             // Check for UnexpectedContinuation (a continuation instruction must follow another continuation instruction or a command instruction)
             if matches!(instruction, Instruction::Continuation(_)) {
                 if instructions.is_empty() {
-                    return Err(ParseError::unexpected_continuation()
-                        .with_line(line_number + 1));
+                    return Err(ParseError::unexpected_continuation().with_line(line_number + 1));
                 }
                 if !matches!(
                     instructions.last().unwrap(),
                     Instruction::Continuation(_) | Instruction::Command(_)
                 ) {
-                    return Err(ParseError::unexpected_continuation()
-                        .with_line(line_number + 1));
+                    return Err(ParseError::unexpected_continuation().with_line(line_number + 1));
                 }
             }
             instructions.push(instruction);

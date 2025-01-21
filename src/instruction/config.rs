@@ -39,8 +39,7 @@ impl ConfigInstruction {
         if s == "auto" {
             Ok(0)
         } else {
-            s.parse()
-                .map_err(|_| ParseError::malformed_instruction())
+            s.parse().map_err(|_| ParseError::malformed_instruction())
         }
     }
     /// Parse a line into a `ConfigInstruction`.
