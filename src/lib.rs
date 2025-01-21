@@ -29,6 +29,22 @@ impl ParseError {
     pub fn new(error: ParseErrorType) -> Self {
         Self { error, line: 0 }
     }
+    /// Create a new `ParseError` with error type `Io` and the given io error.
+    pub fn io(error: std::io::Error) -> Self {
+        Self::new(ParseErrorType::Io(error))
+    }
+    /// Create a new `ParseError` with error type `UnknownInstruction`.
+    pub fn unknown_instruction() -> Self {
+        Self::new(ParseErrorType::UnknownInstruction)
+    }
+    /// Create a new `ParseError` with error type `MalformedInstruction`.
+    pub fn malformed_instruction() -> Self {
+        Self::new(ParseErrorType::MalformedInstruction)
+    }
+    /// Create a new `ParseError` with error type `UnexpectedContinuation`.
+    pub fn unexpected_continuation() -> Self {
+        Self::new(ParseErrorType::UnexpectedContinuation)
+    }
     /// Set the line number where the error occurred.
     pub fn with_line(mut self, line: usize) -> Self {
         self.line = line;

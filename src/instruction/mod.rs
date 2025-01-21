@@ -36,7 +36,7 @@ impl Instruction {
         match first {
             '@' => {
                 let Some(second) = s.chars().nth(1) else {
-                    return Err(ParseError::new(ParseErrorType::MalformedInstruction));
+                    return Err(ParseError::malformed_instruction());
                 };
                 match second {
                     '@' => Ok(Self::PersistentConfig(ConfigInstruction::parse(&s[2..])?)),
@@ -48,7 +48,7 @@ impl Instruction {
             '#' => Ok(Self::Empty),
             '$' => Ok(Self::Command(trimmed)),
             '>' => Ok(Self::Continuation(trimmed)),
-            _ => Err(ParseError::new(ParseErrorType::UnknownInstruction)),
+            _ => Err(ParseError::unknown_instruction()),
         }
     }
 }
@@ -63,20 +63,20 @@ impl Script {
     pub fn parse(reader: impl BufRead) -> Result<Self, ParseError> {
         let mut instructions = Vec::new();
         for (line_number, line) in reader.lines().enumerate() {
-            let line = line.map_err(|err| ParseError::new(ParseErrorType::Io(err)))?;
+            let line = line.map_err(|err| ParseError::io(err))?;
             let instruction =
                 Instruction::parse(&line).map_err(|e| e.with_line(line_number + 1))?;
             // Check for UnexpectedContinuation (a continuation instruction must follow another continuation instruction or a command instruction)
             if matches!(instruction, Instruction::Continuation(_)) {
                 if instructions.is_empty() {
-                    return Err(ParseError::new(ParseErrorType::UnexpectedContinuation)
+                    return Err(ParseError::unexpected_continuation()
                         .with_line(line_number + 1));
                 }
                 if !matches!(
                     instructions.last().unwrap(),
                     Instruction::Continuation(_) | Instruction::Command(_)
                 ) {
-                    return Err(ParseError::new(ParseErrorType::UnexpectedContinuation)
+                    return Err(ParseError::unexpected_continuation()
                         .with_line(line_number + 1));
                 }
             }
@@ -104,18 +104,18 @@ mod util {
         let split_at = s
             .chars()
             .position(|c| !c.is_digit(10))
-            .ok_or(ParseError::new(ParseErrorType::MalformedInstruction))?;
+            .ok_or(ParseError::malformed_instruction())?;
         let (num, suffix) = s.split_at(split_at);
         // Parse the number
         let num = num
             .parse()
-            .map_err(|_| ParseError::new(ParseErrorType::MalformedInstruction))?;
+            .map_err(|_| ParseError::malformed_instruction())?;
         // Parse the suffix
         match suffix {
             "s" => Ok(Duration::from_secs(num)),
             "ms" => Ok(Duration::from_millis(num)),
             "us" => Ok(Duration::from_micros(num)),
-            _ => Err(ParseError::new(ParseErrorType::MalformedInstruction)),
+            _ => Err(ParseError::malformed_instruction()),
         }
     }
     /// Parse a `"`-wrapped string. If not wrapped, return the string as it is. Note that it is a rather loose implementation, disregarding any escape sequences.
