@@ -10,3 +10,4 @@ description = "Scripted terminal recording."
 keywords = ["automation", "terminal", "asciinema", "recording", "asciicast"]
 
 [dependencies]
+thiserror = "2.0.11"
