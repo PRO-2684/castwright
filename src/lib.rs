@@ -1,4 +1,6 @@
 mod instruction;
+use std::fmt::Display;
+
 pub use instruction::{ConfigInstruction, Instruction, Script};
 
 /// Possible types of errors that can occur while parsing a `.cw` file.
@@ -13,6 +15,17 @@ pub enum ParseErrorType {
     MalformedInstruction,
     /// Did not expect a continuation line, but got one.
     UnexpectedContinuation,
+}
+
+impl Display for ParseErrorType {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        match self {
+            ParseErrorType::Io(e) => write!(f, "IO error: \"{}\"", e),
+            ParseErrorType::UnknownInstruction => write!(f, "Unknown instruction"),
+            ParseErrorType::MalformedInstruction => write!(f, "Malformed instruction"),
+            ParseErrorType::UnexpectedContinuation => write!(f, "Unexpected continuation"),
+        }
+    }
 }
 
 /// An error that occurred while parsing a `.cw` file.
@@ -49,5 +62,15 @@ impl ParseError {
     pub fn with_line(mut self, line: usize) -> Self {
         self.line = line;
         self
+    }
+}
+
+impl Display for ParseError {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        if self.line == 0 {
+            write!(f, "{}", self.error)
+        } else {
+            write!(f, "{} at line {}", self.error, self.line)
+        }
     }
 }
