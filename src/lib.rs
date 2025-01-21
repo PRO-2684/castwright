@@ -3,7 +3,7 @@ mod instruction;
 pub use instruction::{ConfigInstruction, Instruction, Script};
 use std::{error::Error, fmt::Display};
 
-/// Possible types of errors that can occur while parsing a `.cw` file.
+/// Possible types of errors that can occur while parsing a single line of a `.cw` file.
 #[derive(Debug)]
 pub enum ParseErrorType {
     // General parsing errors
@@ -28,41 +28,20 @@ impl Display for ParseErrorType {
     }
 }
 
-/// An error that occurred while parsing a `.cw` file.
+impl ParseErrorType {
+    /// Add line number information to the error, so as to form a [`ParseError`].
+    fn with_line(self, line: usize) -> ParseError {
+        ParseError { error: self, line }
+    }
+}
+
+/// An error that occurred while parsing a `.cw` file, with the line number denoting its position. To construct a `ParseError`, you should call [`ParseErrorType::with_line`].
 #[derive(Debug)]
 pub struct ParseError {
     /// The type of error that occurred.
     error: ParseErrorType,
     /// The line number where the error occurred, starting at 1. If `0`, the line number is unknown at this point.
     line: usize,
-}
-
-impl ParseError {
-    /// Create a new `ParseError` with the given error type.
-    pub fn new(error: ParseErrorType) -> Self {
-        Self { error, line: 0 }
-    }
-    /// Create a new `ParseError` with error type `Io` and the given io error.
-    pub fn io(error: std::io::Error) -> Self {
-        Self::new(ParseErrorType::Io(error))
-    }
-    /// Create a new `ParseError` with error type `UnknownInstruction`.
-    pub fn unknown_instruction() -> Self {
-        Self::new(ParseErrorType::UnknownInstruction)
-    }
-    /// Create a new `ParseError` with error type `MalformedInstruction`.
-    pub fn malformed_instruction() -> Self {
-        Self::new(ParseErrorType::MalformedInstruction)
-    }
-    /// Create a new `ParseError` with error type `UnexpectedContinuation`.
-    pub fn unexpected_continuation() -> Self {
-        Self::new(ParseErrorType::UnexpectedContinuation)
-    }
-    /// Set the line number where the error occurred.
-    pub fn with_line(mut self, line: usize) -> Self {
-        self.line = line;
-        self
-    }
 }
 
 impl Display for ParseError {

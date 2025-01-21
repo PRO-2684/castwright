@@ -2,7 +2,7 @@
 
 mod config;
 
-use super::ParseError;
+use super::{ParseError, ParseErrorType};
 pub use config::ConfigInstruction;
 use std::io::BufRead;
 
@@ -27,7 +27,7 @@ pub enum Instruction {
 
 impl Instruction {
     /// Parse a line into an `Instruction`.
-    pub fn parse(s: &str) -> Result<Self, ParseError> {
+    pub fn parse(s: &str) -> Result<Self, ParseErrorType> {
         let s = s.trim();
         let Some(first) = s.chars().next() else {
             return Ok(Self::Empty);
@@ -36,7 +36,7 @@ impl Instruction {
         match first {
             '@' => {
                 let Some(second) = s.chars().nth(1) else {
-                    return Err(ParseError::malformed_instruction());
+                    return Err(ParseErrorType::MalformedInstruction);
                 };
                 match second {
                     '@' => Ok(Self::PersistentConfig(ConfigInstruction::parse(&s[2..])?)),
@@ -48,7 +48,7 @@ impl Instruction {
             '#' => Ok(Self::Empty),
             '$' => Ok(Self::Command(trimmed)),
             '>' => Ok(Self::Continuation(trimmed)),
-            _ => Err(ParseError::unknown_instruction()),
+            _ => Err(ParseErrorType::UnknownInstruction),
         }
     }
 }
@@ -63,19 +63,19 @@ impl Script {
     pub fn parse(reader: impl BufRead) -> Result<Self, ParseError> {
         let mut instructions = Vec::new();
         for (line_number, line) in reader.lines().enumerate() {
-            let line = line.map_err(|err| ParseError::io(err))?;
+            let line = line.map_err(|err| ParseErrorType::Io(err).with_line(line_number))?;
             let instruction =
                 Instruction::parse(&line).map_err(|e| e.with_line(line_number + 1))?;
             // Check for UnexpectedContinuation (a continuation instruction must follow another continuation instruction or a command instruction)
             if matches!(instruction, Instruction::Continuation(_)) {
                 if instructions.is_empty() {
-                    return Err(ParseError::unexpected_continuation().with_line(line_number + 1));
+                    return Err(ParseErrorType::UnexpectedContinuation.with_line(line_number + 1));
                 }
                 if !matches!(
                     instructions.last().unwrap(),
                     Instruction::Continuation(_) | Instruction::Command(_)
                 ) {
-                    return Err(ParseError::unexpected_continuation().with_line(line_number + 1));
+                    return Err(ParseErrorType::UnexpectedContinuation.with_line(line_number + 1));
                 }
             }
             instructions.push(instruction);
@@ -94,26 +94,26 @@ fn execute_instructions(instructions: &[Instruction]) {
 }
 
 mod util {
-    use super::ParseError;
+    use super::ParseErrorType;
     use std::time::Duration;
     /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
-    pub fn parse_duration(s: &str) -> Result<Duration, ParseError> {
+    pub fn parse_duration(s: &str) -> Result<Duration, ParseErrorType> {
         // Split the number and the suffix
         let split_at = s
             .chars()
             .position(|c| !c.is_digit(10))
-            .ok_or(ParseError::malformed_instruction())?;
+            .ok_or(ParseErrorType::MalformedInstruction)?;
         let (num, suffix) = s.split_at(split_at);
         // Parse the number
         let num = num
             .parse()
-            .map_err(|_| ParseError::malformed_instruction())?;
+            .map_err(|_| ParseErrorType::MalformedInstruction)?;
         // Parse the suffix
         match suffix {
             "s" => Ok(Duration::from_secs(num)),
             "ms" => Ok(Duration::from_millis(num)),
             "us" => Ok(Duration::from_micros(num)),
-            _ => Err(ParseError::malformed_instruction()),
+            _ => Err(ParseErrorType::MalformedInstruction),
         }
     }
     /// Parse a `"`-wrapped string. If not wrapped, return the string as it is. Note that it is a rather loose implementation, disregarding any escape sequences.
@@ -206,20 +206,14 @@ mod tests {
         for line in unknown_instructions.iter() {
             assert!(matches!(
                 Instruction::parse(line).unwrap_err(),
-                ParseError {
-                    error: ParseErrorType::UnknownInstruction,
-                    line: 0
-                }
+                ParseErrorType::UnknownInstruction,
             ));
         }
         let malformed_instructions = ["@", "@@"];
         for line in malformed_instructions.iter() {
             assert!(matches!(
                 Instruction::parse(line).unwrap_err(),
-                ParseError {
-                    error: ParseErrorType::MalformedInstruction,
-                    line: 0
-                }
+                ParseErrorType::MalformedInstruction,
             ));
         }
     }

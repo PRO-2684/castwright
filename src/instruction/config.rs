@@ -1,6 +1,6 @@
 //! Module for parsing config instructions.
 
-use super::{util, ParseError};
+use super::{util, ParseErrorType};
 use std::time::Duration;
 
 /// A configuration instruction, either persistent or temporary.
@@ -35,27 +35,27 @@ pub enum ConfigInstruction {
 
 impl ConfigInstruction {
     /// Parse a positive integer, returning `0` if the string is `auto`.
-    fn parse_auto_usize(s: &str) -> Result<usize, ParseError> {
+    fn parse_auto_usize(s: &str) -> Result<usize, ParseErrorType> {
         if s == "auto" {
             Ok(0)
         } else {
-            s.parse().map_err(|_| ParseError::malformed_instruction())
+            s.parse().map_err(|_| ParseErrorType::MalformedInstruction)
         }
     }
     /// Parse a line into a `ConfigInstruction`.
-    pub fn parse(s: &str) -> Result<Self, ParseError> {
+    pub fn parse(s: &str) -> Result<Self, ParseErrorType> {
         let s = s.trim();
         let mut iter = s.split_whitespace();
         let Some(first) = iter.next() else {
-            return Err(ParseError::malformed_instruction());
+            return Err(ParseErrorType::MalformedInstruction);
         };
         match first {
             "width" => {
-                let width = iter.next().ok_or(ParseError::malformed_instruction())?;
+                let width = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
                 Ok(Self::Width(Self::parse_auto_usize(width)?))
             }
             "height" => {
-                let height = iter.next().ok_or(ParseError::malformed_instruction())?;
+                let height = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
                 Ok(Self::Height(Self::parse_auto_usize(height)?))
             }
             "title" => {
@@ -71,7 +71,7 @@ impl ConfigInstruction {
                 Ok(Self::Quit(quit))
             }
             "idle" => {
-                let idle = iter.next().ok_or(ParseError::malformed_instruction())?;
+                let idle = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
                 Ok(Self::Idle(util::parse_duration(idle)?))
             }
             "prompt" => {
@@ -92,17 +92,17 @@ impl ConfigInstruction {
                     match word {
                         "true" => Ok(Self::Hidden(true)),
                         "false" => Ok(Self::Hidden(false)),
-                        _ => Err(ParseError::malformed_instruction()),
+                        _ => Err(ParseErrorType::MalformedInstruction),
                     }
                 } else {
                     Ok(Self::Hidden(true)) // Default to true
                 }
             }
             "delay" => {
-                let delay = iter.next().ok_or(ParseError::malformed_instruction())?;
+                let delay = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
                 Ok(Self::Delay(util::parse_duration(delay)?))
             }
-            _ => Err(ParseError::malformed_instruction()),
+            _ => Err(ParseErrorType::MalformedInstruction),
         }
     }
 }
@@ -111,10 +111,7 @@ impl ConfigInstruction {
 mod tests {
     use crate::ParseErrorType;
 
-    use super::{
-        ConfigInstruction::{self, *},
-        ParseError,
-    };
+    use super::ConfigInstruction::{self, *};
     use std::time::Duration;
 
     #[test]
@@ -159,10 +156,7 @@ mod tests {
         for line in malformed_instructions.iter() {
             assert!(matches!(
                 ConfigInstruction::parse(line).unwrap_err(),
-                ParseError {
-                    error: ParseErrorType::MalformedInstruction,
-                    line: 0
-                }
+                ParseErrorType::MalformedInstruction,
             ));
         }
     }
