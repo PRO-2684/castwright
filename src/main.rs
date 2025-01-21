@@ -5,6 +5,9 @@ fn main() {
     let reader = std::io::BufReader::new(file);
     match Script::parse(reader) {
         Ok(script) => script.execute(),
-        Err(e) => eprintln!("Error: {}", e),
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            std::process::exit(1);
+        }
     }
 }
