@@ -1,7 +1,5 @@
 //! Module for parsing config instructions.
 
-use crate::ParseErrorType;
-
 use super::{util, ParseError};
 use std::time::Duration;
 

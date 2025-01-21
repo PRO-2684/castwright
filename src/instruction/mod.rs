@@ -3,7 +3,7 @@
 mod config;
 use std::io::BufRead;
 
-use super::{ParseError, ParseErrorType};
+use super::ParseError;
 pub use config::ConfigInstruction;
 
 /// A single instruction
@@ -96,7 +96,7 @@ fn execute_instructions(instructions: &[Instruction]) {
 }
 
 mod util {
-    use super::{ParseError, ParseErrorType};
+    use super::ParseError;
     use std::time::Duration;
     /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
     pub fn parse_duration(s: &str) -> Result<Duration, ParseError> {
@@ -132,6 +132,7 @@ mod util {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::ParseErrorType;
     use std::{io::BufReader, time::Duration};
 
     #[test]
