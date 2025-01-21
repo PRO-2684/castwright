@@ -38,10 +38,9 @@ $ echo "Hello, World again!"
 
 # Start a multiline command with a regular command
 # Use `>` as prefix to continue
-$ echo "Multi-"
-> "line"
+$ echo "Multi-" \
+> "line" \
 > "command"
-# Note that the trailing `\` is automatically added
 # Output:
 # $ echo "Multi-" \
 # > "line" \

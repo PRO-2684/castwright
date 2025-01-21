@@ -1,9 +1,11 @@
 //! Module for parsing instructions.
 
+mod command;
 mod config;
 
 use super::{ParseError, ParseErrorType};
-pub use config::ConfigInstruction;
+use command::CommandInstruction;
+use config::ConfigInstruction;
 use std::io::BufRead;
 
 /// A single instruction
@@ -17,10 +19,8 @@ pub enum Instruction {
     Print(String),
     /// Marker. (`!`)
     Marker(String),
-    /// One-line shell command. (`$`)
-    Command(String),
-    /// Continuation of a multi-line shell command. (`>`)
-    Continuation(String),
+    /// A shell command. (`$` or `>`)
+    Command(CommandInstruction),
     /// Comment (`#`) or empty line.
     Empty,
 }
@@ -46,8 +46,10 @@ impl Instruction {
             '%' => Ok(Self::Print(trimmed)),
             '!' => Ok(Self::Marker(trimmed)),
             '#' => Ok(Self::Empty),
-            '$' => Ok(Self::Command(trimmed)),
-            '>' => Ok(Self::Continuation(trimmed)),
+            '$' | '>' => Ok(Self::Command(CommandInstruction::parse(
+                &trimmed,
+                first == '$',
+            ))),
             _ => Err(ParseErrorType::UnknownInstruction),
         }
     }
@@ -62,21 +64,28 @@ pub struct Script {
 impl Script {
     pub fn parse(reader: impl BufRead) -> Result<Self, ParseError> {
         let mut instructions = Vec::new();
+        let mut expect_continuation = false;
         for (line_number, line) in reader.lines().enumerate() {
             let line = line.map_err(|err| ParseErrorType::Io(err).with_line(line_number))?;
             let instruction =
                 Instruction::parse(&line).map_err(|e| e.with_line(line_number + 1))?;
-            // Check for UnexpectedContinuation (a continuation instruction must follow another continuation instruction or a command instruction)
-            if matches!(instruction, Instruction::Continuation(_)) {
-                if instructions.is_empty() {
-                    return Err(ParseErrorType::UnexpectedContinuation.with_line(line_number + 1));
+            // Check for `ExpectedContinuation` and `UnexpectedContinuation`
+            if let Instruction::Command(command_inst) = &instruction {
+                let is_start = command_inst.is_start();
+                if is_start {
+                    if expect_continuation {
+                        return Err(ParseErrorType::ExpectedContinuation.with_line(line_number + 1));
+                    }
+                } else {
+                    if !expect_continuation {
+                        return Err(
+                            ParseErrorType::UnexpectedContinuation.with_line(line_number + 1)
+                        );
+                    }
                 }
-                if !matches!(
-                    instructions.last().unwrap(),
-                    Instruction::Continuation(_) | Instruction::Command(_)
-                ) {
-                    return Err(ParseErrorType::UnexpectedContinuation.with_line(line_number + 1));
-                }
+                expect_continuation = command_inst.expect_continuation();
+            } else if expect_continuation {
+                return Err(ParseErrorType::ExpectedContinuation.with_line(line_number + 1));
             }
             instructions.push(instruction);
         }
@@ -148,8 +157,14 @@ mod tests {
             (" %print", Print("print".to_string())),
             (" !marker", Marker("marker".to_string())),
             (" #comment", Empty),
-            (" $command", Command("command".to_string())),
-            (" >continuation", Continuation("continuation".to_string())),
+            (
+                " $command",
+                Command(CommandInstruction::parse("command", true)),
+            ),
+            (
+                " >continuation",
+                Command(CommandInstruction::parse("continuation", false)),
+            ),
             (
                 "@@ width 123",
                 PersistentConfig(ConfigInstruction::Width(123)),
@@ -161,8 +176,14 @@ mod tests {
             ("% print", Print("print".to_string())),
             ("! marker", Marker("marker".to_string())),
             ("# comment", Empty),
-            ("$ command", Command("command".to_string())),
-            ("> continuation", Continuation("continuation".to_string())),
+            (
+                "$ command",
+                Command(CommandInstruction::parse("command", true)),
+            ),
+            (
+                "> continuation",
+                Command(CommandInstruction::parse("continuation", false)),
+            ),
         ];
         for (input, expected) in instructions.iter() {
             assert_eq!(&Instruction::parse(input).unwrap(), expected);
@@ -184,8 +205,14 @@ mod tests {
             ("%print", Print("print".to_string())),
             ("!marker", Marker("marker".to_string())),
             ("#comment", Empty),
-            ("$command", Command("command".to_string())),
-            (">continuation", Continuation("continuation".to_string())),
+            (
+                "$command",
+                Command(CommandInstruction::parse("command", true)),
+            ),
+            (
+                ">continuation",
+                Command(CommandInstruction::parse("continuation", false)),
+            ),
         ];
         for (input, expected) in instructions.iter() {
             assert_eq!(&Instruction::parse(input).unwrap(), expected);
@@ -238,7 +265,8 @@ mod tests {
             %print
             !marker
             #comment
-            $command
+            $single command
+            $command \
             >continuation
         "#;
         let script = script.trim();
@@ -251,8 +279,9 @@ mod tests {
             Instruction::Print("print".to_string()),
             Instruction::Marker("marker".to_string()),
             Instruction::Empty,
-            Instruction::Command("command".to_string()),
-            Instruction::Continuation("continuation".to_string()),
+            Instruction::Command(CommandInstruction::parse("single command", true)),
+            Instruction::Command(CommandInstruction::parse("command \\", true)),
+            Instruction::Command(CommandInstruction::parse("continuation", false)),
         ];
         assert_eq!(script.instructions, expected);
     }
@@ -265,7 +294,7 @@ mod tests {
             %print
             !marker
             #comment
-            $command
+            $command \
             >continuation
             unknown
         "#;
@@ -309,12 +338,29 @@ mod tests {
     }
 
     #[test]
+    fn script_expected_continuation() {
+        let script = r#"
+            $command \
+            @width 123
+        "#;
+        let script = script.trim();
+        let script = script.as_bytes();
+        let script = BufReader::new(script);
+        assert!(matches!(
+            Script::parse(script).unwrap_err(),
+            ParseError {
+                error: ParseErrorType::ExpectedContinuation,
+                line: 2
+            }
+        ));
+    }
+
+    #[test]
     fn script_unexpected_continuation() {
         let script = r#"
             $command
-            @width 123
             >continuation
-        "#; // TODO: This case should be supported in the future
+        "#;
         let script = script.trim();
         let script = script.as_bytes();
         let script = BufReader::new(script);
@@ -322,7 +368,7 @@ mod tests {
             Script::parse(script).unwrap_err(),
             ParseError {
                 error: ParseErrorType::UnexpectedContinuation,
-                line: 3
+                line: 2
             }
         ));
     }

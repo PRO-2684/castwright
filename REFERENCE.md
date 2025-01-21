@@ -100,7 +100,7 @@ A command instruction prints, executes, and displays the output of a command. Us
 
 ### Continuation
 
-A continuation instruction is a continuation of a multi-line shell command. It must be used after a command instruction or another continuation instruction.
+A continuation instruction is a continuation of a multi-line shell command. It must be used after a command instruction or another continuation instruction that ends with a backslash (`\`).
 
 ### Empty
 
