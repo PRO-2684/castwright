@@ -3,7 +3,9 @@
 mod command;
 mod config;
 
-use super::ParseErrorType;
+use crate::ScriptConfiguration;
+
+use super::{ParseErrorType, Configuration, AsciiCast};
 pub use command::CommandInstruction;
 pub use config::ConfigInstruction;
 
@@ -50,6 +52,23 @@ impl Instruction {
                 first == '$',
             ))),
             _ => Err(ParseErrorType::UnknownInstruction),
+        }
+    }
+    /// Execute the instruction
+    pub fn execute(&self, config: &mut ScriptConfiguration, cast: &mut AsciiCast) {
+        match self {
+            Self::PersistentConfig(instruction) => instruction.execute(config),
+            Self::TemporaryConfig(instruction) => instruction.execute(config),
+            Self::Print(s) => {
+                // TODO: Implement
+                cast.push(format!("print: {}", s));
+            }
+            Self::Marker(s) => {
+                // TODO: Implement
+                cast.push(format!("marker: {}", s));
+            }
+            Self::Command(instruction) => instruction.execute(config, cast),
+            Self::Empty => {},
         }
     }
 }

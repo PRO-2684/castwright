@@ -1,5 +1,7 @@
 //! Module for parsing command instructions.
 
+use super::{ScriptConfiguration, AsciiCast};
+
 /// A command instruction.
 #[derive(Debug, PartialEq)]
 pub struct CommandInstruction {
@@ -26,6 +28,11 @@ impl CommandInstruction {
             start,
             continuation,
         }
+    }
+    /// Execute the instruction
+    pub fn execute(&self, _config: &ScriptConfiguration, cast: &mut AsciiCast) {
+        // TODO: Implement
+        cast.push(format!("command: {}", self.command));
     }
     /// Whether the command is a starting command. `true` if starting with `$`, `false` if starting with `>`.
     pub fn is_start(&self) -> bool {

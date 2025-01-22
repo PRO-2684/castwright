@@ -56,7 +56,7 @@ A configuration instruction configures the behavior of the output or other instr
 - `secondary-prompt`: Set the secondary prompt to use in the asciicast output.
     - **Effect**: Directive; **Scope**: Persistent or Temporary.
     - **Parameter**: A [LossyString](#lossystring).
-    - **Default**: `@@secondary "> "`
+    - **Default**: `@@secondary-prompt "> "`
 - `line-split`: Set the string to signify a line split in a multiline command.
     - **Effect**: Directive; **Scope**: Persistent or Temporary.
     - **Parameter**: A [LossyString](#lossystring).

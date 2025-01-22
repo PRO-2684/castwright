@@ -1,6 +1,6 @@
 //! Module for parsing config instructions.
 
-use super::{util, ParseErrorType};
+use super::{util, ParseErrorType, ScriptConfiguration};
 use std::time::Duration;
 
 /// A configuration instruction, either persistent or temporary.
@@ -104,6 +104,10 @@ impl ConfigInstruction {
             }
             _ => Err(ParseErrorType::MalformedInstruction),
         }
+    }
+    /// Execute the configuration instruction.
+    pub fn execute(&self, _config: &mut ScriptConfiguration) {
+        // TODO: Implement
     }
 }
 

@@ -1,8 +1,112 @@
 mod instruction;
 
-pub use instruction::{Instruction, CommandInstruction, ConfigInstruction};
+use instruction::Instruction;
 use thiserror::Error;
-use std::io::BufRead;
+use std::{io::BufRead, time::Duration};
+
+/// Persistent configuration for the script.
+#[derive(Clone, Debug, PartialEq)]
+struct Configuration {
+    width: usize,
+    height: usize,
+    title: String,
+    shell: String,
+    quit: String,
+    idle: Duration,
+    prompt: String,
+    secondary_prompt: String,
+    line_split: String,
+    hidden: bool,
+    delay: Duration,
+}
+
+impl Configuration {
+    /// Create a new `Configuration` with default values.
+    fn new() -> Self {
+        Self {
+            width: 80,
+            height: 24,
+            title: "Castwright Script".to_string(),
+            shell: "bash".to_string(),
+            quit: "exit".to_string(),
+            idle: Duration::from_secs(5),
+            prompt: "$ ".to_string(),
+            secondary_prompt: "> ".to_string(),
+            line_split: " \\".to_string(),
+            hidden: false,
+            delay: Duration::from_millis(100),
+        }
+    }
+}
+
+/// Temporary configuration for the script.
+struct TemporaryConfiguration {
+    prompt: Option<String>,
+    secondary_prompt: Option<String>,
+    line_split: Option<String>,
+    hidden: Option<bool>,
+    delay: Option<Duration>,
+}
+
+impl TemporaryConfiguration {
+    /// Create a new `TemporaryConfiguration` with default values.
+    fn new() -> Self {
+        Self {
+            prompt: None,
+            secondary_prompt: None,
+            line_split: None,
+            hidden: None,
+            delay: None,
+        }
+    }
+    /// Check if the temporary configuration is empty.
+    fn is_empty(&self) -> bool {
+        self.prompt.is_none()
+            && self.secondary_prompt.is_none()
+            && self.line_split.is_none()
+            && self.hidden.is_none()
+            && self.delay.is_none()
+    }
+}
+
+/// Configuration for the script.
+struct ScriptConfiguration {
+    persistent: Configuration,
+    temporary: TemporaryConfiguration,
+}
+
+impl ScriptConfiguration {
+    /// Create a new `ScriptConfiguration` with default values.
+    fn new() -> Self {
+        Self {
+            persistent: Configuration::new(),
+            temporary: TemporaryConfiguration::new(),
+        }
+    }
+
+    /// Consume the temporary configuration and return a new `Configuration`.
+    fn consume_temporary(&mut self) -> Configuration {
+        let mut config = self.persistent.clone();
+        if let Some(prompt) = self.temporary.prompt.take() {
+            config.prompt = prompt;
+        }
+        if let Some(secondary_prompt) = self.temporary.secondary_prompt.take() {
+            config.secondary_prompt = secondary_prompt;
+        }
+        if let Some(line_split) = self.temporary.line_split.take() {
+            config.line_split = line_split;
+        }
+        if let Some(hidden) = self.temporary.hidden.take() {
+            config.hidden = hidden;
+        }
+        if let Some(delay) = self.temporary.delay.take() {
+            config.delay = delay;
+        }
+        config
+    }
+}
+
+type AsciiCast = Vec<String>;
 
 /// A `.cw` script
 #[derive(Debug)]
@@ -11,6 +115,7 @@ pub struct Script {
 }
 
 impl Script {
+    /// Parse a castwright script from a reader.
     pub fn parse(reader: impl BufRead) -> Result<Self, ParseError> {
         let mut instructions = Vec::new();
         let mut expect_continuation = false;
@@ -41,14 +146,15 @@ impl Script {
         Ok(Self { instructions })
     }
 
-    pub fn execute(&self) {
-        execute_instructions(&self.instructions);
+    /// Execute the script and return the generated asciicast.
+    pub fn execute(&self) -> AsciiCast {
+        let mut config = ScriptConfiguration::new();
+        let mut cast = AsciiCast::new();
+        for instruction in &self.instructions {
+            instruction.execute(&mut config, &mut cast);
+        }
+        cast
     }
-}
-
-fn execute_instructions(instructions: &[Instruction]) {
-    // TODO: Implement this function
-    println!("{:?}", instructions);
 }
 
 /// Possible types of errors that can occur while parsing a single line of a `.cw` file.
@@ -93,6 +199,7 @@ pub struct ParseError {
 mod tests {
     use super::*;
     use std::io::BufReader;
+    use instruction::{ConfigInstruction, CommandInstruction};
 
     #[test]
     fn script() {
@@ -208,5 +315,28 @@ mod tests {
                 line: 2
             }
         ));
+    }
+
+    #[test]
+    fn script_configuration() {
+        let mut config = ScriptConfiguration::new();
+        config.temporary.prompt = Some("$$ ".to_string());
+        config.temporary.secondary_prompt = Some(">> ".to_string());
+        let expected = Configuration {
+            width: 80,
+            height: 24,
+            title: "Castwright Script".to_string(),
+            shell: "bash".to_string(),
+            quit: "exit".to_string(),
+            idle: Duration::from_secs(5),
+            prompt: "$$ ".to_string(),
+            secondary_prompt: ">> ".to_string(),
+            line_split: " \\".to_string(),
+            hidden: false,
+            delay: Duration::from_millis(100),
+        };
+        let calculated = config.consume_temporary();
+        assert_eq!(calculated, expected);
+        assert!(config.temporary.is_empty());
     }
 }
