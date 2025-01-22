@@ -12,9 +12,9 @@ dependencies = [
 
 [[package]]
 name = "disperror"
-version = "0.1.0"
+version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "909dacd3855b670b3d0395e6091fcbbeb1312cc4a37cde9aea306cf58e99ad83"
+checksum = "bd3e84d89b5c25ae074555339be008f5b9df75b7e113b9176143794e84e92386"
 
 [[package]]
 name = "proc-macro2"
