@@ -3,19 +3,15 @@
 mod command;
 mod config;
 
-use crate::ScriptConfiguration;
-
-use super::{ParseErrorType, Configuration, AsciiCast};
+use super::{ParseErrorType, ScriptConfiguration, AsciiCast};
 pub use command::CommandInstruction;
 pub use config::ConfigInstruction;
 
 /// A single instruction
 #[derive(Debug, PartialEq)]
 pub enum Instruction {
-    /// Persistent configuration instruction or metadata. (`@@`)
-    PersistentConfig(ConfigInstruction),
-    /// Temporary configuration instruction. (`@`)
-    TemporaryConfig(ConfigInstruction),
+    /// A configuration instruction. (`@` or `@@`)
+    Config(ConfigInstruction),
     /// Print a string as it is. (`%`)
     Print(String),
     /// Marker. (`!`)
@@ -35,15 +31,7 @@ impl Instruction {
         };
         let trimmed = s[1..].trim().to_string();
         match first {
-            '@' => {
-                let Some(second) = s.chars().nth(1) else {
-                    return Err(ParseErrorType::MalformedInstruction);
-                };
-                match second {
-                    '@' => Ok(Self::PersistentConfig(ConfigInstruction::parse(&s[2..])?)),
-                    _ => Ok(Self::TemporaryConfig(ConfigInstruction::parse(&trimmed)?)),
-                }
-            }
+            '@' => Ok(Self::Config(ConfigInstruction::parse(&trimmed)?)),
             '%' => Ok(Self::Print(trimmed)),
             '!' => Ok(Self::Marker(trimmed)),
             '#' => Ok(Self::Empty),
@@ -57,8 +45,7 @@ impl Instruction {
     /// Execute the instruction
     pub fn execute(&self, config: &mut ScriptConfiguration, cast: &mut AsciiCast) {
         match self {
-            Self::PersistentConfig(instruction) => instruction.execute(config),
-            Self::TemporaryConfig(instruction) => instruction.execute(config),
+            Self::Config(instruction) => instruction.execute(config),
             Self::Print(s) => {
                 // TODO: Implement
                 cast.push(format!("print: {}", s));
@@ -119,11 +106,11 @@ mod tests {
         let instructions = [
             (
                 " @@width auto",
-                PersistentConfig(ConfigInstruction::Width(0)),
+                Config(ConfigInstruction::parse("@width auto").unwrap()),
             ),
             (
                 " @height 456",
-                TemporaryConfig(ConfigInstruction::Height(456)),
+                Config(ConfigInstruction::parse("height 456").unwrap()),
             ),
             (" %print", Print("print".to_string())),
             (" !marker", Marker("marker".to_string())),
@@ -138,11 +125,11 @@ mod tests {
             ),
             (
                 "@@ width 123",
-                PersistentConfig(ConfigInstruction::Width(123)),
+                Config(ConfigInstruction::parse("@width 123").unwrap()),
             ),
             (
                 "@ height 456",
-                TemporaryConfig(ConfigInstruction::Height(456)),
+                Config(ConfigInstruction::parse("height 456").unwrap()),
             ),
             ("% print", Print("print".to_string())),
             ("! marker", Marker("marker".to_string())),
@@ -167,11 +154,11 @@ mod tests {
         let instructions = [
             (
                 "@@width auto",
-                PersistentConfig(ConfigInstruction::Width(0)),
+                Config(ConfigInstruction::parse("@width auto").unwrap()),
             ),
             (
                 "@height 456",
-                TemporaryConfig(ConfigInstruction::Height(456)),
+                Config(ConfigInstruction::parse("height 456").unwrap()),
             ),
             ("%print", Print("print".to_string())),
             ("!marker", Marker("marker".to_string())),

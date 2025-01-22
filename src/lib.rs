@@ -218,8 +218,8 @@ mod tests {
         let script = BufReader::new(script);
         let script = Script::parse(script).unwrap();
         let expected = vec![
-            Instruction::PersistentConfig(ConfigInstruction::Width(123)),
-            Instruction::TemporaryConfig(ConfigInstruction::Height(0)),
+            Instruction::Config(ConfigInstruction::parse("@width 123").unwrap()),
+            Instruction::Config(ConfigInstruction::parse("height auto").unwrap()),
             Instruction::Print("print".to_string()),
             Instruction::Marker("marker".to_string()),
             Instruction::Empty,
