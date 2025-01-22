@@ -69,14 +69,16 @@ impl TemporaryConfiguration {
     }
 }
 
-/// Configuration for the script.
-struct ScriptConfiguration {
+/// An execution context for the script.
+struct ExecutionContext {
+    /// Persistent configuration.
     persistent: Configuration,
+    /// Temporary configuration.
     temporary: TemporaryConfiguration,
 }
 
-impl ScriptConfiguration {
-    /// Create a new `ScriptConfiguration` with default values.
+impl ExecutionContext {
+    /// Create a new `ExecutionContext` with default values.
     fn new() -> Self {
         Self {
             persistent: Configuration::new(),
@@ -148,10 +150,10 @@ impl Script {
 
     /// Execute the script and return the generated asciicast.
     pub fn execute(&self) -> AsciiCast {
-        let mut config = ScriptConfiguration::new();
+        let mut context = ExecutionContext::new();
         let mut cast = AsciiCast::new();
         for instruction in &self.instructions {
-            instruction.execute(&mut config, &mut cast);
+            instruction.execute(&mut context, &mut cast);
         }
         cast
     }
@@ -318,10 +320,10 @@ mod tests {
     }
 
     #[test]
-    fn script_configuration() {
-        let mut config = ScriptConfiguration::new();
-        config.temporary.prompt = Some("$$ ".to_string());
-        config.temporary.secondary_prompt = Some(">> ".to_string());
+    fn execution_context() {
+        let mut context = ExecutionContext::new();
+        context.temporary.prompt = Some("$$ ".to_string());
+        context.temporary.secondary_prompt = Some(">> ".to_string());
         let expected = Configuration {
             width: 80,
             height: 24,
@@ -335,8 +337,8 @@ mod tests {
             hidden: false,
             delay: Duration::from_millis(100),
         };
-        let calculated = config.consume_temporary();
+        let calculated = context.consume_temporary();
         assert_eq!(calculated, expected);
-        assert!(config.temporary.is_empty());
+        assert!(context.temporary.is_empty());
     }
 }

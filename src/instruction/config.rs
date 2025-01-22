@@ -1,6 +1,6 @@
 //! Module for parsing config instructions.
 
-use super::{util, ParseErrorType, ScriptConfiguration};
+use super::{util, ParseErrorType, ExecutionContext};
 use std::time::Duration;
 
 /// A configuration instruction type.
@@ -144,11 +144,11 @@ impl ConfigInstruction {
         })
     }
     /// Execute the configuration instruction.
-    pub fn execute(&self, config: &mut ScriptConfiguration) {
+    pub fn execute(&self, context: &mut ExecutionContext) {
         use ConfigInstructionType::*;
         // Modify the configuration
         if self.persistent {
-            let config = &mut config.persistent;
+            let config = &mut context.persistent;
             match &self.instruction_type {
                 Width(width) => config.width = *width,
                 Height(height) => config.height = *height,
@@ -163,7 +163,7 @@ impl ConfigInstruction {
                 Delay(delay) => config.delay = *delay,
             }
         } else {
-            let config = &mut config.temporary;
+            let config = &mut context.temporary;
             match &self.instruction_type {
                 Prompt(prompt) => config.prompt = Some(prompt.clone()),
                 SecondaryPrompt(secondary_prompt) => config.secondary_prompt = Some(secondary_prompt.clone()),
@@ -178,7 +178,7 @@ impl ConfigInstruction {
 
 #[cfg(test)]
 mod tests {
-    use super::{ScriptConfiguration, ParseErrorType, ConfigInstruction, ConfigInstructionType::*};
+    use super::{ExecutionContext, ParseErrorType, ConfigInstruction, ConfigInstructionType::*};
     use std::time::Duration;
 
     #[test]
@@ -272,7 +272,7 @@ mod tests {
 
     #[test]
     fn execute_config_instruction() {
-        let mut config = ScriptConfiguration::new();
+        let mut context = ExecutionContext::new();
         let instructions = [
             "@width 123",
             "@height auto",
@@ -284,9 +284,9 @@ mod tests {
             "hidden",
         ];
         for line in instructions.iter() {
-            ConfigInstruction::parse(line).unwrap().execute(&mut config);
+            ConfigInstruction::parse(line).unwrap().execute(&mut context);
         }
-        let resolved = config.consume_temporary();
+        let resolved = context.consume_temporary();
         assert_eq!(resolved.width, 123);
         assert_eq!(resolved.height, 0);
         assert_eq!(resolved.title, "another title");

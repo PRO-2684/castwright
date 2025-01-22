@@ -1,6 +1,6 @@
 //! Module for parsing command instructions.
 
-use super::{ScriptConfiguration, AsciiCast};
+use super::{ExecutionContext, AsciiCast};
 
 /// A command instruction.
 #[derive(Debug, PartialEq)]
@@ -30,7 +30,7 @@ impl CommandInstruction {
         }
     }
     /// Execute the instruction
-    pub fn execute(&self, _config: &ScriptConfiguration, cast: &mut AsciiCast) {
+    pub fn execute(&self, _context: &ExecutionContext, cast: &mut AsciiCast) {
         // TODO: Implement
         cast.push(format!("command: {}", self.command));
     }

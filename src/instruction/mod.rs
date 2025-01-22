@@ -3,7 +3,7 @@
 mod command;
 mod config;
 
-use super::{ParseErrorType, ScriptConfiguration, AsciiCast};
+use super::{ParseErrorType, ExecutionContext, AsciiCast};
 pub use command::CommandInstruction;
 pub use config::ConfigInstruction;
 
@@ -43,9 +43,9 @@ impl Instruction {
         }
     }
     /// Execute the instruction
-    pub fn execute(&self, config: &mut ScriptConfiguration, cast: &mut AsciiCast) {
+    pub fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) {
         match self {
-            Self::Config(instruction) => instruction.execute(config),
+            Self::Config(instruction) => instruction.execute(context),
             Self::Print(s) => {
                 // TODO: Implement
                 cast.push(format!("print: {}", s));
@@ -54,7 +54,7 @@ impl Instruction {
                 // TODO: Implement
                 cast.push(format!("marker: {}", s));
             }
-            Self::Command(instruction) => instruction.execute(config, cast),
+            Self::Command(instruction) => instruction.execute(context, cast),
             Self::Empty => {},
         }
     }
