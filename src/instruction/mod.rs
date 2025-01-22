@@ -109,8 +109,8 @@ mod tests {
                 Config(ConfigInstruction::parse("@width auto").unwrap()),
             ),
             (
-                " @height 456",
-                Config(ConfigInstruction::parse("height 456").unwrap()),
+                " @delay 2ms",
+                Config(ConfigInstruction::parse("delay 2ms").unwrap()),
             ),
             (" %print", Print("print".to_string())),
             (" !marker", Marker("marker".to_string())),
@@ -128,8 +128,8 @@ mod tests {
                 Config(ConfigInstruction::parse("@width 123").unwrap()),
             ),
             (
-                "@ height 456",
-                Config(ConfigInstruction::parse("height 456").unwrap()),
+                "@ delay 2ms",
+                Config(ConfigInstruction::parse("delay 2ms").unwrap()),
             ),
             ("% print", Print("print".to_string())),
             ("! marker", Marker("marker".to_string())),
@@ -157,8 +157,8 @@ mod tests {
                 Config(ConfigInstruction::parse("@width auto").unwrap()),
             ),
             (
-                "@height 456",
-                Config(ConfigInstruction::parse("height 456").unwrap()),
+                "@delay 2ms",
+                Config(ConfigInstruction::parse("delay 2ms").unwrap()),
             ),
             ("%print", Print("print".to_string())),
             ("!marker", Marker("marker".to_string())),

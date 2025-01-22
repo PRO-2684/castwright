@@ -61,26 +61,50 @@ impl ConfigInstruction {
         };
         let instruction_type = match first {
             "width" => {
+                if !persistent {
+                    // Using `width` as a temporary configuration is meaningless
+                    return Err(ParseErrorType::MalformedInstruction);
+                }
                 let width = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
                 Ok(ConfigInstructionType::Width(Self::parse_auto_usize(width)?))
             }
             "height" => {
+                if !persistent {
+                    // Using `height` as a temporary configuration is meaningless
+                    return Err(ParseErrorType::MalformedInstruction);
+                }
                 let height = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
                 Ok(ConfigInstructionType::Height(Self::parse_auto_usize(height)?))
             }
             "title" => {
+                if !persistent {
+                    // Using `title` as a temporary configuration is meaningless
+                    return Err(ParseErrorType::MalformedInstruction);
+                }
                 let title = util::parse_quoted_string(s[5..].trim());
                 Ok(ConfigInstructionType::Title(title))
             }
             "shell" => {
+                if !persistent {
+                    // Using `shell` as a temporary configuration is meaningless
+                    return Err(ParseErrorType::MalformedInstruction);
+                }
                 let shell = util::parse_quoted_string(s[5..].trim());
                 Ok(ConfigInstructionType::Shell(shell))
             }
             "quit" => {
+                if !persistent {
+                    // Using `quit` as a temporary configuration is meaningless
+                    return Err(ParseErrorType::MalformedInstruction);
+                }
                 let quit = util::parse_quoted_string(s[4..].trim());
                 Ok(ConfigInstructionType::Quit(quit))
             }
             "idle" => {
+                if !persistent {
+                    // Using `idle` as a temporary configuration is meaningless
+                    return Err(ParseErrorType::MalformedInstruction);
+                }
                 let idle = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
                 Ok(ConfigInstructionType::Idle(util::parse_duration(idle)?))
             }
@@ -120,38 +144,65 @@ impl ConfigInstruction {
         })
     }
     /// Execute the configuration instruction.
-    pub fn execute(&self, _config: &mut ScriptConfiguration) {
-        // TODO: Implement
+    pub fn execute(&self, config: &mut ScriptConfiguration) {
+        use ConfigInstructionType::*;
+        // Modify the configuration
+        if self.persistent {
+            let config = &mut config.persistent;
+            match &self.instruction_type {
+                Width(width) => config.width = *width,
+                Height(height) => config.height = *height,
+                Title(title) => config.title = title.clone(),
+                Shell(shell) => config.shell = shell.clone(),
+                Quit(quit) => config.quit = quit.clone(),
+                Idle(idle) => config.idle = *idle,
+                Prompt(prompt) => config.prompt = prompt.clone(),
+                SecondaryPrompt(secondary_prompt) => config.secondary_prompt = secondary_prompt.clone(),
+                LineSplit(line_split) => config.line_split = line_split.clone(),
+                Hidden(hidden) => config.hidden = *hidden,
+                Delay(delay) => config.delay = *delay,
+            }
+        } else {
+            let config = &mut config.temporary;
+            match &self.instruction_type {
+                Prompt(prompt) => config.prompt = Some(prompt.clone()),
+                SecondaryPrompt(secondary_prompt) => config.secondary_prompt = Some(secondary_prompt.clone()),
+                LineSplit(line_split) => config.line_split = Some(line_split.clone()),
+                Hidden(hidden) => config.hidden = Some(*hidden),
+                Delay(delay) => config.delay = Some(*delay),
+                _ => unreachable!(),
+            }
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{ParseErrorType, ConfigInstruction, ConfigInstructionType::*};
+    use super::{ScriptConfiguration, ParseErrorType, ConfigInstruction, ConfigInstructionType::*};
     use std::time::Duration;
 
     #[test]
     fn config_instruction_type() {
         let instructions = [
-            ("width 123", Width(123)),
-            ("height 456", Height(456)),
-            ("width auto", Width(0)),
-            ("height auto", Height(0)),
-            ("width 0", Width(0)),
-            ("height 0", Height(0)),
+            ("@width 123", Width(123)),
+            ("@height 456", Height(456)),
+            ("@width auto", Width(0)),
+            ("@height auto", Height(0)),
+            ("@width 0", Width(0)),
+            ("@height 0", Height(0)),
             (
-                "title castwright demo",
+                "@title castwright demo",
                 Title("castwright demo".to_string()),
             ),
-            ("shell bash ", Shell("bash".to_string())),
-            ("quit \"exit \"", Quit("exit ".to_string())),
-            ("idle 1s", Idle(Duration::from_secs(1))),
-            ("prompt \"$ \"", Prompt("$ ".to_string())),
-            ("secondary-prompt \"> \"", SecondaryPrompt("> ".to_string())),
-            ("line-split \\", LineSplit("\\".to_string())),
-            ("hidden true", Hidden(true)),
-            ("hidden false", Hidden(false)),
-            ("delay 2ms", Delay(Duration::from_millis(2))),
+            ("@shell bash ", Shell("bash".to_string())),
+            ("@quit \"exit \"", Quit("exit ".to_string())),
+            ("@idle 1s", Idle(Duration::from_secs(1))),
+            ("@prompt \"$ \"", Prompt("$ ".to_string())),
+            ("@secondary-prompt \"> \"", SecondaryPrompt("> ".to_string())),
+            ("@line-split \\", LineSplit("\\".to_string())),
+            ("@hidden true", Hidden(true)),
+            ("@hidden false", Hidden(false)),
+            ("@delay 2ms", Delay(Duration::from_millis(2))),
         ];
         for (input, expected) in instructions.iter() {
             assert_eq!(ConfigInstruction::parse(input).unwrap().instruction_type, *expected);
@@ -161,20 +212,20 @@ mod tests {
     #[test]
     fn config_instruction_persistent() {
         let instructions = [
-            ("width 123", false),
+            ("@width 123", true),
             ("@height 456", true),
-            ("width auto", false),
+            ("@width auto", true),
             ("@height auto", true),
-            ("width 0", false),
+            ("@width 0", true),
             ("@height 0", true),
-            ("title castwright demo", false),
+            ("@title castwright demo", true),
             ("@shell bash ", true),
-            ("quit \"exit \"", false),
+            ("@quit \"exit \"", true),
             ("@idle 1s", true),
-            ("prompt \"$ \"", false),
-            ("@secondary-prompt \"> \"", true),
+            ("@prompt \"$ \"", true),
+            ("secondary-prompt \"> \"", false),
             ("line-split \\", false),
-            ("@hidden true", true),
+            ("hidden true", false),
             ("delay 2ms", false),
         ];
         for (input, expected) in instructions.iter() {
@@ -187,10 +238,10 @@ mod tests {
         let malformed_instructions = [
             "invalid",
             "@width",
-            "width -1",
-            "width what",
+            "@width -1",
+            "@width what",
             "hidden what",
-            "@delay",
+            "delay",
             "delay 2",
         ];
         for line in malformed_instructions.iter() {
@@ -199,5 +250,50 @@ mod tests {
                 ParseErrorType::MalformedInstruction,
             ));
         }
+    }
+
+    #[test]
+    fn meaningless_temporary_config_instruction() {
+        let meaningless_instructions = [
+            "width 123",
+            "height 456",
+            "title castwright demo",
+            "shell bash",
+            "quit \"exit \"",
+            "idle 1s",
+        ];
+        for line in meaningless_instructions.iter() {
+            assert!(matches!(
+                ConfigInstruction::parse(line).unwrap_err(),
+                ParseErrorType::MalformedInstruction,
+            ));
+        }
+    }
+
+    #[test]
+    fn execute_config_instruction() {
+        let mut config = ScriptConfiguration::new();
+        let instructions = [
+            "@width 123",
+            "@height auto",
+            "@title another title",
+            "@idle 2ms",
+            "prompt \"~> \"",
+            "secondary-prompt \"| \"",
+            "line-split \\",
+            "hidden",
+        ];
+        for line in instructions.iter() {
+            ConfigInstruction::parse(line).unwrap().execute(&mut config);
+        }
+        let resolved = config.consume_temporary();
+        assert_eq!(resolved.width, 123);
+        assert_eq!(resolved.height, 0);
+        assert_eq!(resolved.title, "another title");
+        assert_eq!(resolved.idle, Duration::from_millis(2));
+        assert_eq!(resolved.prompt, "~> ".to_string());
+        assert_eq!(resolved.secondary_prompt, "| ".to_string());
+        assert_eq!(resolved.line_split, "\\".to_string());
+        assert_eq!(resolved.hidden, true);
     }
 }

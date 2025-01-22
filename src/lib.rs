@@ -205,7 +205,7 @@ mod tests {
     fn script() {
         let script = r#"
             @@width 123
-            @height auto
+            @hidden true
             %print
             !marker
             #comment
@@ -219,7 +219,7 @@ mod tests {
         let script = Script::parse(script).unwrap();
         let expected = vec![
             Instruction::Config(ConfigInstruction::parse("@width 123").unwrap()),
-            Instruction::Config(ConfigInstruction::parse("height auto").unwrap()),
+            Instruction::Config(ConfigInstruction::parse("hidden true").unwrap()),
             Instruction::Print("print".to_string()),
             Instruction::Marker("marker".to_string()),
             Instruction::Empty,
@@ -234,7 +234,7 @@ mod tests {
     fn script_unknown_instruction() {
         let script = r#"
             @@width 123
-            @height 456
+            @hidden
             %print
             !marker
             #comment
@@ -285,7 +285,7 @@ mod tests {
     fn script_expected_continuation() {
         let script = r#"
             $command \
-            @width 123
+            @@width 123
         "#;
         let script = script.trim();
         let script = script.as_bytes();
