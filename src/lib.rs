@@ -1,7 +1,9 @@
+mod error;
 mod instruction;
+mod util;
 
+pub use error::{ParseError, ParseErrorType};
 use instruction::Instruction;
-use thiserror::Error;
 use std::{io::BufRead, time::Duration};
 
 /// Persistent configuration for the script.
@@ -159,49 +161,11 @@ impl Script {
     }
 }
 
-/// Possible types of errors that can occur while parsing a single line of a `.cw` file.
-#[derive(Error, Debug)]
-pub enum ParseErrorType {
-    // General parsing errors
-    /// An io error occurred while reading the file.
-    #[error("IO error: \"{0}\"")]
-    Io(std::io::Error),
-    /// The first non-whitespace character of the line is not recognized.
-    #[error("Unknown instruction")]
-    UnknownInstruction,
-    /// The instruction is not in the expected format.
-    #[error("Malformed instruction")]
-    MalformedInstruction,
-    /// Expected a continuation line, but did not get one.
-    #[error("Expected continuation")]
-    ExpectedContinuation,
-    /// Did not expect a continuation line, but got one.
-    #[error("Unexpected continuation")]
-    UnexpectedContinuation,
-}
-
-impl ParseErrorType {
-    /// Add line number information to the error, so as to form a [`ParseError`].
-    fn with_line(self, line: usize) -> ParseError {
-        ParseError { error: self, line }
-    }
-}
-
-/// An error that occurred while parsing a `.cw` file, with the line number denoting its position. To construct a `ParseError`, you should call [`ParseErrorType::with_line`].
-#[derive(Error, Debug)]
-#[error("{error} at line {line}")]
-pub struct ParseError {
-    /// The type of error that occurred.
-    error: ParseErrorType,
-    /// The line number where the error occurred, starting at 1. If `0`, the line number is unknown at this point.
-    line: usize,
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
+    use instruction::{CommandInstruction, ConfigInstruction};
     use std::io::BufReader;
-    use instruction::{ConfigInstruction, CommandInstruction};
 
     #[test]
     fn script() {
@@ -247,13 +211,10 @@ mod tests {
         let script = script.trim();
         let script = script.as_bytes();
         let script = BufReader::new(script);
-        assert!(matches!(
+        assert_eq!(
             Script::parse(script).unwrap_err(),
-            ParseError {
-                error: ParseErrorType::UnknownInstruction,
-                line: 8
-            }
-        ));
+            ParseErrorType::UnknownInstruction.with_line(8)
+        );
     }
 
     #[test]
@@ -273,13 +234,10 @@ mod tests {
             let script = script.trim();
             let script = script.as_bytes();
             let script = BufReader::new(script);
-            assert!(matches!(
+            assert_eq!(
                 Script::parse(script).unwrap_err(),
-                ParseError {
-                    error: ParseErrorType::MalformedInstruction,
-                    line: 2
-                }
-            ));
+                ParseErrorType::MalformedInstruction.with_line(2)
+            );
         }
     }
 
@@ -292,13 +250,10 @@ mod tests {
         let script = script.trim();
         let script = script.as_bytes();
         let script = BufReader::new(script);
-        assert!(matches!(
+        assert_eq!(
             Script::parse(script).unwrap_err(),
-            ParseError {
-                error: ParseErrorType::ExpectedContinuation,
-                line: 2
-            }
-        ));
+            ParseErrorType::ExpectedContinuation.with_line(2)
+        );
     }
 
     #[test]
@@ -310,13 +265,10 @@ mod tests {
         let script = script.trim();
         let script = script.as_bytes();
         let script = BufReader::new(script);
-        assert!(matches!(
+        assert_eq!(
             Script::parse(script).unwrap_err(),
-            ParseError {
-                error: ParseErrorType::UnexpectedContinuation,
-                line: 2
-            }
-        ));
+            ParseErrorType::UnexpectedContinuation.with_line(2)
+        );
     }
 
     #[test]

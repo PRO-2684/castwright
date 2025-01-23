@@ -1,6 +1,6 @@
 //! Module for parsing command instructions.
 
-use super::{ExecutionContext, AsciiCast};
+use super::{AsciiCast, ExecutionContext};
 
 /// A command instruction.
 #[derive(Debug, PartialEq)]

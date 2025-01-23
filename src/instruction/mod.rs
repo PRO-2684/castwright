@@ -3,7 +3,7 @@
 mod command;
 mod config;
 
-use super::{ParseErrorType, ExecutionContext, AsciiCast};
+use super::{util, AsciiCast, ExecutionContext, ParseErrorType};
 pub use command::CommandInstruction;
 pub use config::ConfigInstruction;
 
@@ -55,41 +55,7 @@ impl Instruction {
                 cast.push(format!("marker: {}", s));
             }
             Self::Command(instruction) => instruction.execute(context, cast),
-            Self::Empty => {},
-        }
-    }
-}
-
-mod util {
-    use super::ParseErrorType;
-    use std::time::Duration;
-    /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
-    pub fn parse_duration(s: &str) -> Result<Duration, ParseErrorType> {
-        // Split the number and the suffix
-        let split_at = s
-            .chars()
-            .position(|c| !c.is_digit(10))
-            .ok_or(ParseErrorType::MalformedInstruction)?;
-        let (num, suffix) = s.split_at(split_at);
-        // Parse the number
-        let num = num
-            .parse()
-            .map_err(|_| ParseErrorType::MalformedInstruction)?;
-        // Parse the suffix
-        match suffix {
-            "s" => Ok(Duration::from_secs(num)),
-            "ms" => Ok(Duration::from_millis(num)),
-            "us" => Ok(Duration::from_micros(num)),
-            _ => Err(ParseErrorType::MalformedInstruction),
-        }
-    }
-    /// Parse a `"`-wrapped string. If not wrapped, return the string as it is. Note that it is a rather loose implementation, disregarding any escape sequences.
-    pub fn parse_quoted_string(s: &str) -> String {
-        // FIXME: Check for escape sequences
-        if s.starts_with('"') && s.ends_with('"') {
-            s[1..s.len() - 1].to_string()
-        } else {
-            s.to_string()
+            Self::Empty => {}
         }
     }
 }
@@ -200,18 +166,6 @@ mod tests {
                 Instruction::parse(line).unwrap_err(),
                 ParseErrorType::MalformedInstruction,
             ));
-        }
-    }
-
-    #[test]
-    fn duration() {
-        let durations = [
-            ("1s", Duration::from_secs(1)),
-            ("2ms", Duration::from_millis(2)),
-            ("3us", Duration::from_micros(3)),
-        ];
-        for (input, expected) in durations.iter() {
-            assert_eq!(util::parse_duration(input).unwrap(), *expected);
         }
     }
 }

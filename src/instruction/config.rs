@@ -1,6 +1,6 @@
 //! Module for parsing config instructions.
 
-use super::{util, ParseErrorType, ExecutionContext};
+use super::{util, ExecutionContext, ParseErrorType};
 use std::time::Duration;
 
 /// A configuration instruction type.
@@ -74,7 +74,9 @@ impl ConfigInstruction {
                     return Err(ParseErrorType::MalformedInstruction);
                 }
                 let height = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
-                Ok(ConfigInstructionType::Height(Self::parse_auto_usize(height)?))
+                Ok(ConfigInstructionType::Height(Self::parse_auto_usize(
+                    height,
+                )?))
             }
             "title" => {
                 if !persistent {
@@ -157,7 +159,9 @@ impl ConfigInstruction {
                 Quit(quit) => config.quit = quit.clone(),
                 Idle(idle) => config.idle = *idle,
                 Prompt(prompt) => config.prompt = prompt.clone(),
-                SecondaryPrompt(secondary_prompt) => config.secondary_prompt = secondary_prompt.clone(),
+                SecondaryPrompt(secondary_prompt) => {
+                    config.secondary_prompt = secondary_prompt.clone()
+                }
                 LineSplit(line_split) => config.line_split = line_split.clone(),
                 Hidden(hidden) => config.hidden = *hidden,
                 Delay(delay) => config.delay = *delay,
@@ -166,7 +170,9 @@ impl ConfigInstruction {
             let config = &mut context.temporary;
             match &self.instruction_type {
                 Prompt(prompt) => config.prompt = Some(prompt.clone()),
-                SecondaryPrompt(secondary_prompt) => config.secondary_prompt = Some(secondary_prompt.clone()),
+                SecondaryPrompt(secondary_prompt) => {
+                    config.secondary_prompt = Some(secondary_prompt.clone())
+                }
                 LineSplit(line_split) => config.line_split = Some(line_split.clone()),
                 Hidden(hidden) => config.hidden = Some(*hidden),
                 Delay(delay) => config.delay = Some(*delay),
@@ -178,7 +184,7 @@ impl ConfigInstruction {
 
 #[cfg(test)]
 mod tests {
-    use super::{ExecutionContext, ParseErrorType, ConfigInstruction, ConfigInstructionType::*};
+    use super::{ConfigInstruction, ConfigInstructionType::*, ExecutionContext, ParseErrorType};
     use std::time::Duration;
 
     #[test]
@@ -198,14 +204,20 @@ mod tests {
             ("@quit \"exit \"", Quit("exit ".to_string())),
             ("@idle 1s", Idle(Duration::from_secs(1))),
             ("@prompt \"$ \"", Prompt("$ ".to_string())),
-            ("@secondary-prompt \"> \"", SecondaryPrompt("> ".to_string())),
+            (
+                "@secondary-prompt \"> \"",
+                SecondaryPrompt("> ".to_string()),
+            ),
             ("@line-split \\", LineSplit("\\".to_string())),
             ("@hidden true", Hidden(true)),
             ("@hidden false", Hidden(false)),
             ("@delay 2ms", Delay(Duration::from_millis(2))),
         ];
         for (input, expected) in instructions.iter() {
-            assert_eq!(ConfigInstruction::parse(input).unwrap().instruction_type, *expected);
+            assert_eq!(
+                ConfigInstruction::parse(input).unwrap().instruction_type,
+                *expected
+            );
         }
     }
 
@@ -229,7 +241,10 @@ mod tests {
             ("delay 2ms", false),
         ];
         for (input, expected) in instructions.iter() {
-            assert_eq!(ConfigInstruction::parse(input).unwrap().persistent, *expected);
+            assert_eq!(
+                ConfigInstruction::parse(input).unwrap().persistent,
+                *expected
+            );
         }
     }
 
@@ -284,7 +299,9 @@ mod tests {
             "hidden",
         ];
         for line in instructions.iter() {
-            ConfigInstruction::parse(line).unwrap().execute(&mut context);
+            ConfigInstruction::parse(line)
+                .unwrap()
+                .execute(&mut context);
         }
         let resolved = context.consume_temporary();
         assert_eq!(resolved.width, 123);
