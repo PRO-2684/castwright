@@ -3,8 +3,8 @@
 mod command;
 mod config;
 mod empty;
-mod print;
 mod marker;
+mod print;
 
 use super::{util, AsciiCast, ExecutionContext, ParseContext, ParseErrorType};
 pub use command::CommandInstruction;
@@ -28,7 +28,10 @@ pub trait InstructionTrait: std::fmt::Debug {
     fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast);
 }
 
-pub fn parse_instruction(s: &str, context: &mut ParseContext) -> Result<Box<dyn InstructionTrait>, ParseErrorType> {
+pub fn parse_instruction(
+    s: &str,
+    context: &mut ParseContext,
+) -> Result<Box<dyn InstructionTrait>, ParseErrorType> {
     let s = s.trim();
     let Some(first) = s.chars().next() else {
         return Ok(Box::new(EmptyInstruction::new()));
@@ -40,10 +43,7 @@ pub fn parse_instruction(s: &str, context: &mut ParseContext) -> Result<Box<dyn 
         '%' => Ok(Box::new(PrintInstruction::parse(&trimmed, context)?)),
         '!' => Ok(Box::new(MarkerInstruction::parse(&trimmed, context)?)),
         '#' => Ok(Box::new(EmptyInstruction::new())),
-        '$' | '>' => Ok(Box::new(CommandInstruction::parse(
-            &trimmed,
-            context,
-        )?)),
+        '$' | '>' => Ok(Box::new(CommandInstruction::parse(&trimmed, context)?)),
         _ => Err(ParseErrorType::UnknownInstruction),
     }
 }
@@ -73,12 +73,20 @@ mod tests {
                 " @delay 2ms",
                 Box::new(ConfigInstruction::parse("delay 2ms", &mut context).unwrap()),
             ),
-            (" %print", Box::new(PrintInstruction::parse("print", &mut context).unwrap())),
-            (" !marker", Box::new(MarkerInstruction::parse("marker", &mut context).unwrap())),
+            (
+                " %print",
+                Box::new(PrintInstruction::parse("print", &mut context).unwrap()),
+            ),
+            (
+                " !marker",
+                Box::new(MarkerInstruction::parse("marker", &mut context).unwrap()),
+            ),
             (" #comment", Box::new(EmptyInstruction::new())),
             (
                 " $command",
-                Box::new(CommandInstruction::parse("command", &mut context.with_start('$')).unwrap()),
+                Box::new(
+                    CommandInstruction::parse("command", &mut context.with_start('$')).unwrap(),
+                ),
             ),
             (
                 " @@ width 123",
@@ -88,12 +96,20 @@ mod tests {
                 " @ delay 2ms",
                 Box::new(ConfigInstruction::parse("delay 2ms", &mut context).unwrap()),
             ),
-            ("% print", Box::new(PrintInstruction::parse("print", &mut context).unwrap())),
-            ("! marker", Box::new(MarkerInstruction::parse("marker", &mut context).unwrap())),
+            (
+                "% print",
+                Box::new(PrintInstruction::parse("print", &mut context).unwrap()),
+            ),
+            (
+                "! marker",
+                Box::new(MarkerInstruction::parse("marker", &mut context).unwrap()),
+            ),
             ("# comment", Box::new(EmptyInstruction::new())),
             (
                 "$ command",
-                Box::new(CommandInstruction::parse("command", &mut context.with_start('$')).unwrap()),
+                Box::new(
+                    CommandInstruction::parse("command", &mut context.with_start('$')).unwrap(),
+                ),
             ),
         ];
         for (input, expected) in instructions.iter() {
@@ -113,12 +129,20 @@ mod tests {
                 "@delay 2ms",
                 Box::new(ConfigInstruction::parse("delay 2ms", &mut context).unwrap()),
             ),
-            ("%print", Box::new(PrintInstruction::parse("print", &mut context).unwrap())),
-            ("!marker", Box::new(MarkerInstruction::parse("marker", &mut context).unwrap())),
+            (
+                "%print",
+                Box::new(PrintInstruction::parse("print", &mut context).unwrap()),
+            ),
+            (
+                "!marker",
+                Box::new(MarkerInstruction::parse("marker", &mut context).unwrap()),
+            ),
             ("#comment", Box::new(EmptyInstruction::new())),
             (
                 "$command",
-                Box::new(CommandInstruction::parse("command", &mut context.with_start('$')).unwrap()),
+                Box::new(
+                    CommandInstruction::parse("command", &mut context.with_start('$')).unwrap(),
+                ),
             ),
         ];
         for (input, expected) in instructions.iter() {

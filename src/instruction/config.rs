@@ -1,6 +1,6 @@
 //! Module for parsing config instructions.
 
-use super::{util, AsciiCast, InstructionTrait, ParseContext, ExecutionContext, ParseErrorType};
+use super::{util, AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ParseErrorType};
 use std::time::Duration;
 
 /// A configuration instruction type.
@@ -78,9 +78,7 @@ impl InstructionTrait for ConfigInstruction {
                     return Err(ParseErrorType::MalformedInstruction);
                 }
                 let height = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
-                Ok(ConfigInstructionType::Height(parse_auto_usize(
-                    height,
-                )?))
+                Ok(ConfigInstructionType::Height(parse_auto_usize(height)?))
             }
             "title" => {
                 if !persistent {
@@ -188,7 +186,7 @@ impl InstructionTrait for ConfigInstruction {
 
 #[cfg(test)]
 mod tests {
-    use super::{*, ConfigInstructionType::*};
+    use super::{ConfigInstructionType::*, *};
     use std::time::Duration;
 
     #[test]
@@ -220,7 +218,9 @@ mod tests {
         ];
         for (line, expected) in instructions.iter() {
             assert_eq!(
-                ConfigInstruction::parse(line, &mut context).unwrap().instruction_type,
+                ConfigInstruction::parse(line, &mut context)
+                    .unwrap()
+                    .instruction_type,
                 *expected
             );
         }
@@ -248,7 +248,9 @@ mod tests {
         ];
         for (line, expected) in instructions.iter() {
             assert_eq!(
-                ConfigInstruction::parse(line, &mut context).unwrap().persistent,
+                ConfigInstruction::parse(line, &mut context)
+                    .unwrap()
+                    .persistent,
                 *expected
             );
         }

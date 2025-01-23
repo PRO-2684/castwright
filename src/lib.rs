@@ -3,7 +3,7 @@ mod instruction;
 mod util;
 
 pub use error::{ParseError, ParseErrorType};
-use instruction::{InstructionTrait, parse_instruction};
+use instruction::{parse_instruction, InstructionTrait};
 use std::{io::BufRead, time::Duration};
 
 /// A parsing context for the script.
@@ -25,10 +25,7 @@ impl ParseContext {
     /// Create a context with given start character.
     #[allow(dead_code, reason = "Only used in tests")]
     fn with_start(&self, start: char) -> Self {
-        Self {
-            start,
-            ..*self
-        }
+        Self { start, ..*self }
     }
     /// Create a context with given continuation expectation.
     #[allow(dead_code, reason = "Only used in tests")]
@@ -159,8 +156,8 @@ impl Script {
         let mut context = ParseContext::new();
         for (line_number, line) in reader.lines().enumerate() {
             let line = line.map_err(|err| ParseErrorType::Io(err).with_line(line_number))?;
-            let instruction = parse_instruction(&line, &mut context)
-                .map_err(|e| e.with_line(line_number + 1))?;
+            let instruction =
+                parse_instruction(&line, &mut context).map_err(|e| e.with_line(line_number + 1))?;
             instructions.push(instruction);
         }
         Ok(Self { instructions })
@@ -180,7 +177,10 @@ impl Script {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use instruction::{CommandInstruction, ConfigInstruction, PrintInstruction, MarkerInstruction, EmptyInstruction};
+    use instruction::{
+        CommandInstruction, ConfigInstruction, EmptyInstruction, MarkerInstruction,
+        PrintInstruction,
+    };
     use std::io::BufReader;
 
     #[test]
@@ -206,9 +206,19 @@ mod tests {
             Box::new(PrintInstruction::parse("print", &mut context).unwrap()),
             Box::new(MarkerInstruction::parse("marker", &mut context).unwrap()),
             Box::new(EmptyInstruction::new()),
-            Box::new(CommandInstruction::parse("single command", &mut context.with_start('$')).unwrap()),
-            Box::new(CommandInstruction::parse("command \\", &mut context.with_start('$')).unwrap()),
-            Box::new(CommandInstruction::parse("continuation", &mut context.with_start('>').expect_continuation(true)).unwrap()),
+            Box::new(
+                CommandInstruction::parse("single command", &mut context.with_start('$')).unwrap(),
+            ),
+            Box::new(
+                CommandInstruction::parse("command \\", &mut context.with_start('$')).unwrap(),
+            ),
+            Box::new(
+                CommandInstruction::parse(
+                    "continuation",
+                    &mut context.with_start('>').expect_continuation(true),
+                )
+                .unwrap(),
+            ),
         ];
         assert_eq!(script.instructions, expected);
     }
