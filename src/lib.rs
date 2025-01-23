@@ -6,6 +6,24 @@ pub use error::{ParseError, ParseErrorType};
 use instruction::Instruction;
 use std::{io::BufRead, time::Duration};
 
+/// A parsing context for the script.
+struct ParseContext {
+    /// The starting character of the command.
+    start: char,
+    /// Whether we're expecting a continuation.
+    expect_continuation: bool,
+}
+
+impl ParseContext {
+    /// Create a new `ParseContext`.
+    fn new() -> Self {
+        Self {
+            start: ' ',
+            expect_continuation: false,
+        }
+    }
+}
+
 /// Persistent configuration for the script.
 #[derive(Clone, Debug, PartialEq)]
 struct Configuration {

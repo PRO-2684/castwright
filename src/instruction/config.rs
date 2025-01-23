@@ -1,6 +1,6 @@
 //! Module for parsing config instructions.
 
-use super::{util, ExecutionContext, ParseErrorType};
+use super::{util, AsciiCast, InstructionTrait, ParseContext, ExecutionContext, ParseErrorType};
 use std::time::Duration;
 
 /// A configuration instruction type.
@@ -40,17 +40,18 @@ pub struct ConfigInstruction {
     persistent: bool,
 }
 
-impl ConfigInstruction {
-    /// Parse a positive integer, returning `0` if the string is `auto`.
-    fn parse_auto_usize(s: &str) -> Result<usize, ParseErrorType> {
-        if s == "auto" {
-            Ok(0)
-        } else {
-            s.parse().map_err(|_| ParseErrorType::MalformedInstruction)
-        }
+/// Parse a positive integer, returning `0` if the string is `auto`.
+fn parse_auto_usize(s: &str) -> Result<usize, ParseErrorType> {
+    if s == "auto" {
+        Ok(0)
+    } else {
+        s.parse().map_err(|_| ParseErrorType::MalformedInstruction)
     }
+}
+
+impl InstructionTrait for ConfigInstruction {
     /// Parse a line into a `ConfigInstruction`.
-    pub fn parse(s: &str) -> Result<Self, ParseErrorType> {
+    fn parse(s: &str, _context: &mut ParseContext) -> Result<Self, ParseErrorType> {
         // The first character ('@') has been removed, thus the check is for the second character
         let s = s.trim();
         let persistent = s.starts_with("@");
@@ -66,7 +67,7 @@ impl ConfigInstruction {
                     return Err(ParseErrorType::MalformedInstruction);
                 }
                 let width = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
-                Ok(ConfigInstructionType::Width(Self::parse_auto_usize(width)?))
+                Ok(ConfigInstructionType::Width(parse_auto_usize(width)?))
             }
             "height" => {
                 if !persistent {
@@ -74,7 +75,7 @@ impl ConfigInstruction {
                     return Err(ParseErrorType::MalformedInstruction);
                 }
                 let height = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
-                Ok(ConfigInstructionType::Height(Self::parse_auto_usize(
+                Ok(ConfigInstructionType::Height(parse_auto_usize(
                     height,
                 )?))
             }
@@ -146,7 +147,7 @@ impl ConfigInstruction {
         })
     }
     /// Execute the configuration instruction.
-    pub fn execute(&self, context: &mut ExecutionContext) {
+    fn execute(&self, context: &mut ExecutionContext, _cast: &mut AsciiCast) {
         use ConfigInstructionType::*;
         // Modify the configuration
         if self.persistent {
@@ -184,11 +185,12 @@ impl ConfigInstruction {
 
 #[cfg(test)]
 mod tests {
-    use super::{ConfigInstruction, ConfigInstructionType::*, ExecutionContext, ParseErrorType};
+    use super::{*, ConfigInstructionType::*};
     use std::time::Duration;
 
     #[test]
     fn config_instruction_type() {
+        let mut context = ParseContext::new();
         let instructions = [
             ("@width 123", Width(123)),
             ("@height 456", Height(456)),
@@ -213,9 +215,9 @@ mod tests {
             ("@hidden false", Hidden(false)),
             ("@delay 2ms", Delay(Duration::from_millis(2))),
         ];
-        for (input, expected) in instructions.iter() {
+        for (line, expected) in instructions.iter() {
             assert_eq!(
-                ConfigInstruction::parse(input).unwrap().instruction_type,
+                ConfigInstruction::parse(line, &mut context).unwrap().instruction_type,
                 *expected
             );
         }
@@ -223,6 +225,7 @@ mod tests {
 
     #[test]
     fn config_instruction_persistent() {
+        let mut context = ParseContext::new();
         let instructions = [
             ("@width 123", true),
             ("@height 456", true),
@@ -240,9 +243,9 @@ mod tests {
             ("hidden true", false),
             ("delay 2ms", false),
         ];
-        for (input, expected) in instructions.iter() {
+        for (line, expected) in instructions.iter() {
             assert_eq!(
-                ConfigInstruction::parse(input).unwrap().persistent,
+                ConfigInstruction::parse(line, &mut context).unwrap().persistent,
                 *expected
             );
         }
@@ -250,6 +253,7 @@ mod tests {
 
     #[test]
     fn malformed_config_instruction() {
+        let mut context = ParseContext::new();
         let malformed_instructions = [
             "invalid",
             "@width",
@@ -261,7 +265,7 @@ mod tests {
         ];
         for line in malformed_instructions.iter() {
             assert!(matches!(
-                ConfigInstruction::parse(line).unwrap_err(),
+                ConfigInstruction::parse(line, &mut context).unwrap_err(),
                 ParseErrorType::MalformedInstruction,
             ));
         }
@@ -269,6 +273,7 @@ mod tests {
 
     #[test]
     fn meaningless_temporary_config_instruction() {
+        let mut context = ParseContext::new();
         let meaningless_instructions = [
             "width 123",
             "height 456",
@@ -279,7 +284,7 @@ mod tests {
         ];
         for line in meaningless_instructions.iter() {
             assert!(matches!(
-                ConfigInstruction::parse(line).unwrap_err(),
+                ConfigInstruction::parse(line, &mut context).unwrap_err(),
                 ParseErrorType::MalformedInstruction,
             ));
         }
@@ -287,7 +292,9 @@ mod tests {
 
     #[test]
     fn execute_config_instruction() {
+        let mut parse_context = ParseContext::new();
         let mut context = ExecutionContext::new();
+        let mut cast = AsciiCast::new();
         let instructions = [
             "@width 123",
             "@height auto",
@@ -299,9 +306,9 @@ mod tests {
             "hidden",
         ];
         for line in instructions.iter() {
-            ConfigInstruction::parse(line)
+            ConfigInstruction::parse(line, &mut parse_context)
                 .unwrap()
-                .execute(&mut context);
+                .execute(&mut context, &mut cast);
         }
         let resolved = context.consume_temporary();
         assert_eq!(resolved.width, 123);

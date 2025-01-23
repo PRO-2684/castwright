@@ -1,6 +1,6 @@
 //! Module for parsing command instructions.
 
-use super::{AsciiCast, ExecutionContext};
+use super::{AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ParseErrorType};
 
 /// A command instruction.
 #[derive(Debug, PartialEq)]
@@ -13,34 +13,27 @@ pub struct CommandInstruction {
     continuation: bool,
 }
 
-impl CommandInstruction {
+impl InstructionTrait for CommandInstruction {
     /// Parse a line into a `CommandInstruction`.
-    pub fn parse(s: &str, start: bool) -> Self {
+    fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ParseErrorType> {
         let s = s.trim();
+        let start = context.start == '$';
         let continuation = s.ends_with('\\');
         let command = if continuation {
             s[..s.len() - 1].trim_end()
         } else {
             s
         };
-        Self {
+        Ok(Self {
             command: command.to_string(),
             start,
             continuation,
-        }
+        })
     }
     /// Execute the instruction
-    pub fn execute(&self, _context: &ExecutionContext, cast: &mut AsciiCast) {
+    fn execute(&self, _context: &mut ExecutionContext, cast: &mut AsciiCast) {
         // TODO: Implement
         cast.push(format!("command: {}", self.command));
-    }
-    /// Whether the command is a starting command. `true` if starting with `$`, `false` if starting with `>`.
-    pub fn is_start(&self) -> bool {
-        self.start
-    }
-    /// Whether the command expects a continuation. `true` if ending with `\`, `false` otherwise.
-    pub fn expect_continuation(&self) -> bool {
-        self.continuation
     }
 }
 
@@ -58,7 +51,9 @@ mod tests {
         ];
         for ((input, start_input), (command, start_output, continuation)) in instructions.iter() {
             assert_eq!(start_input, start_output);
-            let instruction = CommandInstruction::parse(input, *start_input);
+            let mut context = ParseContext::new();
+            context.start = if *start_input { '$' } else { '>' };
+            let instruction = CommandInstruction::parse(input, &mut context).unwrap();
             assert_eq!(instruction.command, *command);
             assert_eq!(instruction.start, *start_output);
             assert_eq!(instruction.continuation, *continuation);

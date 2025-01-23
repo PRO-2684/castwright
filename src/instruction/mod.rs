@@ -3,7 +3,7 @@
 mod command;
 mod config;
 
-use super::{util, AsciiCast, ExecutionContext, ParseErrorType};
+use super::{util, AsciiCast, ExecutionContext, ParseContext, ParseErrorType};
 pub use command::CommandInstruction;
 pub use config::ConfigInstruction;
 
@@ -58,6 +58,15 @@ impl Instruction {
             Self::Empty => {}
         }
     }
+}
+
+pub trait InstructionTrait {
+    /// Parse a line into `Self`.
+    fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ParseErrorType>
+    where
+        Self: Sized;
+    /// Execute the instruction.
+    fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast);
 }
 
 #[cfg(test)]
