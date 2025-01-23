@@ -23,13 +23,12 @@ pub fn parse_duration(s: &str) -> Result<Duration, ParseErrorType> {
         _ => Err(ParseErrorType::MalformedInstruction),
     }
 }
-/// Parse a `"`-wrapped string. If not wrapped, return the string as it is. Note that it is a rather loose implementation, disregarding any escape sequences.
-pub fn parse_quoted_string(s: &str) -> String {
-    // FIXME: Check for escape sequences
+/// Parse a lossy string. If starting with `"`, will deserialize it. Else, return the string as it is.
+pub fn parse_lossy_string(s: &str) -> Result<String, ParseErrorType> {
     if s.starts_with('"') && s.ends_with('"') {
-        s[1..s.len() - 1].to_string()
+        serde_json::from_str(s).map_err(ParseErrorType::Json)
     } else {
-        s.to_string()
+        Ok(s.to_string())
     }
 }
 
@@ -50,14 +49,25 @@ mod tests {
     }
 
     #[test]
-    fn quoted_string() {
+    fn lossy_string() {
         let strings = [
             ("\"hello \"", "hello "),
             ("world", "world"),
-            ("\" hello world \"", " hello world "),
+            ("\" hello \\\"world \"", " hello \"world "),
         ];
         for (input, expected) in strings.iter() {
-            assert_eq!(parse_quoted_string(input), *expected);
+            assert_eq!(parse_lossy_string(input).unwrap(), *expected);
+        }
+    }
+
+    #[test]
+    fn lossy_string_error() {
+        let strings = ["\"hello\" world\"", "\"hello\" world\" again\""];
+        for input in strings.iter() {
+            assert!(matches!(
+                parse_lossy_string(input).unwrap_err(),
+                ParseErrorType::Json(_)
+            ));
         }
     }
 }

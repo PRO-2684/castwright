@@ -132,13 +132,11 @@ A duration argument is a sequence of digits followed by a unit. The unit can be 
 
 ### String
 
-<!-- FIXME: Implement escaping -->
-
 A string is a sequence of characters enclosed in double quotes (`"`). If you need to include a double quote in the string, you can escape it with a backslash (`\"`). If you need to include a backslash, you can escape it with another backslash (`\\`).
 
 ### LossyString
 
-A lossy string, if started with a `"` character, will be treated as a `String`. Otherwise, its raw value will be used. For example, `"123 "` will be parsed as `"123 "`, while `123 ` will be parsed as `"123"` (trimmed).
+A lossy string, if starting and ending with a `"` character, will be treated as a `String`. Otherwise, its raw value will be used. For example, `"123 "` will be parsed as `"123 "`, while `123 ` will be parsed as `"123"` (trimmed).
 
 ### Optional\*(default)
 

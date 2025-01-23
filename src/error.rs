@@ -9,6 +9,9 @@ pub enum ParseErrorType {
     /// An io error occurred while reading the file.
     #[error("IO error: \"{0}\"")]
     Io(std::io::Error),
+    /// A `serde_json` error occurred while parsing.
+    #[error("JSON error: \"{0}\"")]
+    Json(serde_json::Error),
     /// The first non-whitespace character of the line is not recognized.
     #[error("Unknown instruction")]
     UnknownInstruction,
@@ -34,6 +37,7 @@ impl PartialEq for ParseErrorType {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Io(_), Self::Io(_)) => true,
+            (Self::Json(_), Self::Json(_)) => true,
             (Self::UnknownInstruction, Self::UnknownInstruction) => true,
             (Self::MalformedInstruction, Self::MalformedInstruction) => true,
             (Self::ExpectedContinuation, Self::ExpectedContinuation) => true,
