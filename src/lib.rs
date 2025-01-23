@@ -22,11 +22,20 @@ impl ParseContext {
             expect_continuation: false,
         }
     }
-    /// Returns a new `ParseContext` with the starting character set.
+    /// Create a context with given start character.
+    #[allow(dead_code, reason = "Only used in tests")]
     fn with_start(&self, start: char) -> Self {
         Self {
             start,
-            expect_continuation: self.expect_continuation,
+            ..*self
+        }
+    }
+    /// Create a context with given continuation expectation.
+    #[allow(dead_code, reason = "Only used in tests")]
+    fn expect_continuation(&self, expect_continuation: bool) -> Self {
+        Self {
+            expect_continuation,
+            ..*self
         }
     }
 }
@@ -149,28 +158,8 @@ impl Script {
         let mut instructions = Vec::new();
         let mut context = ParseContext::new();
         for (line_number, line) in reader.lines().enumerate() {
-            // let line = line.map_err(|err| ParseErrorType::Io(err).with_line(line_number))?;
-            // let instruction =
-            //     Instruction::parse(&line).map_err(|e| e.with_line(line_number + 1))?;
-            // // Check for `ExpectedContinuation` and `UnexpectedContinuation`
-            // if let Instruction::Command(command_inst) = &instruction {
-            //     let is_start = command_inst.is_start();
-            //     if is_start {
-            //         if expect_continuation {
-            //             return Err(ParseErrorType::ExpectedContinuation.with_line(line_number + 1));
-            //         }
-            //     } else {
-            //         if !expect_continuation {
-            //             return Err(
-            //                 ParseErrorType::UnexpectedContinuation.with_line(line_number + 1)
-            //             );
-            //         }
-            //     }
-            //     expect_continuation = command_inst.expect_continuation();
-            // } else if expect_continuation {
-            //     return Err(ParseErrorType::ExpectedContinuation.with_line(line_number + 1));
-            // }
-            let instruction = parse_instruction(&line?, &mut context)
+            let line = line.map_err(|err| ParseErrorType::Io(err).with_line(line_number))?;
+            let instruction = parse_instruction(&line, &mut context)
                 .map_err(|e| e.with_line(line_number + 1))?;
             instructions.push(instruction);
         }
@@ -191,7 +180,7 @@ impl Script {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use instruction::{CommandInstruction, ConfigInstruction};
+    use instruction::{CommandInstruction, ConfigInstruction, PrintInstruction, MarkerInstruction, EmptyInstruction};
     use std::io::BufReader;
 
     #[test]
@@ -210,15 +199,16 @@ mod tests {
         let script = script.as_bytes();
         let script = BufReader::new(script);
         let script = Script::parse(script).unwrap();
-        let expected = vec![
-            Instruction::Config(ConfigInstruction::parse("@width 123").unwrap()),
-            Instruction::Config(ConfigInstruction::parse("hidden true").unwrap()),
-            Instruction::Print("print".to_string()),
-            Instruction::Marker("marker".to_string()),
-            Instruction::Empty,
-            Instruction::Command(CommandInstruction::parse("single command", true)),
-            Instruction::Command(CommandInstruction::parse("command \\", true)),
-            Instruction::Command(CommandInstruction::parse("continuation", false)),
+        let mut context = ParseContext::new();
+        let expected: Vec<Box<dyn InstructionTrait>> = vec![
+            Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
+            Box::new(ConfigInstruction::parse("hidden true", &mut context).unwrap()),
+            Box::new(PrintInstruction::parse("print", &mut context).unwrap()),
+            Box::new(MarkerInstruction::parse("marker", &mut context).unwrap()),
+            Box::new(EmptyInstruction::new()),
+            Box::new(CommandInstruction::parse("single command", &mut context.with_start('$')).unwrap()),
+            Box::new(CommandInstruction::parse("command \\", &mut context.with_start('$')).unwrap()),
+            Box::new(CommandInstruction::parse("continuation", &mut context.with_start('>').expect_continuation(true)).unwrap()),
         ];
         assert_eq!(script.instructions, expected);
     }

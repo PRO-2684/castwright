@@ -17,8 +17,22 @@ impl InstructionTrait for CommandInstruction {
     /// Parse a line into a `CommandInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ParseErrorType> {
         let s = s.trim();
-        let start = context.start == '$';
+        let start = match context.start {
+            '$' => true,
+            '>' => false,
+            _ => return Err(ParseErrorType::UnknownInstruction),
+        };
         let continuation = s.ends_with('\\');
+        if start {
+            if context.expect_continuation {
+                return Err(ParseErrorType::ExpectedContinuation);
+            }
+        } else {
+            if !context.expect_continuation {
+                return Err(ParseErrorType::UnexpectedContinuation);
+            }
+        }
+        context.expect_continuation = continuation;
         let command = if continuation {
             s[..s.len() - 1].trim_end()
         } else {
@@ -53,6 +67,7 @@ mod tests {
             assert_eq!(start_input, start_output);
             let mut context = ParseContext::new();
             context.start = if *start_input { '$' } else { '>' };
+            context.expect_continuation = !start_input;
             let instruction = CommandInstruction::parse(input, &mut context).unwrap();
             assert_eq!(instruction.command, *command);
             assert_eq!(instruction.start, *start_output);

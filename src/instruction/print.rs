@@ -3,16 +3,20 @@
 use super::{AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ParseErrorType};
 
 /// An empty instruction.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct PrintInstruction(String);
 
 impl InstructionTrait for PrintInstruction {
     /// Parse a line into an `PrintInstruction`.
-    fn parse(s: &str, _context: &mut ParseContext) -> Result<Self, ParseErrorType> {
+    fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ParseErrorType> {
+        if context.expect_continuation {
+            return Err(ParseErrorType::ExpectedContinuation);
+        }
         Ok(Self(s.to_string()))
     }
     /// Execute the instruction
-    fn execute(&self, _context: &mut ExecutionContext, _cast: &mut AsciiCast) {
+    fn execute(&self, _context: &mut ExecutionContext, cast: &mut AsciiCast) {
         // TODO: Implement
+        cast.push(format!("print: {}", self.0));
     }
 }

@@ -13,61 +13,14 @@ pub use empty::EmptyInstruction;
 pub use marker::MarkerInstruction;
 pub use print::PrintInstruction;
 
-/// A single instruction
-#[derive(Debug, PartialEq)]
-pub enum Instruction {
-    /// A configuration instruction. (`@` or `@@`)
-    Config(ConfigInstruction),
-    /// Print a string as it is. (`%`)
-    Print(String),
-    /// Marker. (`!`)
-    Marker(String),
-    /// A shell command. (`$` or `>`)
-    Command(CommandInstruction),
-    /// Comment (`#`) or empty line.
-    Empty,
-}
-
-impl Instruction {
-    /// Parse a line into an `Instruction`.
-    pub fn parse(s: &str) -> Result<Self, ParseErrorType> {
-        let s = s.trim();
-        let Some(first) = s.chars().next() else {
-            return Ok(Self::Empty);
-        };
-        let trimmed = s[1..].trim().to_string();
-        match first {
-            '@' => Ok(Self::Config(ConfigInstruction::parse(&trimmed)?)),
-            '%' => Ok(Self::Print(trimmed)),
-            '!' => Ok(Self::Marker(trimmed)),
-            '#' => Ok(Self::Empty),
-            '$' | '>' => Ok(Self::Command(CommandInstruction::parse(
-                &trimmed,
-                first == '$',
-            ))),
-            _ => Err(ParseErrorType::UnknownInstruction),
-        }
-    }
-    /// Execute the instruction
-    pub fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) {
-        match self {
-            Self::Config(instruction) => instruction.execute(context),
-            Self::Print(s) => {
-                // TODO: Implement
-                cast.push(format!("print: {}", s));
-            }
-            Self::Marker(s) => {
-                // TODO: Implement
-                cast.push(format!("marker: {}", s));
-            }
-            Self::Command(instruction) => instruction.execute(context, cast),
-            Self::Empty => {}
-        }
-    }
-}
-
 pub trait InstructionTrait: std::fmt::Debug {
-    /// Parse a line into `Self`.
+    /// Parse a line into `Self`. Remember to check `expect_continuation` for non-empty instructions, like:
+    ///
+    /// ```rust ignore
+    /// if context.expect_continuation {
+    ///    return Err(ParseErrorType::ExpectedContinuation);
+    /// }
+    /// ```
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ParseErrorType>
     where
         Self: Sized;
@@ -81,17 +34,25 @@ pub fn parse_instruction(s: &str, context: &mut ParseContext) -> Result<Box<dyn 
         return Ok(Box::new(EmptyInstruction::new()));
     };
     let trimmed = s[1..].trim().to_string();
-    let mut instruction_context = context.with_start(first);
+    context.start = first;
     match first {
-        '@' => Ok(Box::new(ConfigInstruction::parse(&trimmed, &mut instruction_context)?)),
-        '%' => Ok(Box::new(PrintInstruction::parse(&trimmed, &mut instruction_context)?)),
-        '!' => Ok(Box::new(MarkerInstruction::parse(&trimmed, &mut instruction_context)?)),
+        '@' => Ok(Box::new(ConfigInstruction::parse(&trimmed, context)?)),
+        '%' => Ok(Box::new(PrintInstruction::parse(&trimmed, context)?)),
+        '!' => Ok(Box::new(MarkerInstruction::parse(&trimmed, context)?)),
         '#' => Ok(Box::new(EmptyInstruction::new())),
         '$' | '>' => Ok(Box::new(CommandInstruction::parse(
             &trimmed,
-            &mut instruction_context,
+            context,
         )?)),
         _ => Err(ParseErrorType::UnknownInstruction),
+    }
+}
+
+impl PartialEq for dyn InstructionTrait {
+    fn eq(&self, other: &Self) -> bool {
+        // Compare the debug representations of the instructions.
+        // This is a rather crude way to compare instructions, but it is only used in tests.
+        format!("{:?}", self) == format!("{:?}", other)
     }
 }
 
@@ -99,106 +60,96 @@ pub fn parse_instruction(s: &str, context: &mut ParseContext) -> Result<Box<dyn 
 mod tests {
     use super::*;
     use crate::ParseErrorType;
-    use std::time::Duration;
 
     #[test]
     fn instruction_with_space() {
-        use Instruction::*;
-        let instructions = [
+        let mut context = ParseContext::new();
+        let instructions: [(&str, Box<dyn InstructionTrait>); 12] = [
             (
                 " @@width auto",
-                Config(ConfigInstruction::parse("@width auto").unwrap()),
+                Box::new(ConfigInstruction::parse("@width auto", &mut context).unwrap()),
             ),
             (
                 " @delay 2ms",
-                Config(ConfigInstruction::parse("delay 2ms").unwrap()),
+                Box::new(ConfigInstruction::parse("delay 2ms", &mut context).unwrap()),
             ),
-            (" %print", Print("print".to_string())),
-            (" !marker", Marker("marker".to_string())),
-            (" #comment", Empty),
+            (" %print", Box::new(PrintInstruction::parse("print", &mut context).unwrap())),
+            (" !marker", Box::new(MarkerInstruction::parse("marker", &mut context).unwrap())),
+            (" #comment", Box::new(EmptyInstruction::new())),
             (
                 " $command",
-                Command(CommandInstruction::parse("command", true)),
+                Box::new(CommandInstruction::parse("command", &mut context.with_start('$')).unwrap()),
             ),
             (
-                " >continuation",
-                Command(CommandInstruction::parse("continuation", false)),
+                " @@ width 123",
+                Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
             ),
             (
-                "@@ width 123",
-                Config(ConfigInstruction::parse("@width 123").unwrap()),
+                " @ delay 2ms",
+                Box::new(ConfigInstruction::parse("delay 2ms", &mut context).unwrap()),
             ),
-            (
-                "@ delay 2ms",
-                Config(ConfigInstruction::parse("delay 2ms").unwrap()),
-            ),
-            ("% print", Print("print".to_string())),
-            ("! marker", Marker("marker".to_string())),
-            ("# comment", Empty),
+            ("% print", Box::new(PrintInstruction::parse("print", &mut context).unwrap())),
+            ("! marker", Box::new(MarkerInstruction::parse("marker", &mut context).unwrap())),
+            ("# comment", Box::new(EmptyInstruction::new())),
             (
                 "$ command",
-                Command(CommandInstruction::parse("command", true)),
-            ),
-            (
-                "> continuation",
-                Command(CommandInstruction::parse("continuation", false)),
+                Box::new(CommandInstruction::parse("command", &mut context.with_start('$')).unwrap()),
             ),
         ];
         for (input, expected) in instructions.iter() {
-            assert_eq!(&Instruction::parse(input).unwrap(), expected);
+            assert_eq!(&parse_instruction(input, &mut context).unwrap(), expected);
         }
     }
 
     #[test]
     fn instruction_without_space() {
-        use Instruction::*;
-        let instructions = [
+        let mut context = ParseContext::new();
+        let instructions: [(&str, Box<dyn InstructionTrait>); 6] = [
             (
                 "@@width auto",
-                Config(ConfigInstruction::parse("@width auto").unwrap()),
+                Box::new(ConfigInstruction::parse("@width auto", &mut context).unwrap()),
             ),
             (
                 "@delay 2ms",
-                Config(ConfigInstruction::parse("delay 2ms").unwrap()),
+                Box::new(ConfigInstruction::parse("delay 2ms", &mut context).unwrap()),
             ),
-            ("%print", Print("print".to_string())),
-            ("!marker", Marker("marker".to_string())),
-            ("#comment", Empty),
+            ("%print", Box::new(PrintInstruction::parse("print", &mut context).unwrap())),
+            ("!marker", Box::new(MarkerInstruction::parse("marker", &mut context).unwrap())),
+            ("#comment", Box::new(EmptyInstruction::new())),
             (
                 "$command",
-                Command(CommandInstruction::parse("command", true)),
-            ),
-            (
-                ">continuation",
-                Command(CommandInstruction::parse("continuation", false)),
+                Box::new(CommandInstruction::parse("command", &mut context.with_start('$')).unwrap()),
             ),
         ];
         for (input, expected) in instructions.iter() {
-            assert_eq!(&Instruction::parse(input).unwrap(), expected);
+            assert_eq!(&parse_instruction(input, &mut context).unwrap(), expected);
         }
     }
 
     #[test]
     fn empty_instruction() {
         let empty_lines = ["", " ", "\t", "\t ", " \t", "\n", "\r\n", "# some comment"];
+        let mut context = ParseContext::new();
+        let expected: Box<dyn InstructionTrait> = Box::new(EmptyInstruction::new());
         for line in empty_lines.iter() {
-            assert_eq!(&Instruction::parse(line).unwrap(), &Instruction::Empty);
+            assert_eq!(&parse_instruction(line, &mut context).unwrap(), &expected);
         }
     }
 
     #[test]
     fn invalid_instruction() {
         let unknown_instructions = ["invalid", "&", "~"];
+        let mut context = ParseContext::new();
         for line in unknown_instructions.iter() {
             assert!(matches!(
-                Instruction::parse(line).unwrap_err(),
+                parse_instruction(line, &mut context).unwrap_err(),
                 ParseErrorType::UnknownInstruction,
             ));
         }
         let malformed_instructions = ["@", "@@"];
         for line in malformed_instructions.iter() {
             assert!(matches!(
-                Instruction::parse(line).unwrap_err(),
+                parse_instruction(line, &mut context).unwrap_err(),
                 ParseErrorType::MalformedInstruction,
             ));
         }

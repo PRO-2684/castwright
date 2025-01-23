@@ -5,6 +5,7 @@ fn main() -> Result<(), DispError<ParseError>> {
     let file = std::fs::File::open("demo.cw").unwrap();
     let reader = std::io::BufReader::new(file);
     let script = Script::parse(reader)?;
-    script.execute();
+    let result = script.execute();
+    println!("{:#?}", result);
     Ok(())
 }
