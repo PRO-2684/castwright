@@ -1,3 +1,4 @@
+mod asciicast;
 mod error;
 mod instruction;
 mod util;
