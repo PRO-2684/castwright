@@ -35,15 +35,15 @@ A configuration instruction configures the behavior of the output or other instr
     - **Default**: `@@height auto`
 - `title`: Set the title of the asciicast.
     - **Effect**: Metadata; **Scope**: Persistent.
-    - **Parameter**: A [LossyString](#lossystring).
+    - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@title Castwright Script`
 - `shell`: Set the shell to be used for executing commands.
     - **Effect**: Metadata; **Scope**: Persistent.
-    - **Parameter**: A [LossyString](#lossystring), which represents the shell executable.
+    - **Parameter**: A [LooseString](#loosestring), which represents the shell executable.
     - **Default**: `@@shell bash`
 - `quit`: Set the quit command to be used for exiting the shell.
     - **Effect**: Metadata; **Scope**: Persistent.
-    - **Parameter**: A [LossyString](#lossystring), which represents the quit command.
+    - **Parameter**: A [LooseString](#loosestring), which represents the quit command.
     - **Default**: `@@quit exit`
 - `idle`: Set the idle time limit for the asciicast.
     - **Effect**: Directive; **Scope**: Persistent.
@@ -51,15 +51,15 @@ A configuration instruction configures the behavior of the output or other instr
     - **Default**: `@@idle 5s`
 - `prompt`: Set the shell prompt to use in the asciicast output.
     - **Effect**: Directive; **Scope**: Persistent or Temporary.
-    - **Parameter**: A [LossyString](#lossystring).
+    - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@prompt "$ "`
 - `secondary-prompt`: Set the secondary prompt to use in the asciicast output.
     - **Effect**: Directive; **Scope**: Persistent or Temporary.
-    - **Parameter**: A [LossyString](#lossystring).
+    - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@secondary-prompt "> "`
 - `line-split`: Set the string to signify a line split in a multiline command.
     - **Effect**: Directive; **Scope**: Persistent or Temporary.
-    - **Parameter**: A [LossyString](#lossystring).
+    - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@line-split " \\"`
 - `hidden`: Set whether the command should be executed silently.
     - **Effect**: Directive; **Scope**: Persistent or Temporary.
@@ -134,9 +134,9 @@ A duration argument is a sequence of digits followed by a unit. The unit can be 
 
 A string is a sequence of characters enclosed in double quotes (`"`). If you need to include a double quote in the string, you can escape it with a backslash (`\"`). If you need to include a backslash, you can escape it with another backslash (`\\`).
 
-### LossyString
+### LooseString
 
-A lossy string, if starting and ending with a `"` character, will be treated as a `String`. Otherwise, its raw value will be used. For example, `"123 "` will be parsed as `"123 "`, while `123 ` will be parsed as `"123"` (trimmed).
+A loose string, if starting and ending with a `"` character, will be treated as a `String`. Otherwise, its raw value will be used. For example, `"123 "` will be parsed as `"123 "`, while `123 ` will be parsed as `"123"` (trimmed).
 
 ### Optional\*(default)
 

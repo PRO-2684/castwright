@@ -85,7 +85,7 @@ impl InstructionTrait for ConfigInstruction {
                     // Using `title` as a temporary configuration is meaningless
                     return Err(ParseErrorType::MalformedInstruction);
                 }
-                let title = util::parse_lossy_string(s[5..].trim())?;
+                let title = util::parse_loose_string(s[5..].trim())?;
                 Ok(ConfigInstructionType::Title(title))
             }
             "shell" => {
@@ -93,7 +93,7 @@ impl InstructionTrait for ConfigInstruction {
                     // Using `shell` as a temporary configuration is meaningless
                     return Err(ParseErrorType::MalformedInstruction);
                 }
-                let shell = util::parse_lossy_string(s[5..].trim())?;
+                let shell = util::parse_loose_string(s[5..].trim())?;
                 Ok(ConfigInstructionType::Shell(shell))
             }
             "quit" => {
@@ -101,7 +101,7 @@ impl InstructionTrait for ConfigInstruction {
                     // Using `quit` as a temporary configuration is meaningless
                     return Err(ParseErrorType::MalformedInstruction);
                 }
-                let quit = util::parse_lossy_string(s[4..].trim())?;
+                let quit = util::parse_loose_string(s[4..].trim())?;
                 Ok(ConfigInstructionType::Quit(quit))
             }
             "idle" => {
@@ -113,15 +113,15 @@ impl InstructionTrait for ConfigInstruction {
                 Ok(ConfigInstructionType::Idle(util::parse_duration(idle)?))
             }
             "prompt" => {
-                let prompt = util::parse_lossy_string(s[6..].trim())?;
+                let prompt = util::parse_loose_string(s[6..].trim())?;
                 Ok(ConfigInstructionType::Prompt(prompt))
             }
             "secondary-prompt" => {
-                let prompt = util::parse_lossy_string(s[16..].trim())?;
+                let prompt = util::parse_loose_string(s[16..].trim())?;
                 Ok(ConfigInstructionType::SecondaryPrompt(prompt))
             }
             "line-split" => {
-                let split = util::parse_lossy_string(s[10..].trim())?;
+                let split = util::parse_loose_string(s[10..].trim())?;
                 Ok(ConfigInstructionType::LineSplit(split))
             }
             "hidden" => {

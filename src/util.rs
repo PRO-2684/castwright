@@ -23,8 +23,8 @@ pub fn parse_duration(s: &str) -> Result<Duration, ParseErrorType> {
         _ => Err(ParseErrorType::MalformedInstruction),
     }
 }
-/// Parse a lossy string. If starting with `"`, will deserialize it. Else, return the string as it is.
-pub fn parse_lossy_string(s: &str) -> Result<String, ParseErrorType> {
+/// Parse a loose string. If starting with `"`, will deserialize it. Else, return the string as it is.
+pub fn parse_loose_string(s: &str) -> Result<String, ParseErrorType> {
     if s.starts_with('"') && s.ends_with('"') {
         serde_json::from_str(s).map_err(ParseErrorType::Json)
     } else {
@@ -49,23 +49,23 @@ mod tests {
     }
 
     #[test]
-    fn lossy_string() {
+    fn loose_string() {
         let strings = [
             ("\"hello \"", "hello "),
             ("world", "world"),
             ("\" hello \\\"world \"", " hello \"world "),
         ];
         for (input, expected) in strings.iter() {
-            assert_eq!(parse_lossy_string(input).unwrap(), *expected);
+            assert_eq!(parse_loose_string(input).unwrap(), *expected);
         }
     }
 
     #[test]
-    fn lossy_string_error() {
+    fn loose_string_error() {
         let strings = ["\"hello\" world\"", "\"hello\" world\" again\""];
         for input in strings.iter() {
             assert!(matches!(
-                parse_lossy_string(input).unwrap_err(),
+                parse_loose_string(input).unwrap_err(),
                 ParseErrorType::Json(_)
             ));
         }
