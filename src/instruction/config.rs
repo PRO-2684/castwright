@@ -52,8 +52,8 @@ fn parse_auto_usize(s: &str) -> Result<usize, ParseErrorType> {
 impl InstructionTrait for ConfigInstruction {
     /// Parse a line into a `ConfigInstruction`.
     fn parse(s: &str, _context: &mut ParseContext) -> Result<Self, ParseErrorType> {
-        // The first character ('@') has been removed, thus the check is for the second character
         let s = s.trim();
+        // The first character ('@') has been removed, thus the check is for the second character
         let persistent = s.starts_with("@");
         let s = if persistent { &s[1..] } else { s }; // Remove the '@' if it's present
         let mut iter = s.split_whitespace();

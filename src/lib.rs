@@ -3,7 +3,7 @@ mod instruction;
 mod util;
 
 pub use error::{ParseError, ParseErrorType};
-use instruction::Instruction;
+use instruction::{InstructionTrait, parse_instruction};
 use std::{io::BufRead, time::Duration};
 
 /// A parsing context for the script.
@@ -20,6 +20,13 @@ impl ParseContext {
         Self {
             start: ' ',
             expect_continuation: false,
+        }
+    }
+    /// Returns a new `ParseContext` with the starting character set.
+    fn with_start(&self, start: char) -> Self {
+        Self {
+            start,
+            expect_continuation: self.expect_continuation,
         }
     }
 }
@@ -133,36 +140,38 @@ type AsciiCast = Vec<String>;
 /// A `.cw` script
 #[derive(Debug)]
 pub struct Script {
-    instructions: Vec<Instruction>,
+    instructions: Vec<Box<dyn InstructionTrait>>,
 }
 
 impl Script {
     /// Parse a castwright script from a reader.
     pub fn parse(reader: impl BufRead) -> Result<Self, ParseError> {
         let mut instructions = Vec::new();
-        let mut expect_continuation = false;
+        let mut context = ParseContext::new();
         for (line_number, line) in reader.lines().enumerate() {
-            let line = line.map_err(|err| ParseErrorType::Io(err).with_line(line_number))?;
-            let instruction =
-                Instruction::parse(&line).map_err(|e| e.with_line(line_number + 1))?;
-            // Check for `ExpectedContinuation` and `UnexpectedContinuation`
-            if let Instruction::Command(command_inst) = &instruction {
-                let is_start = command_inst.is_start();
-                if is_start {
-                    if expect_continuation {
-                        return Err(ParseErrorType::ExpectedContinuation.with_line(line_number + 1));
-                    }
-                } else {
-                    if !expect_continuation {
-                        return Err(
-                            ParseErrorType::UnexpectedContinuation.with_line(line_number + 1)
-                        );
-                    }
-                }
-                expect_continuation = command_inst.expect_continuation();
-            } else if expect_continuation {
-                return Err(ParseErrorType::ExpectedContinuation.with_line(line_number + 1));
-            }
+            // let line = line.map_err(|err| ParseErrorType::Io(err).with_line(line_number))?;
+            // let instruction =
+            //     Instruction::parse(&line).map_err(|e| e.with_line(line_number + 1))?;
+            // // Check for `ExpectedContinuation` and `UnexpectedContinuation`
+            // if let Instruction::Command(command_inst) = &instruction {
+            //     let is_start = command_inst.is_start();
+            //     if is_start {
+            //         if expect_continuation {
+            //             return Err(ParseErrorType::ExpectedContinuation.with_line(line_number + 1));
+            //         }
+            //     } else {
+            //         if !expect_continuation {
+            //             return Err(
+            //                 ParseErrorType::UnexpectedContinuation.with_line(line_number + 1)
+            //             );
+            //         }
+            //     }
+            //     expect_continuation = command_inst.expect_continuation();
+            // } else if expect_continuation {
+            //     return Err(ParseErrorType::ExpectedContinuation.with_line(line_number + 1));
+            // }
+            let instruction = parse_instruction(&line?, &mut context)
+                .map_err(|e| e.with_line(line_number + 1))?;
             instructions.push(instruction);
         }
         Ok(Self { instructions })

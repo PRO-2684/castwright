@@ -2,10 +2,16 @@
 
 mod command;
 mod config;
+mod empty;
+mod print;
+mod marker;
 
 use super::{util, AsciiCast, ExecutionContext, ParseContext, ParseErrorType};
 pub use command::CommandInstruction;
 pub use config::ConfigInstruction;
+pub use empty::EmptyInstruction;
+pub use marker::MarkerInstruction;
+pub use print::PrintInstruction;
 
 /// A single instruction
 #[derive(Debug, PartialEq)]
@@ -60,13 +66,33 @@ impl Instruction {
     }
 }
 
-pub trait InstructionTrait {
+pub trait InstructionTrait: std::fmt::Debug {
     /// Parse a line into `Self`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ParseErrorType>
     where
         Self: Sized;
     /// Execute the instruction.
     fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast);
+}
+
+pub fn parse_instruction(s: &str, context: &mut ParseContext) -> Result<Box<dyn InstructionTrait>, ParseErrorType> {
+    let s = s.trim();
+    let Some(first) = s.chars().next() else {
+        return Ok(Box::new(EmptyInstruction::new()));
+    };
+    let trimmed = s[1..].trim().to_string();
+    let mut instruction_context = context.with_start(first);
+    match first {
+        '@' => Ok(Box::new(ConfigInstruction::parse(&trimmed, &mut instruction_context)?)),
+        '%' => Ok(Box::new(PrintInstruction::parse(&trimmed, &mut instruction_context)?)),
+        '!' => Ok(Box::new(MarkerInstruction::parse(&trimmed, &mut instruction_context)?)),
+        '#' => Ok(Box::new(EmptyInstruction::new())),
+        '$' | '>' => Ok(Box::new(CommandInstruction::parse(
+            &trimmed,
+            &mut instruction_context,
+        )?)),
+        _ => Err(ParseErrorType::UnknownInstruction),
+    }
 }
 
 #[cfg(test)]
