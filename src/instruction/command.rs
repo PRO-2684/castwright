@@ -69,14 +69,16 @@ impl InstructionTrait for CommandInstruction {
             context.elapsed += delay;
             cast.output(context.elapsed, character.to_string());
         }
-        context.elapsed += delay;
-        cast.output(context.elapsed, "\n".to_string());
         if self.continuation {
             context.elapsed += delay;
             cast.output(context.elapsed, config.line_split.clone());
+            context.elapsed += delay;
+            cast.output(context.elapsed, "\r\n".to_string());
             context.command.push_str(&self.command);
             context.command.push(' ');
         } else {
+            context.elapsed += delay;
+            cast.output(context.elapsed, "\r\n".to_string());
             // Move `context.command` out, replace it with an empty string
             let mut command = std::mem::replace(&mut context.command, String::new());
             command.push_str(&self.command);
@@ -87,7 +89,7 @@ impl InstructionTrait for CommandInstruction {
             context.elapsed += delay;
             cast.output(context.elapsed, command);
             context.elapsed += delay;
-            cast.output(context.elapsed, "\n".to_string());
+            cast.output(context.elapsed, "\r\n".to_string());
         }
     }
 }

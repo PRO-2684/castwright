@@ -88,7 +88,7 @@ A temporary instruction affects only the next instruction (that is not a configu
 
 ### Print
 
-A print instruction takes a [LooseString](#loosestring) and prints it. It does not automatically add a newline character at the end, so you need to include it if you want one.
+A print instruction takes a [LooseString](#loosestring) and prints it together with a newline.
 
 ### Marker
 

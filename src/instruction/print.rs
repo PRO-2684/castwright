@@ -27,5 +27,7 @@ impl InstructionTrait for PrintInstruction {
             context.elapsed += delay;
             cast.output(context.elapsed, character.to_string());
         }
+        context.elapsed += delay;
+        cast.output(context.elapsed, "\r\n".to_string());
     }
 }

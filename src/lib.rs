@@ -211,6 +211,11 @@ impl Script {
         for instruction in &self.instructions {
             instruction.execute(&mut context, &mut cast);
         }
+        // Update the header with the final configuration
+        cast.width(context.persistent.width)
+            .height(context.persistent.height)
+            .title(context.persistent.title.clone())
+            .idle_time_limit(context.persistent.idle.as_secs_f64());
         cast
     }
 }

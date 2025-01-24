@@ -4,8 +4,8 @@
 % This will be printed as it is
 # Output:
 # This will be printed as it is
-# Note that it won't print a newline for you, so you'll probably want to:
-% "Printed with newline\n"
+# To include whitespace characters or escape sequences, use `"` to wrap your string:
+% "  Printed with indent"
 
 # Metadata or persistent configuration (`@@`)
 # Sets configuration for all FOLLOWING commands
