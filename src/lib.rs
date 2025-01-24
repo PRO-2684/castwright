@@ -4,7 +4,7 @@ mod instruction;
 mod util;
 
 use asciicast::AsciiCast;
-pub use error::{ParseError, ParseErrorType};
+pub use error::{Error, ErrorType};
 use instruction::{parse_instruction, InstructionTrait};
 use std::{io::BufRead, time::Duration};
 
@@ -192,11 +192,11 @@ pub struct Script {
 
 impl Script {
     /// Parse a castwright script from a reader.
-    pub fn parse(reader: impl BufRead) -> Result<Self, ParseError> {
+    pub fn parse(reader: impl BufRead) -> Result<Self, Error> {
         let mut instructions = Vec::new();
         let mut context = ParseContext::new();
         for (line_number, line) in reader.lines().enumerate() {
-            let line = line.map_err(|err| ParseErrorType::Io(err).with_line(line_number))?;
+            let line = line.map_err(|err| ErrorType::Io(err).with_line(line_number))?;
             let instruction =
                 parse_instruction(&line, &mut context).map_err(|e| e.with_line(line_number + 1))?;
             instructions.push(instruction);
@@ -286,7 +286,7 @@ mod tests {
         let script = BufReader::new(script);
         assert_eq!(
             Script::parse(script).unwrap_err(),
-            ParseErrorType::UnknownInstruction.with_line(8)
+            ErrorType::UnknownInstruction.with_line(8)
         );
     }
 
@@ -309,7 +309,7 @@ mod tests {
             let script = BufReader::new(script);
             assert_eq!(
                 Script::parse(script).unwrap_err(),
-                ParseErrorType::MalformedInstruction.with_line(2)
+                ErrorType::MalformedInstruction.with_line(2)
             );
         }
     }
@@ -325,7 +325,7 @@ mod tests {
         let script = BufReader::new(script);
         assert_eq!(
             Script::parse(script).unwrap_err(),
-            ParseErrorType::ExpectedContinuation.with_line(2)
+            ErrorType::ExpectedContinuation.with_line(2)
         );
     }
 
@@ -340,7 +340,7 @@ mod tests {
         let script = BufReader::new(script);
         assert_eq!(
             Script::parse(script).unwrap_err(),
-            ParseErrorType::UnexpectedContinuation.with_line(2)
+            ErrorType::UnexpectedContinuation.with_line(2)
         );
     }
 

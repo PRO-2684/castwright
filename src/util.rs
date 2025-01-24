@@ -1,33 +1,33 @@
 //! Utility functions for parsing.
 
-use super::ParseErrorType;
+use super::ErrorType;
 use std::time::Duration;
 use terminal_size::{terminal_size, Height, Width};
 
 /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
-pub fn parse_duration(s: &str) -> Result<Duration, ParseErrorType> {
+pub fn parse_duration(s: &str) -> Result<Duration, ErrorType> {
     // Split the number and the suffix
     let split_at = s
         .chars()
         .position(|c| !c.is_digit(10))
-        .ok_or(ParseErrorType::MalformedInstruction)?;
+        .ok_or(ErrorType::MalformedInstruction)?;
     let (num, suffix) = s.split_at(split_at);
     // Parse the number
     let num = num
         .parse()
-        .map_err(|_| ParseErrorType::MalformedInstruction)?;
+        .map_err(|_| ErrorType::MalformedInstruction)?;
     // Parse the suffix
     match suffix {
         "s" => Ok(Duration::from_secs(num)),
         "ms" => Ok(Duration::from_millis(num)),
         "us" => Ok(Duration::from_micros(num)),
-        _ => Err(ParseErrorType::MalformedInstruction),
+        _ => Err(ErrorType::MalformedInstruction),
     }
 }
 /// Parse a loose string. If starting with `"`, will deserialize it. Else, return the string as it is.
-pub fn parse_loose_string(s: &str) -> Result<String, ParseErrorType> {
+pub fn parse_loose_string(s: &str) -> Result<String, ErrorType> {
     if s.starts_with('"') && s.ends_with('"') {
-        serde_json::from_str(s).map_err(ParseErrorType::Json)
+        serde_json::from_str(s).map_err(ErrorType::Json)
     } else {
         Ok(s.to_string())
     }
@@ -73,7 +73,7 @@ mod tests {
         for input in strings.iter() {
             assert!(matches!(
                 parse_loose_string(input).unwrap_err(),
-                ParseErrorType::Json(_)
+                ErrorType::Json(_)
             ));
         }
     }

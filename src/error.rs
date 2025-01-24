@@ -1,10 +1,10 @@
 //! Error types for the `castwright` crate.
 
-use thiserror::Error;
+use thiserror::Error as ThisError;
 
 /// Possible types of errors that can occur while parsing a single line of a `.cw` file.
-#[derive(Error, Debug)]
-pub enum ParseErrorType {
+#[derive(ThisError, Debug)]
+pub enum ErrorType {
     // General parsing errors
     /// An io error occurred while reading the file.
     #[error("IO error: \"{0}\"")]
@@ -25,18 +25,18 @@ pub enum ParseErrorType {
     #[error("Unexpected continuation")]
     UnexpectedContinuation,
     /// The feature is not implemented.
-    #[error("Not implemented: \"{0}\"")]
+    #[error("Not implemented {0}")]
     NotImplemented(&'static str),
 }
 
-impl ParseErrorType {
-    /// Add line number information to the error, so as to form a [`ParseError`].
-    pub fn with_line(self, line: usize) -> ParseError {
-        ParseError { error: self, line }
+impl ErrorType {
+    /// Add line number information to the error, so as to form a [`Error`].
+    pub fn with_line(self, line: usize) -> Error {
+        Error { error: self, line }
     }
 }
 
-impl PartialEq for ParseErrorType {
+impl PartialEq for ErrorType {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
             (Self::Io(_), Self::Io(_)) => true,
@@ -51,12 +51,12 @@ impl PartialEq for ParseErrorType {
     }
 }
 
-/// An error that occurred while parsing a `.cw` file, with the line number denoting its position. To construct a `ParseError`, you should call [`ParseErrorType::with_line`].
-#[derive(Error, Debug, PartialEq)]
+/// An error that occurred, with the line number denoting its position. To construct an `Error`, you should call [`ErrorType::with_line`].
+#[derive(ThisError, Debug, PartialEq)]
 #[error("{error} at line {line}")]
-pub struct ParseError {
+pub struct Error {
     /// The type of error that occurred.
-    error: ParseErrorType,
+    error: ErrorType,
     /// The line number where the error occurred, starting at 1. If `0`, the line number is unknown at this point.
     line: usize,
 }

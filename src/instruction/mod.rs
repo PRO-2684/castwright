@@ -6,7 +6,7 @@ mod empty;
 mod marker;
 mod print;
 
-use super::{util, AsciiCast, ExecutionContext, ParseContext, ParseErrorType};
+use super::{util, AsciiCast, ExecutionContext, ParseContext, ErrorType};
 pub use command::CommandInstruction;
 pub use config::ConfigInstruction;
 pub use empty::EmptyInstruction;
@@ -18,10 +18,10 @@ pub trait InstructionTrait: std::fmt::Debug {
     ///
     /// ```rust ignore
     /// if context.expect_continuation {
-    ///    return Err(ParseErrorType::ExpectedContinuation);
+    ///    return Err(ErrorType::ExpectedContinuation);
     /// }
     /// ```
-    fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ParseErrorType>
+    fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType>
     where
         Self: Sized;
     /// Execute the instruction.
@@ -31,7 +31,7 @@ pub trait InstructionTrait: std::fmt::Debug {
 pub fn parse_instruction(
     s: &str,
     context: &mut ParseContext,
-) -> Result<Box<dyn InstructionTrait>, ParseErrorType> {
+) -> Result<Box<dyn InstructionTrait>, ErrorType> {
     let s = s.trim();
     let Some(first) = s.chars().next() else {
         return Ok(Box::new(EmptyInstruction::new()));
@@ -44,7 +44,7 @@ pub fn parse_instruction(
         '!' => Ok(Box::new(MarkerInstruction::parse(&trimmed, context)?)),
         '#' => Ok(Box::new(EmptyInstruction::new())),
         '$' | '>' => Ok(Box::new(CommandInstruction::parse(&trimmed, context)?)),
-        _ => Err(ParseErrorType::UnknownInstruction),
+        _ => Err(ErrorType::UnknownInstruction),
     }
 }
 
@@ -59,7 +59,7 @@ impl PartialEq for dyn InstructionTrait {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ParseErrorType;
+    use crate::ErrorType;
 
     #[test]
     fn instruction_with_space() {
@@ -167,14 +167,14 @@ mod tests {
         for line in unknown_instructions.iter() {
             assert!(matches!(
                 parse_instruction(line, &mut context).unwrap_err(),
-                ParseErrorType::UnknownInstruction,
+                ErrorType::UnknownInstruction,
             ));
         }
         let malformed_instructions = ["@", "@@"];
         for line in malformed_instructions.iter() {
             assert!(matches!(
                 parse_instruction(line, &mut context).unwrap_err(),
-                ParseErrorType::MalformedInstruction,
+                ErrorType::MalformedInstruction,
             ));
         }
     }

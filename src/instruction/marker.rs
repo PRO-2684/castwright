@@ -1,6 +1,6 @@
 //! Module for parsing empty instructions.
 
-use super::{AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ParseErrorType};
+use super::{AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ErrorType};
 
 /// An empty instruction.
 #[derive(Debug, PartialEq)]
@@ -8,9 +8,9 @@ pub struct MarkerInstruction(String);
 
 impl InstructionTrait for MarkerInstruction {
     /// Parse a line into an `MarkerInstruction`.
-    fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ParseErrorType> {
+    fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         if context.expect_continuation {
-            return Err(ParseErrorType::ExpectedContinuation);
+            return Err(ErrorType::ExpectedContinuation);
         }
         Ok(Self(s.to_string()))
     }

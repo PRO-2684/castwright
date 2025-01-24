@@ -1,6 +1,6 @@
 //! Module for parsing config instructions.
 
-use super::{util, AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ParseErrorType};
+use super::{util, AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ErrorType};
 use std::time::Duration;
 
 /// A configuration instruction type.
@@ -41,12 +41,12 @@ pub struct ConfigInstruction {
 }
 
 /// Parse a positive integer, returning `0` if the string is `auto`.
-fn parse_positive_u16(s: &str) -> Result<u16, ParseErrorType> {
+fn parse_positive_u16(s: &str) -> Result<u16, ErrorType> {
     let v = s
         .parse()
-        .map_err(|_| ParseErrorType::MalformedInstruction)?;
+        .map_err(|_| ErrorType::MalformedInstruction)?;
     if v == 0 {
-        Err(ParseErrorType::MalformedInstruction)
+        Err(ErrorType::MalformedInstruction)
     } else {
         Ok(v)
     }
@@ -54,9 +54,9 @@ fn parse_positive_u16(s: &str) -> Result<u16, ParseErrorType> {
 
 impl InstructionTrait for ConfigInstruction {
     /// Parse a line into a `ConfigInstruction`.
-    fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ParseErrorType> {
+    fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         if context.expect_continuation {
-            return Err(ParseErrorType::ExpectedContinuation);
+            return Err(ErrorType::ExpectedContinuation);
         }
         let s = s.trim();
         // The first character ('@') has been removed, thus the check is for the second character
@@ -64,31 +64,31 @@ impl InstructionTrait for ConfigInstruction {
         let s = if persistent { &s[1..] } else { s }; // Remove the '@' if it's present
         let mut iter = s.split_whitespace();
         let Some(first) = iter.next() else {
-            return Err(ParseErrorType::MalformedInstruction);
+            return Err(ErrorType::MalformedInstruction);
         };
         let instruction_type = match first {
             "width" => {
                 if !persistent {
                     // Using `width` as a temporary configuration is meaningless
-                    return Err(ParseErrorType::MalformedInstruction);
+                    return Err(ErrorType::MalformedInstruction);
                 }
-                let width = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
+                let width = iter.next().ok_or(ErrorType::MalformedInstruction)?;
                 let width = parse_positive_u16(width)?;
                 Ok(ConfigInstructionType::Width(width))
             }
             "height" => {
                 if !persistent {
                     // Using `height` as a temporary configuration is meaningless
-                    return Err(ParseErrorType::MalformedInstruction);
+                    return Err(ErrorType::MalformedInstruction);
                 }
-                let height = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
+                let height = iter.next().ok_or(ErrorType::MalformedInstruction)?;
                 let height = parse_positive_u16(height)?;
                 Ok(ConfigInstructionType::Height(height))
             }
             "title" => {
                 if !persistent {
                     // Using `title` as a temporary configuration is meaningless
-                    return Err(ParseErrorType::MalformedInstruction);
+                    return Err(ErrorType::MalformedInstruction);
                 }
                 let title = util::parse_loose_string(s[5..].trim())?;
                 Ok(ConfigInstructionType::Title(title))
@@ -96,7 +96,7 @@ impl InstructionTrait for ConfigInstruction {
             "shell" => {
                 if !persistent {
                     // Using `shell` as a temporary configuration is meaningless
-                    return Err(ParseErrorType::MalformedInstruction);
+                    return Err(ErrorType::MalformedInstruction);
                 }
                 let shell = util::parse_loose_string(s[5..].trim())?;
                 Ok(ConfigInstructionType::Shell(shell))
@@ -104,7 +104,7 @@ impl InstructionTrait for ConfigInstruction {
             "quit" => {
                 if !persistent {
                     // Using `quit` as a temporary configuration is meaningless
-                    return Err(ParseErrorType::MalformedInstruction);
+                    return Err(ErrorType::MalformedInstruction);
                 }
                 let quit = util::parse_loose_string(s[4..].trim())?;
                 Ok(ConfigInstructionType::Quit(quit))
@@ -112,9 +112,9 @@ impl InstructionTrait for ConfigInstruction {
             "idle" => {
                 if !persistent {
                     // Using `idle` as a temporary configuration is meaningless
-                    return Err(ParseErrorType::MalformedInstruction);
+                    return Err(ErrorType::MalformedInstruction);
                 }
-                let idle = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
+                let idle = iter.next().ok_or(ErrorType::MalformedInstruction)?;
                 Ok(ConfigInstructionType::Idle(util::parse_duration(idle)?))
             }
             "prompt" => {
@@ -135,17 +135,17 @@ impl InstructionTrait for ConfigInstruction {
                     match word {
                         "true" => Ok(ConfigInstructionType::Hidden(true)),
                         "false" => Ok(ConfigInstructionType::Hidden(false)),
-                        _ => Err(ParseErrorType::MalformedInstruction),
+                        _ => Err(ErrorType::MalformedInstruction),
                     }
                 } else {
                     Ok(ConfigInstructionType::Hidden(true)) // Default to true
                 }
             }
             "delay" => {
-                let delay = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
+                let delay = iter.next().ok_or(ErrorType::MalformedInstruction)?;
                 Ok(ConfigInstructionType::Delay(util::parse_duration(delay)?))
             }
-            _ => Err(ParseErrorType::MalformedInstruction),
+            _ => Err(ErrorType::MalformedInstruction),
         }?;
         Ok(Self {
             instruction_type,
@@ -268,7 +268,7 @@ mod tests {
         for line in malformed_instructions.iter() {
             assert!(matches!(
                 ConfigInstruction::parse(line, &mut context).unwrap_err(),
-                ParseErrorType::MalformedInstruction,
+                ErrorType::MalformedInstruction,
             ));
         }
     }
@@ -287,7 +287,7 @@ mod tests {
         for line in meaningless_instructions.iter() {
             assert!(matches!(
                 ConfigInstruction::parse(line, &mut context).unwrap_err(),
-                ParseErrorType::MalformedInstruction,
+                ErrorType::MalformedInstruction,
             ));
         }
     }

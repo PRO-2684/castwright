@@ -1,6 +1,6 @@
 //! Module for parsing command instructions.
 
-use super::{AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ParseErrorType};
+use super::{AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ErrorType};
 
 /// A command instruction.
 #[derive(Debug, PartialEq)]
@@ -15,21 +15,21 @@ pub struct CommandInstruction {
 
 impl InstructionTrait for CommandInstruction {
     /// Parse a line into a `CommandInstruction`.
-    fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ParseErrorType> {
+    fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         let s = s.trim();
         let start = match context.start {
             '$' => true,
             '>' => false,
-            _ => return Err(ParseErrorType::UnknownInstruction),
+            _ => return Err(ErrorType::UnknownInstruction),
         };
         let continuation = s.ends_with('\\');
         if start {
             if context.expect_continuation {
-                return Err(ParseErrorType::ExpectedContinuation);
+                return Err(ErrorType::ExpectedContinuation);
             }
         } else {
             if !context.expect_continuation {
-                return Err(ParseErrorType::UnexpectedContinuation);
+                return Err(ErrorType::UnexpectedContinuation);
             }
         }
         context.expect_continuation = continuation;

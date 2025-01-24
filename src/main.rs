@@ -1,5 +1,5 @@
 use argh::FromArgs;
-use castwright::{ParseError, ParseErrorType, Script};
+use castwright::{Error, ErrorType, Script};
 use disperror::DispError;
 use std::{
     fs::File,
@@ -22,13 +22,13 @@ struct Args {
 }
 
 /// Get a reader for the input, either from a file or stdin.
-fn get_reader(input: &Option<String>) -> Result<Box<dyn Read>, ParseError> {
+fn get_reader(input: &Option<String>) -> Result<Box<dyn Read>, Error> {
     match input {
         Some(path) => {
             let path = std::path::Path::new(&path);
             File::open(path)
                 .map(|f| Box::new(f) as Box<dyn Read>)
-                .map_err(|err| ParseErrorType::Io(err).with_line(0))
+                .map_err(|err| ErrorType::Io(err).with_line(0))
         }
         None => {
             let stdin = std::io::stdin();
@@ -38,13 +38,13 @@ fn get_reader(input: &Option<String>) -> Result<Box<dyn Read>, ParseError> {
 }
 
 /// Get a writer for the output, either from a file or stdout.
-fn get_writer(output: &Option<String>) -> Result<Box<dyn Write>, ParseError> {
+fn get_writer(output: &Option<String>) -> Result<Box<dyn Write>, Error> {
     match output {
         Some(path) => {
             let path = std::path::Path::new(&path);
             File::create(path)
                 .map(|f| Box::new(f) as Box<dyn Write>)
-                .map_err(|err| ParseErrorType::Io(err).with_line(0))
+                .map_err(|err| ErrorType::Io(err).with_line(0))
         }
         None => {
             let stdout = std::io::stdout();
@@ -53,10 +53,10 @@ fn get_writer(output: &Option<String>) -> Result<Box<dyn Write>, ParseError> {
     }
 }
 
-fn main() -> Result<(), DispError<ParseError>> {
+fn main() -> Result<(), DispError<Error>> {
     let args: Args = argh::from_env();
     if args.execute {
-        return Err(ParseErrorType::NotImplemented("--execute").with_line(0).into());
+        return Err(ErrorType::NotImplemented("`--execute` flag").with_line(0).into());
     }
     let input = get_reader(&args.input)?;
     let reader = std::io::BufReader::new(input);
@@ -64,6 +64,6 @@ fn main() -> Result<(), DispError<ParseError>> {
     let cast = script.execute();
     let mut output = get_writer(&args.output)?;
     cast.write(&mut output)
-        .map_err(|err| ParseErrorType::Json(err).with_line(0))?;
+        .map_err(|err| ErrorType::Json(err).with_line(0))?;
     Ok(())
 }
