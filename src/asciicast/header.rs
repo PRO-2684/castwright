@@ -4,19 +4,20 @@ use serde::Serialize;
 
 /// The header of an asciicast v2 file.
 // From: https://github.com/asciinema/asciinema/blob/f0f908872ca0364128b546bcc8af918d2fc47566/src/asciicast/v2.rs##L9-L20))
+#[derive(Debug)]
 pub struct Header {
     /// The version of the asciicast format. Must be set to 2.
     version: u8,
     /// Initial terminal width, i.e number of columns.
-    width: u16,
+    pub width: u16,
     /// Initial terminal height, i.e number of rows.
-    height: u16,
+    pub height: u16,
     /// Unix timestamp of the beginning of the recording session.
-    timestamp: Option<u64>,
+    pub timestamp: Option<u64>,
     /// Idle time limit.
-    idle_time_limit: Option<f64>,
+    pub idle_time_limit: Option<f64>,
     /// Title of the asciicast.
-    title: Option<String>,
+    pub title: Option<String>,
     // Not implemented fields:
     // Duration of the whole recording in seconds (when it's known upfront).
     // duration: Option<u64>,
@@ -68,6 +69,20 @@ impl Serialize for Header {
             state.skip_field("title")?;
         };
         state.end()
+    }
+}
+
+impl Header {
+    /// Create a new header with the given width and height.
+    pub fn new() -> Self {
+        Header {
+            version: 2,
+            width: 80,
+            height: 24,
+            timestamp: None,
+            idle_time_limit: None,
+            title: None,
+        }
     }
 }
 

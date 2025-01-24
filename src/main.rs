@@ -1,11 +1,14 @@
-use castwright::{ParseError, Script};
+use castwright::{ParseError, ParseErrorType, Script};
 use disperror::DispError;
+use std::fs::File;
 
 fn main() -> Result<(), DispError<ParseError>> {
-    let file = std::fs::File::open("demo.cw").unwrap();
-    let reader = std::io::BufReader::new(file);
+    let input = File::open("demo.cw").unwrap();
+    let reader = std::io::BufReader::new(input);
     let script = Script::parse(reader)?;
-    let result = script.execute();
-    println!("{:#?}", result);
+    let cast = script.execute();
+    println!("{:#?}", cast);
+    let mut output = File::create("demo.cast").unwrap();
+    cast.write(&mut output).map_err(|err| ParseErrorType::Json(err).with_line(0))?;
     Ok(())
 }

@@ -45,9 +45,46 @@ impl InstructionTrait for CommandInstruction {
         })
     }
     /// Execute the instruction
-    fn execute(&self, _context: &mut ExecutionContext, cast: &mut AsciiCast) {
-        // TODO: Implement
-        cast.push(format!("command: {}", self.command));
+    fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) {
+        let config = if context.has_temporary() {
+            if self.continuation {
+                // The temporary context is needed for the continuation commands
+                &context.merge_temporary()
+            } else {
+                // The temporary context is consumed for the ending command
+                &context.consume_temporary()
+            }
+        } else {
+            // No temporary context
+            &context.persistent
+        };
+        if config.hidden {
+            // TODO: Execute command silently
+            return;
+        }
+        let prompt = if self.start { config.prompt.clone() } else { config.secondary_prompt.clone() };
+        let delay = config.delay.as_millis() as u64;
+        cast.output(context.elapsed, prompt);
+        for character in self.command.chars() {
+            context.elapsed += delay;
+            cast.output(context.elapsed, character.to_string());
+        }
+        if self.continuation {
+            context.elapsed += delay;
+            cast.output(context.elapsed, config.line_split.clone());
+            context.command.push_str(&self.command);
+            context.command.push(' ');
+        } else {
+            // Move `context.command` out, replace it with an empty string
+            let mut command = std::mem::replace(&mut context.command, String::new());
+            command.push_str(&self.command);
+            // Dummy output to simulate the command being executed
+            // TODO: Implement actual command execution
+            context.elapsed += delay;
+            cast.output(context.elapsed, "\nExecuted command:\n".to_string());
+            context.elapsed += delay;
+            cast.output(context.elapsed, command);
+        }
     }
 }
 

@@ -15,8 +15,7 @@ impl InstructionTrait for MarkerInstruction {
         Ok(Self(s.to_string()))
     }
     /// Execute the instruction
-    fn execute(&self, _context: &mut ExecutionContext, cast: &mut AsciiCast) {
-        // TODO: Implement
-        cast.push(format!("marker: {}", self.0));
+    fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) {
+        cast.marker(context.elapsed, self.0.clone());
     }
 }

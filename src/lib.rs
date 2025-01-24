@@ -6,6 +6,7 @@ mod util;
 pub use error::{ParseError, ParseErrorType};
 use instruction::{parse_instruction, InstructionTrait};
 use std::{io::BufRead, time::Duration};
+use asciicast::AsciiCast;
 
 /// A parsing context for the script.
 struct ParseContext {
@@ -109,6 +110,10 @@ struct ExecutionContext {
     persistent: Configuration,
     /// Temporary configuration.
     temporary: TemporaryConfiguration,
+    /// Elapsed time in milliseconds.
+    elapsed: u64,
+    /// Previous commands to be concatenated.
+    command: String,
 }
 
 impl ExecutionContext {
@@ -117,9 +122,34 @@ impl ExecutionContext {
         Self {
             persistent: Configuration::new(),
             temporary: TemporaryConfiguration::new(),
+            elapsed: 0,
+            command: String::new(),
         }
     }
-
+    /// Check if the temporary configuration has any values.
+    fn has_temporary(&self) -> bool {
+        !self.temporary.is_empty()
+    }
+    /// Merge the temporary configuration and return a new `Configuration`.
+    fn merge_temporary(&self) -> Configuration {
+        let mut config = self.persistent.clone();
+        if let Some(prompt) = &self.temporary.prompt {
+            config.prompt = prompt.clone();
+        }
+        if let Some(secondary_prompt) = &self.temporary.secondary_prompt {
+            config.secondary_prompt = secondary_prompt.clone();
+        }
+        if let Some(line_split) = &self.temporary.line_split {
+            config.line_split = line_split.clone();
+        }
+        if let Some(hidden) = self.temporary.hidden {
+            config.hidden = hidden;
+        }
+        if let Some(delay) = self.temporary.delay {
+            config.delay = delay;
+        }
+        config
+    }
     /// Consume the temporary configuration and return a new `Configuration`.
     fn consume_temporary(&mut self) -> Configuration {
         let mut config = self.persistent.clone();
@@ -142,7 +172,7 @@ impl ExecutionContext {
     }
 }
 
-type AsciiCast = Vec<String>;
+// type AsciiCast = Vec<String>;
 
 /// A `.cw` script
 #[derive(Debug)]
