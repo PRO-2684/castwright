@@ -44,8 +44,9 @@ See [`REFERENCE.md`](./REFERENCE.md) for a detailed reference of the `castwright
 - [x] Implement the `castwright` script parser.
 - [x] Write to an asciicast file.
 - [x] Terminal width and height detection.
-- [ ] Actual command execution and output capture.
+- [ ] Better `pub` API.
 - [ ] Dry-run mode. (Print the commands to be executed without actually executing them)
+- [ ] Actual command execution and output capture.
 
 ## Credits
 
