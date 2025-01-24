@@ -3,7 +3,7 @@
 > [!WARNING]
 > This project is still in the early stages of development and is not yet ready for use.
 
-Scripted terminal recording.
+🎥 Scripted terminal recording.
 
 ## Introduction
 
@@ -22,7 +22,18 @@ TBD
 
 ## Usage
 
-TBD
+```shell
+Usage: castwright [-i <input>] [-o <output>]
+
+🎥 Scripted terminal recording.
+
+Options:
+  -i, --input       the path to the input file (castwright script `.cw`), or
+                    stdin if not provided
+  -o, --output      the path to the output file (asciicast `.cast`), or stdout
+                    if not provided
+  --help, help      display usage information
+```
 
 ## Reference
 

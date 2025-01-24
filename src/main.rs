@@ -1,13 +1,61 @@
+use argh::FromArgs;
 use castwright::{ParseError, ParseErrorType, Script};
 use disperror::DispError;
-use std::fs::File;
+use std::{
+    fs::File,
+    io::{Read, Write},
+};
+
+/// 🎥 Scripted terminal recording.
+#[derive(FromArgs)]
+struct Args {
+    /// the path to the input file (castwright script `.cw`), or stdin if not provided
+    #[argh(option, short = 'i')]
+    input: Option<String>,
+    /// the path to the output file (asciicast `.cast`), or stdout if not provided
+    #[argh(option, short = 'o')]
+    output: Option<String>,
+}
+
+/// Get a reader for the input, either from a file or stdin.
+fn get_reader(input: &Option<String>) -> Result<Box<dyn Read>, ParseError> {
+    match input {
+        Some(path) => {
+            let path = std::path::Path::new(&path);
+            File::open(path)
+                .map(|f| Box::new(f) as Box<dyn Read>)
+                .map_err(|err| ParseErrorType::Io(err).with_line(0))
+        }
+        None => {
+            let stdin = std::io::stdin();
+            Ok(Box::new(stdin.lock()))
+        }
+    }
+}
+
+/// Get a writer for the output, either from a file or stdout.
+fn get_writer(output: &Option<String>) -> Result<Box<dyn Write>, ParseError> {
+    match output {
+        Some(path) => {
+            let path = std::path::Path::new(&path);
+            File::create(path)
+                .map(|f| Box::new(f) as Box<dyn Write>)
+                .map_err(|err| ParseErrorType::Io(err).with_line(0))
+        }
+        None => {
+            let stdout = std::io::stdout();
+            Ok(Box::new(stdout.lock()))
+        }
+    }
+}
 
 fn main() -> Result<(), DispError<ParseError>> {
-    let input = File::open("demo.cw").unwrap();
+    let args: Args = argh::from_env();
+    let input = get_reader(&args.input)?;
     let reader = std::io::BufReader::new(input);
     let script = Script::parse(reader)?;
     let cast = script.execute();
-    let mut output = File::create("demo.cast").unwrap();
+    let mut output = get_writer(&args.output)?;
     cast.write(&mut output)
         .map_err(|err| ParseErrorType::Json(err).with_line(0))?;
     Ok(())
