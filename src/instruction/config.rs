@@ -8,9 +8,9 @@ use std::time::Duration;
 pub enum ConfigInstructionType {
     // Configuration that doesn't apply to instructions (metadata)
     /// Terminal width.
-    Width(usize),
+    Width(u16),
     /// Terminal height.
-    Height(usize),
+    Height(u16),
     /// Title of the asciicast.
     Title(String),
     /// The shell to use.
@@ -41,7 +41,7 @@ pub struct ConfigInstruction {
 }
 
 /// Parse a positive integer, returning `0` if the string is `auto`.
-fn parse_positive_usize(s: &str) -> Result<usize, ParseErrorType> {
+fn parse_positive_u16(s: &str) -> Result<u16, ParseErrorType> {
     let v = s.parse().map_err(|_| ParseErrorType::MalformedInstruction)?;
     if v == 0 {
         Err(ParseErrorType::MalformedInstruction)
@@ -71,7 +71,7 @@ impl InstructionTrait for ConfigInstruction {
                     return Err(ParseErrorType::MalformedInstruction);
                 }
                 let width = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
-                let width = parse_positive_usize(width)?;
+                let width = parse_positive_u16(width)?;
                 Ok(ConfigInstructionType::Width(width))
             }
             "height" => {
@@ -80,7 +80,7 @@ impl InstructionTrait for ConfigInstruction {
                     return Err(ParseErrorType::MalformedInstruction);
                 }
                 let height = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
-                let height = parse_positive_usize(height)?;
+                let height = parse_positive_u16(height)?;
                 Ok(ConfigInstructionType::Height(height))
             }
             "title" => {

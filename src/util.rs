@@ -33,9 +33,9 @@ pub fn parse_loose_string(s: &str) -> Result<String, ParseErrorType> {
     }
 }
 /// Detect terminal size, defaulting to 80x24 if it fails.
-pub fn get_terminal_size() -> (usize, usize) {
+pub fn get_terminal_size() -> (u16, u16) {
     terminal_size()
-        .map(|(Width(w), Height(h))| (w as usize, h as usize))
+        .map(|(Width(w), Height(h))| (w, h))
         .unwrap_or((80, 24))
 }
 

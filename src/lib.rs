@@ -43,9 +43,9 @@ impl ParseContext {
 #[derive(Clone, Debug, PartialEq)]
 struct Configuration {
     /// Terminal width.
-    width: usize,
+    width: u16,
     /// Terminal height.
-    height: usize,
+    height: u16,
     /// Title of the asciicast.
     title: String,
     /// The shell to use.
