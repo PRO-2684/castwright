@@ -8,17 +8,25 @@ A `castwright` script is line-based, with each line representing a single instru
 
 | Prefix | Instruction Type |
 | ------ | ---------------- |
-| `@`    | [Configuration](#configuration) |
-| `%`    | [Print](#print) |
-| `!`    | [Marker](#marker) |
 | `$`    | [Command](#command) |
 | `>`    | [Continuation](#continuation) |
-| `#`    | [Comment](#comment) |
+| `@`    | [Configuration](#configuration) |
 | `\s`   | [Empty line](#empty-line) |
+| `#`    | [Comment](#comment) |
+| `!`    | [Marker](#marker) |
+| `%`    | [Print](#print) |
 
 Any line that does not start with one of the above prefixes will result in an error (`UnknownInstruction`).
 
 ## Instruction Types
+
+### Command
+
+A command instruction prints, executes, and displays the output of a command. Usually, you'll use it the most in your script.
+
+### Continuation
+
+A continuation instruction is a continuation of a multi-line shell command. It must be used after a command instruction or another continuation instruction that ends with a backslash (`\`).
 
 ### Configuration
 
@@ -85,33 +93,25 @@ A persistent instruction starts with two `@`, and affects all subsequent instruc
 
 A temporary instruction starts with only one `@`, and affects only the next [print](#print) or [command](#command) instruction. Note that continuation of a command is considered the same instruction. It is useful for changing the behavior of a single instruction without affecting the rest of the script.
 
-### Print
-
-A print instruction takes a [LooseString](#loosestring) and prints it together with a newline.
-
-### Marker
-
-A marker instruction marks a point in the asciicast output. It can be used to indicate the start of a new section or to provide a reference point for the viewer.
-
-### Command
-
-A command instruction prints, executes, and displays the output of a command. Usually, you'll use it the most in your script.
-
-### Continuation
-
-A continuation instruction is a continuation of a multi-line shell command. It must be used after a command instruction or another continuation instruction that ends with a backslash (`\`).
-
 ### Empty
 
 Empty instructions do nothing. They may take the form of an [empty line](#empty-line) or a [comment](#comment).
 
 #### Empty Line
 
-An empty line is a line that contains only whitespace characters. Useful for separating sections of your script.
+An empty line is a line that contains only whitespace characters. Useful for separating sections of your castwright script.
 
 #### Comment
 
 A comment is a line that starts with a `#` character. You can use comments to document your script, but they have no effect on the output.
+
+### Marker
+
+A marker instruction marks a point in the asciicast output. It can be used to indicate the start of a new section or to provide a reference point for the viewer.
+
+### Print
+
+A print instruction takes a [LooseString](#loosestring) and prints it together with a newline.
 
 ## Argument Types
 
