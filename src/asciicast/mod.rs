@@ -2,6 +2,7 @@
 
 mod event;
 mod header;
+use super::{Error, ErrorType};
 use event::Event;
 use header::Header;
 
@@ -74,12 +75,12 @@ impl AsciiCast {
 
     // Output
     /// Write the asciicast to a writer.
-    pub fn write(&self, writer: &mut impl std::io::Write) -> serde_json::Result<()> {
+    pub fn write(&self, writer: &mut impl std::io::Write) -> Result<(), Error> {
         use serde_json::ser::to_writer;
-        to_writer(&mut *writer, &self.header)?;
+        to_writer(&mut *writer, &self.header).map_err(|err| ErrorType::Json(err).with_line(0))?;
         for event in &self.events {
-            writeln!(&mut *writer).map_err(serde_json::Error::io)?;
-            to_writer(&mut *writer, event)?;
+            writeln!(&mut *writer).map_err(|err| ErrorType::Io(err).with_line(0))?;
+            to_writer(&mut *writer, event).map_err(|err| ErrorType::Json(err).with_line(0))?;
         }
         Ok(())
     }

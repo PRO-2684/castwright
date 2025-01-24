@@ -65,7 +65,6 @@ fn main() -> Result<(), DispError<Error>> {
     let script = Script::parse(reader)?;
     let cast = script.execute();
     let mut output = get_writer(&args.output)?;
-    cast.write(&mut output)
-        .map_err(|err| ErrorType::Json(err).with_line(0))?;
+    cast.write(&mut output)?;
     Ok(())
 }

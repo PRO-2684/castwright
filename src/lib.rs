@@ -27,18 +27,21 @@
 //! use castwright::{Script, Error};
 //! use std::io::BufReader;
 //!
-//! let text = r#"
-//!     $ echo "Hello, World!"
-//!     $ echo "Multi-" \
-//!     > "line" \
-//!     > "command"
-//! "#;
-//! let text = text.trim();
-//! let reader = BufReader::new(text.as_bytes());
-//! let script = Script::parse(reader).unwrap();
-//! let cast = script.execute();
-//! let mut stdout = std::io::stdout().lock();
-//! cast.write(&mut stdout).unwrap();
+//! fn main() -> Result<(), Error> {
+//!     let text = r#"
+//!         $ echo "Hello, World!"
+//!         $ echo "Multi-" \
+//!         > "line" \
+//!         > "command"
+//!     "#;
+//!     let text = text.trim();
+//!     let reader = BufReader::new(text.as_bytes());
+//!     let script = Script::parse(reader)?;
+//!     let cast = script.execute();
+//!     let mut stdout = std::io::stdout().lock();
+//!     cast.write(&mut stdout)?;
+//!     Ok(())
+//! }
 //! ```
 //!
 //! See `src/main.rs` for a complete example.
