@@ -42,25 +42,37 @@ impl ParseContext {
 /// Persistent configuration for the script.
 #[derive(Clone, Debug, PartialEq)]
 struct Configuration {
+    /// Terminal width.
     width: usize,
+    /// Terminal height.
     height: usize,
+    /// Title of the asciicast.
     title: String,
+    /// The shell to use.
     shell: String,
+    /// The quit command.
     quit: String,
+    /// Idle time limit.
     idle: Duration,
+    /// The shell prompt to use in the asciicast.
     prompt: String,
+    /// The secondary prompt to use in the asciicast (for continuation lines).
     secondary_prompt: String,
+    /// The string to signify a line split in a multiline command.
     line_split: String,
+    /// Whether the command should be executed silently.
     hidden: bool,
+    /// Typing delay between characters in a command or print instruction.
     delay: Duration,
 }
 
 impl Configuration {
     /// Create a new `Configuration` with default values.
     fn new() -> Self {
+        let (width, height) = util::get_terminal_size();
         Self {
-            width: 80,
-            height: 24,
+            width,
+            height,
             title: "Castwright Script".to_string(),
             shell: "bash".to_string(),
             quit: "exit".to_string(),
@@ -171,8 +183,6 @@ impl ExecutionContext {
         config
     }
 }
-
-// type AsciiCast = Vec<String>;
 
 /// A `.cw` script
 #[derive(Debug)]
@@ -334,9 +344,10 @@ mod tests {
         let mut context = ExecutionContext::new();
         context.temporary.prompt = Some("$$ ".to_string());
         context.temporary.secondary_prompt = Some(">> ".to_string());
+        let (width, height) = util::get_terminal_size();
         let expected = Configuration {
-            width: 80,
-            height: 24,
+            width,
+            height,
             title: "Castwright Script".to_string(),
             shell: "bash".to_string(),
             quit: "exit".to_string(),

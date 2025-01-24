@@ -21,15 +21,15 @@ pub enum ConfigInstructionType {
     Idle(Duration),
 
     // Configuration that applies to other instructions (directive)
-    /// The shell prompt to use in the asciicast output.
+    /// The shell prompt to use in the asciicast.
     Prompt(String),
-    /// The shell secondary prompt to use in the asciicast (for continuation lines).
+    /// The secondary prompt to use in the asciicast (for continuation lines).
     SecondaryPrompt(String),
     /// The string to signify a line split in a multiline command.
     LineSplit(String),
     /// Whether the command should be executed silently.
     Hidden(bool),
-    /// Typing delay between characters in a command.
+    /// Typing delay between characters in a command or print instruction.
     Delay(Duration),
 }
 
@@ -41,11 +41,12 @@ pub struct ConfigInstruction {
 }
 
 /// Parse a positive integer, returning `0` if the string is `auto`.
-fn parse_auto_usize(s: &str) -> Result<usize, ParseErrorType> {
-    if s == "auto" {
-        Ok(0)
+fn parse_positive_usize(s: &str) -> Result<usize, ParseErrorType> {
+    let v = s.parse().map_err(|_| ParseErrorType::MalformedInstruction)?;
+    if v == 0 {
+        Err(ParseErrorType::MalformedInstruction)
     } else {
-        s.parse().map_err(|_| ParseErrorType::MalformedInstruction)
+        Ok(v)
     }
 }
 
@@ -70,7 +71,8 @@ impl InstructionTrait for ConfigInstruction {
                     return Err(ParseErrorType::MalformedInstruction);
                 }
                 let width = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
-                Ok(ConfigInstructionType::Width(parse_auto_usize(width)?))
+                let width = parse_positive_usize(width)?;
+                Ok(ConfigInstructionType::Width(width))
             }
             "height" => {
                 if !persistent {
@@ -78,7 +80,8 @@ impl InstructionTrait for ConfigInstruction {
                     return Err(ParseErrorType::MalformedInstruction);
                 }
                 let height = iter.next().ok_or(ParseErrorType::MalformedInstruction)?;
-                Ok(ConfigInstructionType::Height(parse_auto_usize(height)?))
+                let height = parse_positive_usize(height)?;
+                Ok(ConfigInstructionType::Height(height))
             }
             "title" => {
                 if !persistent {
@@ -195,10 +198,6 @@ mod tests {
         let instructions = [
             ("@width 123", Width(123)),
             ("@height 456", Height(456)),
-            ("@width auto", Width(0)),
-            ("@height auto", Height(0)),
-            ("@width 0", Width(0)),
-            ("@height 0", Height(0)),
             (
                 "@title castwright demo",
                 Title("castwright demo".to_string()),
@@ -232,10 +231,6 @@ mod tests {
         let instructions = [
             ("@width 123", true),
             ("@height 456", true),
-            ("@width auto", true),
-            ("@height auto", true),
-            ("@width 0", true),
-            ("@height 0", true),
             ("@title castwright demo", true),
             ("@shell bash ", true),
             ("@quit \"exit \"", true),
@@ -302,7 +297,7 @@ mod tests {
         let mut cast = AsciiCast::new();
         let instructions = [
             "@width 123",
-            "@height auto",
+            "@height 456",
             "@title another title",
             "@idle 2ms",
             "prompt \"~> \"",
@@ -317,7 +312,7 @@ mod tests {
         }
         let resolved = context.consume_temporary();
         assert_eq!(resolved.width, 123);
-        assert_eq!(resolved.height, 0);
+        assert_eq!(resolved.height, 456);
         assert_eq!(resolved.title, "another title");
         assert_eq!(resolved.idle, Duration::from_millis(2));
         assert_eq!(resolved.prompt, "~> ".to_string());

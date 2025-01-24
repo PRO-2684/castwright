@@ -66,8 +66,8 @@ mod tests {
         let mut context = ParseContext::new();
         let instructions: [(&str, Box<dyn InstructionTrait>); 12] = [
             (
-                " @@width auto",
-                Box::new(ConfigInstruction::parse("@width auto", &mut context).unwrap()),
+                " @@width 123",
+                Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
             ),
             (
                 " @delay 2ms",
@@ -122,8 +122,8 @@ mod tests {
         let mut context = ParseContext::new();
         let instructions: [(&str, Box<dyn InstructionTrait>); 6] = [
             (
-                "@@width auto",
-                Box::new(ConfigInstruction::parse("@width auto", &mut context).unwrap()),
+                "@@width 123",
+                Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
             ),
             (
                 "@delay 2ms",

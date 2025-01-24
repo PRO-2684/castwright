@@ -28,6 +28,13 @@ TBD
 
 See [`REFERENCE.md`](./REFERENCE.md) for a detailed reference of the `castwright` script format (`.cw`).
 
+## TODO
+
+- [x] Implement the `castwright` script parser.
+- [x] Write to an asciicast file.
+- [ ] Actual command execution and output capture.
+- [ ] Terminal width and height detection.
+
 ## Credits
 
 - [asciinema](https://asciinema.org)

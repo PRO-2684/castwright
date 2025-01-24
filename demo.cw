@@ -10,9 +10,9 @@
 # Metadata or persistent configuration (`@@`)
 # Sets configuration for all FOLLOWING commands
 # Set the terminal width, default is current terminal width
-@@width auto
+# @@width 80
 # Set the terminal height, default is current terminal height
-@@height auto
+# @@height 24
 # Title of the asciicast (no point setting this using temporary configuration)
 @@title Castwright Script
 # Terminal idle timeout

@@ -2,6 +2,7 @@
 
 use super::ParseErrorType;
 use std::time::Duration;
+use terminal_size::{terminal_size, Width, Height};
 
 /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
 pub fn parse_duration(s: &str) -> Result<Duration, ParseErrorType> {
@@ -30,6 +31,12 @@ pub fn parse_loose_string(s: &str) -> Result<String, ParseErrorType> {
     } else {
         Ok(s.to_string())
     }
+}
+/// Detect terminal size, defaulting to 80x24 if it fails.
+pub fn get_terminal_size() -> (usize, usize) {
+    terminal_size()
+        .map(|(Width(w), Height(h))| (w as usize, h as usize))
+        .unwrap_or((80, 24))
 }
 
 #[cfg(test)]
