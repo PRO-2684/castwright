@@ -110,7 +110,7 @@ struct ExecutionContext {
     persistent: Configuration,
     /// Temporary configuration.
     temporary: TemporaryConfiguration,
-    /// Elapsed time in milliseconds.
+    /// Elapsed time in microseconds (µs).
     elapsed: u64,
     /// Previous commands to be concatenated.
     command: String,

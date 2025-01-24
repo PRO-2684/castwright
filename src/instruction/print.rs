@@ -1,6 +1,6 @@
 //! Module for parsing empty instructions.
 
-use super::{AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ParseErrorType};
+use super::{util, AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ParseErrorType};
 
 /// An empty instruction.
 #[derive(Debug, PartialEq)]
@@ -9,10 +9,11 @@ pub struct PrintInstruction(String);
 impl InstructionTrait for PrintInstruction {
     /// Parse a line into an `PrintInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ParseErrorType> {
+        let content = util::parse_loose_string(s)?;
         if context.expect_continuation {
             return Err(ParseErrorType::ExpectedContinuation);
         }
-        Ok(Self(s.to_string()))
+        Ok(Self(content))
     }
     /// Execute the instruction
     fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) {
@@ -21,7 +22,7 @@ impl InstructionTrait for PrintInstruction {
         } else {
             &context.persistent
         };
-        let delay = config.delay.as_millis() as u64;
+        let delay = config.delay.as_micros() as u64;
         for character in self.0.chars() {
             context.elapsed += delay;
             cast.output(context.elapsed, character.to_string());
