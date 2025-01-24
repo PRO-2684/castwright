@@ -1,3 +1,50 @@
+//! # Castwright
+//!
+//! 🎥 Scripted terminal recording.
+//!
+//! ## Note
+//!
+//! - This project is still in the early stages of development, with some core features missing or incomplete.
+//! - If you see this message, it means that you're viewing the documentation of the `castwright` library. For the CLI, please refer to the [README](https://github.com/PRO-2684/castwright#castwright); for the castwright script format, please refer to the [REFERENCE](https://github.com/PRO-2684/castwright/blob/main/REFERENCE.md).
+//!
+//! ## Usage
+//!
+//! Mostly, you'll deal with the [`Script`] struct and [`Error`] struct.
+//!
+//! ### [`Script`]
+//!
+//! The `Script` struct represents a castwright script, and you can parse a script from a reader (`impl BufRead`) using the [`Script::parse`] method. It returns a `Script` instance if the parsing is successful, or an `Error` instance if it fails.
+//!
+//! You can then execute the `Script` instance using the [`Script::execute`] method to get an [`AsciiCast`] struct. Then you can write the asciicast to a writer (`impl Write`) using the [`AsciiCast::write`] method.
+//!
+//! ### [`Error`]
+//!
+//! The `Error` struct represents an error that occurred during parsing or execution. It contains an [`ErrorType`] enum variant that specifies the type of error, and the line number where the error occurred.
+//!
+//! ## Example
+//!
+//! ```rust
+//! use castwright::{Script, Error};
+//! use std::io::BufReader;
+//!
+//! let text = r#"
+//!     $ echo "Hello, World!"
+//!     $ echo "Multi-" \
+//!     > "line" \
+//!     > "command"
+//! "#;
+//! let text = text.trim();
+//! let reader = BufReader::new(text.as_bytes());
+//! let script = Script::parse(reader).unwrap();
+//! let cast = script.execute();
+//! let mut stdout = std::io::stdout().lock();
+//! cast.write(&mut stdout).unwrap();
+//! ```
+//!
+//! See `src/main.rs` for a complete example.
+
+#![deny(missing_docs)]
+
 mod asciicast;
 mod error;
 mod instruction;
@@ -231,7 +278,7 @@ mod tests {
 
     #[test]
     fn script() {
-        let script = r#"
+        let text = r#"
             @@width 123
             @hidden true
             %print
@@ -241,10 +288,9 @@ mod tests {
             $command \
             >continuation
         "#;
-        let script = script.trim();
-        let script = script.as_bytes();
-        let script = BufReader::new(script);
-        let script = Script::parse(script).unwrap();
+        let text = text.trim();
+        let reader = BufReader::new(text.as_bytes());
+        let script = Script::parse(reader).unwrap();
         let mut context = ParseContext::new();
         let expected: Vec<Box<dyn InstructionTrait>> = vec![
             Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
@@ -271,7 +317,7 @@ mod tests {
 
     #[test]
     fn script_unknown_instruction() {
-        let script = r#"
+        let text = r#"
             @@width 123
             @hidden
             %print
@@ -281,11 +327,10 @@ mod tests {
             >continuation
             unknown
         "#;
-        let script = script.trim();
-        let script = script.as_bytes();
-        let script = BufReader::new(script);
+        let text = text.trim();
+        let reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            Script::parse(script).unwrap_err(),
+            Script::parse(reader).unwrap_err(),
             ErrorType::UnknownInstruction.with_line(8)
         );
     }
@@ -303,12 +348,11 @@ mod tests {
             "@@width 123\n@delay",       // Malformed duration - no value
             "@@width 123\n@hidden what", // Malformed boolean
         ];
-        for script in malformed_scripts.iter() {
-            let script = script.trim();
-            let script = script.as_bytes();
-            let script = BufReader::new(script);
+        for text in malformed_scripts.iter() {
+            let text = text.trim();
+            let reader = BufReader::new(text.as_bytes());
             assert_eq!(
-                Script::parse(script).unwrap_err(),
+                Script::parse(reader).unwrap_err(),
                 ErrorType::MalformedInstruction.with_line(2)
             );
         }
@@ -316,30 +360,28 @@ mod tests {
 
     #[test]
     fn script_expected_continuation() {
-        let script = r#"
+        let text = r#"
             $command \
             @@width 123
         "#;
-        let script = script.trim();
-        let script = script.as_bytes();
-        let script = BufReader::new(script);
+        let text = text.trim();
+        let reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            Script::parse(script).unwrap_err(),
+            Script::parse(reader).unwrap_err(),
             ErrorType::ExpectedContinuation.with_line(2)
         );
     }
 
     #[test]
     fn script_unexpected_continuation() {
-        let script = r#"
+        let text = r#"
             $command
             >continuation
         "#;
-        let script = script.trim();
-        let script = script.as_bytes();
-        let script = BufReader::new(script);
+        let text = text.trim();
+        let reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            Script::parse(script).unwrap_err(),
+            Script::parse(reader).unwrap_err(),
             ErrorType::UnexpectedContinuation.with_line(2)
         );
     }

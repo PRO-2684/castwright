@@ -50,22 +50,24 @@ impl AsciiCast {
 
     // Events
     /// Add an output event to the asciicast.
-    pub fn output(&mut self, time: u64, data: String) -> &mut Self {
+    pub(crate) fn output(&mut self, time: u64, data: String) -> &mut Self {
         self.events.push(Event::output(time, data));
         self
     }
     /// Add an input event to the asciicast.
-    pub fn input(&mut self, time: u64, data: String) -> &mut Self {
+    #[allow(dead_code, reason = "Reserved for future use")]
+    pub(crate) fn input(&mut self, time: u64, data: String) -> &mut Self {
         self.events.push(Event::input(time, data));
         self
     }
     /// Add a marker event to the asciicast.
-    pub fn marker(&mut self, time: u64, name: String) -> &mut Self {
+    pub(crate) fn marker(&mut self, time: u64, name: String) -> &mut Self {
         self.events.push(Event::marker(time, name));
         self
     }
     /// Add a resize event to the asciicast.
-    pub fn resize(&mut self, time: u64, columns: u16, rows: u16) -> &mut Self {
+    #[allow(dead_code, reason = "Reserved for future use")]
+    pub(crate) fn resize(&mut self, time: u64, columns: u16, rows: u16) -> &mut Self {
         self.events.push(Event::resize(time, columns, rows));
         self
     }
