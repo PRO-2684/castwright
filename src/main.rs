@@ -8,6 +8,7 @@ use std::{
 
 /// 🎥 Scripted terminal recording.
 #[derive(FromArgs)]
+#[argh(help_triggers("-h", "--help"))]
 struct Args {
     /// the path to the input file (castwright script `.cw`), or stdin if not provided
     #[argh(option, short = 'i')]
@@ -15,6 +16,9 @@ struct Args {
     /// the path to the output file (asciicast `.cast`), or stdout if not provided
     #[argh(option, short = 'o')]
     output: Option<String>,
+    /// execute and capture the output of shell commands, instead of using dummy output (not implemented)
+    #[argh(switch, short = 'x')]
+    execute: bool,
 }
 
 /// Get a reader for the input, either from a file or stdin.
@@ -51,6 +55,9 @@ fn get_writer(output: &Option<String>) -> Result<Box<dyn Write>, ParseError> {
 
 fn main() -> Result<(), DispError<ParseError>> {
     let args: Args = argh::from_env();
+    if args.execute {
+        return Err(ParseErrorType::NotImplemented("--execute").with_line(0).into());
+    }
     let input = get_reader(&args.input)?;
     let reader = std::io::BufReader::new(input);
     let script = Script::parse(reader)?;

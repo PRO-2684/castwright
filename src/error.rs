@@ -24,6 +24,9 @@ pub enum ParseErrorType {
     /// Did not expect a continuation line, but got one.
     #[error("Unexpected continuation")]
     UnexpectedContinuation,
+    /// The feature is not implemented.
+    #[error("Not implemented: \"{0}\"")]
+    NotImplemented(&'static str),
 }
 
 impl ParseErrorType {
@@ -42,6 +45,7 @@ impl PartialEq for ParseErrorType {
             (Self::MalformedInstruction, Self::MalformedInstruction) => true,
             (Self::ExpectedContinuation, Self::ExpectedContinuation) => true,
             (Self::UnexpectedContinuation, Self::UnexpectedContinuation) => true,
+            (Self::NotImplemented(a), Self::NotImplemented(b)) => a == b,
             _ => false,
         }
     }

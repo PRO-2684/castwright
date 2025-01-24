@@ -25,7 +25,7 @@ TBD
 ### Command Line Interface
 
 ```shell
-Usage: castwright [-i <input>] [-o <output>]
+Usage: castwright [-i <input>] [-o <output>] [-x]
 
 🎥 Scripted terminal recording.
 
@@ -34,7 +34,9 @@ Options:
                     stdin if not provided
   -o, --output      the path to the output file (asciicast `.cast`), or stdout
                     if not provided
-  --help, help      display usage information
+  -x, --execute     execute and capture the output of shell commands, instead of
+                    using dummy output (not implemented)
+  -h, --help        display usage information
 ```
 
 ### Castwright Script
@@ -77,7 +79,6 @@ In addition, castwright provides various commands for customizing the produced a
 - [x] Write to an asciicast file.
 - [x] Terminal width and height detection.
 - [ ] Better `pub` API.
-- [ ] Dry-run mode. (Print the commands to be executed without actually executing them)
 - [ ] Actual command execution and output capture.
 
 ## Credits
