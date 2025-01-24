@@ -22,11 +22,21 @@ Any line that does not start with one of the above prefixes will result in an er
 
 ### Command
 
-A command instruction prints, executes, and displays the output of a command. Usually, you'll use it the most in your script.
+A command instruction prints, executes, and displays the output of a command. Usually, you'll use it the most in your script. Example:
+
+```plaintext
+$ echo "Hello, World!"
+```
 
 ### Continuation
 
-A continuation instruction is a continuation of a multi-line shell command. It must be used after a command instruction or another continuation instruction that ends with a backslash (`\`).
+A continuation instruction is a continuation of a multi-line shell command. It must be used after a command instruction or another continuation instruction that ends with a backslash (`\`). Example:
+
+```plaintext
+$ echo "Multi-" \
+> "line" \
+> "command"
+```
 
 ### Configuration
 
@@ -107,11 +117,20 @@ A comment is a line that starts with a `#` character. You can use comments to do
 
 ### Marker
 
-A marker instruction marks a point in the asciicast output. It can be used to indicate the start of a new section or to provide a reference point for the viewer.
+A marker instruction marks a point in the asciicast output. It can be used to indicate the start of a new section or to provide a reference point for the viewer. Example:
+
+```plaintext
+! Section 1
+```
 
 ### Print
 
-A print instruction takes a [LooseString](#loosestring) and prints it together with a newline.
+A print instruction takes a [LooseString](#loosestring) and prints it together with a newline. Example:
+
+```plaintext
+% This will be printed as it is
+% "  Printed with indent"
+```
 
 ## Argument Types
 

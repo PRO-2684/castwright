@@ -36,7 +36,7 @@ $ echo "Hello, World again!"
 # Hello, World again!
 
 # Marker (`!`)
-!Multiline
+! Multiline
 
 # Start a multiline command with a regular command
 # Use `>` as prefix to continue
