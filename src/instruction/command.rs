@@ -62,7 +62,11 @@ impl InstructionTrait for CommandInstruction {
             // TODO: Execute command silently
             return;
         }
-        let prompt = if self.start { config.prompt.clone() } else { config.secondary_prompt.clone() };
+        let prompt = if self.start {
+            config.prompt.clone()
+        } else {
+            config.secondary_prompt.clone()
+        };
         let delay = config.delay.as_micros() as u64;
         cast.output(context.elapsed, prompt);
         for character in self.command.chars() {

@@ -2,7 +2,7 @@
 
 use super::ParseErrorType;
 use std::time::Duration;
-use terminal_size::{terminal_size, Width, Height};
+use terminal_size::{terminal_size, Height, Width};
 
 /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
 pub fn parse_duration(s: &str) -> Result<Duration, ParseErrorType> {

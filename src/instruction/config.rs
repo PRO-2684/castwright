@@ -42,7 +42,9 @@ pub struct ConfigInstruction {
 
 /// Parse a positive integer, returning `0` if the string is `auto`.
 fn parse_positive_u16(s: &str) -> Result<u16, ParseErrorType> {
-    let v = s.parse().map_err(|_| ParseErrorType::MalformedInstruction)?;
+    let v = s
+        .parse()
+        .map_err(|_| ParseErrorType::MalformedInstruction)?;
     if v == 0 {
         Err(ParseErrorType::MalformedInstruction)
     } else {

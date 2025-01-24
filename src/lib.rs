@@ -3,10 +3,10 @@ mod error;
 mod instruction;
 mod util;
 
+use asciicast::AsciiCast;
 pub use error::{ParseError, ParseErrorType};
 use instruction::{parse_instruction, InstructionTrait};
 use std::{io::BufRead, time::Duration};
-use asciicast::AsciiCast;
 
 /// A parsing context for the script.
 struct ParseContext {
