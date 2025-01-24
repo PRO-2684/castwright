@@ -4,12 +4,11 @@
 
 > Conventionally, `.cw` is used as the file extension for `castwright` scripts.
 
-A `castwright` script is line-based, with each line representing a single instruction, much like a shell script. The first or first two characters of the line determine the type of instruction, followed by instruction-specific argument(s). Below is a table of prefixes and their corresponding instruction types.
+A `castwright` script is line-based, with each line representing a single instruction, much like an interactive shell. The first character of the line determine the type of instruction, followed by instruction-specific argument(s). Below is a table of prefixes and their corresponding instruction types.
 
 | Prefix | Instruction Type |
 | ------ | ---------------- |
-| `@@`   | [Persistent configuration](#persistent) |
-| `@`    | [Temporary configuration](#temporary) |
+| `@`    | [Configuration](#configuration) |
 | `%`    | [Print](#print) |
 | `!`    | [Marker](#marker) |
 | `$`    | [Command](#command) |
@@ -80,11 +79,11 @@ A directive instruction changes the behavior of instructions, such as the typing
 
 #### Persistent
 
-A persistent instruction affects all subsequent instructions until another configuration instruction overrides it. It is useful for setting up the environment for the entire script when put at the beginning.
+A persistent instruction starts with two `@`, and affects all subsequent instructions until another configuration instruction overrides it. It is useful for setting up the environment for the entire script when put at the beginning.
 
 #### Temporary
 
-A temporary instruction affects only the next instruction (that is not a configuration instruction). It is useful for changing the behavior of a single instruction without affecting the rest of the script.
+A temporary instruction starts with only one `@`, and affects only the next [print](#print) or [command](#command) instruction. Note that continuation of a command is considered the same instruction. It is useful for changing the behavior of a single instruction without affecting the rest of the script.
 
 ### Print
 

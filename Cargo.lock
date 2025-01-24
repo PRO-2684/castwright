@@ -54,9 +54,9 @@ dependencies = [
 
 [[package]]
 name = "disperror"
-version = "0.1.1"
+version = "0.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bd3e84d89b5c25ae074555339be008f5b9df75b7e113b9176143794e84e92386"
+checksum = "963b12f3a844d36abac9b4bba0b71c12414cafa4094ebec051352ffde7c2b7b2"
 
 [[package]]
 name = "errno"
@@ -210,9 +210,9 @@ dependencies = [
 
 [[package]]
 name = "unicode-ident"
-version = "1.0.14"
+version = "1.0.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "adb9e6ca4f869e1180728b7950e35922a7fc6397f7b641499e8f3ef06e50dc83"
+checksum = "11cd88e12b17c6494200a9c1b683a04fcac9573ed74cd1b62aeb2727c5592243"
 
 [[package]]
 name = "windows-sys"

@@ -1,7 +1,7 @@
 # castwright
 
 > [!WARNING]
-> This project is still in the early stages of development and is not yet ready for use.
+> This project is still in the early stages of development, with some core features missing or incomplete. Please refer to the [TODO](#todo) section for more information.
 
 🎥 Scripted terminal recording.
 
@@ -22,6 +22,8 @@ TBD
 
 ## Usage
 
+### Command Line Interface
+
 ```shell
 Usage: castwright [-i <input>] [-o <output>]
 
@@ -35,9 +37,39 @@ Options:
   --help, help      display usage information
 ```
 
-## Reference
+### Castwright Script
 
-See [`REFERENCE.md`](./REFERENCE.md) for a detailed reference of the `castwright` script format (`.cw`).
+A castwright script is a text file, conventionally with the `.cw` extension. It is line-based, with each line representing a single instruction. For example:
+
+```plaintext
+$ echo "Hello, World!"
+```
+
+Would output an asciicast recording of the following:
+
+```plaintext
+$ echo "Hello, World!"
+Hello, World!
+```
+
+For multiline commands, use the `>` prefix and `\` suffix, as you would in an interactive shell. For example:
+
+```plaintext
+$ echo "Multi-" \
+> "line" \
+> "command"
+```
+
+Would output an asciicast recording of the following:
+
+```plaintext
+$ echo "Multi-" \
+> "line" \
+> "command"
+Multi- line command
+```
+
+In addition, castwright provides various commands for customizing the produced asciicast, like typing speed or title. See [`REFERENCE.md`](./REFERENCE.md) for a detailed reference, or example castwright scripts under the [`tests`](./tests/) directory.
 
 ## TODO
 
