@@ -56,7 +56,9 @@ fn get_writer(output: &Option<String>) -> Result<Box<dyn Write>, Error> {
 fn main() -> Result<(), DispError<Error>> {
     let args: Args = argh::from_env();
     if args.execute {
-        return Err(ErrorType::NotImplemented("`--execute` flag").with_line(0).into());
+        return Err(ErrorType::NotImplemented("`--execute` flag")
+            .with_line(0)
+            .into());
     }
     let input = get_reader(&args.input)?;
     let reader = std::io::BufReader::new(input);

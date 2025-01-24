@@ -1,11 +1,11 @@
 //! Module for parsing config instructions.
 
-use super::{util, AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ErrorType};
+use super::{util, AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
 use std::time::Duration;
 
 /// A configuration instruction type.
 #[derive(Debug, PartialEq)]
-pub enum ConfigInstructionType {
+enum ConfigInstructionType {
     // Configuration that doesn't apply to instructions (metadata)
     /// Terminal width.
     Width(u16),
@@ -42,9 +42,7 @@ pub struct ConfigInstruction {
 
 /// Parse a positive integer, returning `0` if the string is `auto`.
 fn parse_positive_u16(s: &str) -> Result<u16, ErrorType> {
-    let v = s
-        .parse()
-        .map_err(|_| ErrorType::MalformedInstruction)?;
+    let v = s.parse().map_err(|_| ErrorType::MalformedInstruction)?;
     if v == 0 {
         Err(ErrorType::MalformedInstruction)
     } else {

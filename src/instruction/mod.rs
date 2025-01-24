@@ -6,14 +6,14 @@ mod empty;
 mod marker;
 mod print;
 
-use super::{util, AsciiCast, ExecutionContext, ParseContext, ErrorType};
-pub use command::CommandInstruction;
-pub use config::ConfigInstruction;
-pub use empty::EmptyInstruction;
-pub use marker::MarkerInstruction;
-pub use print::PrintInstruction;
+use super::{util, AsciiCast, ErrorType, ExecutionContext, ParseContext};
+pub(super) use command::CommandInstruction;
+pub(super) use config::ConfigInstruction;
+pub(super) use empty::EmptyInstruction;
+pub(super) use marker::MarkerInstruction;
+pub(super) use print::PrintInstruction;
 
-pub trait InstructionTrait: std::fmt::Debug {
+pub(super) trait InstructionTrait: std::fmt::Debug {
     /// Parse a line into `Self`. Remember to check `expect_continuation` for non-empty instructions, like:
     ///
     /// ```rust ignore
@@ -28,7 +28,7 @@ pub trait InstructionTrait: std::fmt::Debug {
     fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast);
 }
 
-pub fn parse_instruction(
+pub(super) fn parse_instruction(
     s: &str,
     context: &mut ParseContext,
 ) -> Result<Box<dyn InstructionTrait>, ErrorType> {

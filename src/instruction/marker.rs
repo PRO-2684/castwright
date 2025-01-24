@@ -1,6 +1,6 @@
 //! Module for parsing empty instructions.
 
-use super::{AsciiCast, ExecutionContext, InstructionTrait, ParseContext, ErrorType};
+use super::{AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
 
 /// An empty instruction.
 #[derive(Debug, PartialEq)]

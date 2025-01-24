@@ -2,8 +2,8 @@
 
 mod event;
 mod header;
-pub use event::Event;
-pub use header::Header;
+use event::Event;
+use header::Header;
 
 /// An asciicast v2 file.
 #[derive(Debug)]

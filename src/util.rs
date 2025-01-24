@@ -13,9 +13,7 @@ pub fn parse_duration(s: &str) -> Result<Duration, ErrorType> {
         .ok_or(ErrorType::MalformedInstruction)?;
     let (num, suffix) = s.split_at(split_at);
     // Parse the number
-    let num = num
-        .parse()
-        .map_err(|_| ErrorType::MalformedInstruction)?;
+    let num = num.parse().map_err(|_| ErrorType::MalformedInstruction)?;
     // Parse the suffix
     match suffix {
         "s" => Ok(Duration::from_secs(num)),

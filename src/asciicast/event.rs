@@ -5,7 +5,7 @@ use serde::Serialize;
 /// The event of an asciicast v2 file.
 // From https://github.com/asciinema/asciinema/blob/f0f908872ca0364128b546bcc8af918d2fc47566/src/asciicast/v2.rs#L38-L45
 #[derive(Debug)]
-pub struct Event {
+pub(super) struct Event {
     /// Indicates when the event happened, represented as the number of milliseconds since the beginning of the recording session.
     time: u64,
     /// Type of the event.

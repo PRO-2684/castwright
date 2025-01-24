@@ -3,7 +3,7 @@ mod error;
 mod instruction;
 mod util;
 
-use asciicast::AsciiCast;
+pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
 use instruction::{parse_instruction, InstructionTrait};
 use std::{io::BufRead, time::Duration};

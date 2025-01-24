@@ -5,7 +5,7 @@ use serde::Serialize;
 /// The header of an asciicast v2 file.
 // From: https://github.com/asciinema/asciinema/blob/f0f908872ca0364128b546bcc8af918d2fc47566/src/asciicast/v2.rs##L9-L20))
 #[derive(Debug)]
-pub struct Header {
+pub(super) struct Header {
     /// The version of the asciicast format. Must be set to 2.
     version: u8,
     /// Initial terminal width, i.e number of columns.
@@ -100,7 +100,8 @@ mod tests {
             idle_time_limit: Some(2.0),
             title: Some("My asciicast".to_string()),
         };
-        let expected = r#"{"version":2,"width":80,"height":24,"idle_time_limit":2.0,"title":"My asciicast"}"#;
+        let expected =
+            r#"{"version":2,"width":80,"height":24,"idle_time_limit":2.0,"title":"My asciicast"}"#;
         assert_eq!(serde_json::to_string(&header)?, expected);
         Ok(())
     }
