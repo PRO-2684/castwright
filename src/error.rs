@@ -2,7 +2,7 @@
 
 use thiserror::Error as ThisError;
 
-/// Possible types of errors that can occur while parsing a single line of a `.cwrt` file.
+/// Possible types of errors that can occur while parsing a single line of a `.cwrt` file. An enum variant represents a specific type of error, and can be converted to an [`Error`] with the [`with_line`](`ErrorType::with_line`) method. (See the [`Error`] struct for an example)
 #[derive(ThisError, Debug)]
 pub enum ErrorType {
     // General parsing errors
@@ -51,7 +51,46 @@ impl PartialEq for ErrorType {
     }
 }
 
-/// An error that occurred, with the line number denoting its position. To construct an `Error`, you should call [`ErrorType::with_line`].
+/// The `Error` struct represents an error that occurred during parsing or execution, with the line number denoting its position. To construct an `Error` manually, you should call [`with_line`](`ErrorType::with_line`) on an [`ErrorType`] enum variant. Usually, you'll only need this struct in a function signature to propagate errors.
+///
+/// ## Example
+///
+/// ### Propagating an error in `fn main`
+///
+/// ```rust should_panic
+/// use castwright::{Script, Error};
+/// use std::io::BufReader;
+///
+/// fn main() -> Result<(), Error> {
+///     let text = r#"
+///         $ unexpected
+///         > continuation
+///     "#;
+///     let text = text.trim();
+///     let reader = BufReader::new(text.as_bytes());
+///     let script = Script::parse(reader)?;
+///     let cast = script.execute();
+///     let mut stdout = std::io::stdout().lock();
+///     cast.write(&mut stdout)?;
+///     Ok(())
+/// }
+/// // Should get the following output:
+/// // Error: Error { error: UnexpectedContinuation, line: 2 }
+/// ```
+///
+/// ### Constructing an `Error` manually
+///
+/// ```rust should_panic
+/// use castwright::{Error, ErrorType};
+///
+/// fn main() -> Result<(), Error> {
+///     let error_type = ErrorType::UnknownInstruction;
+///     let error = error_type.with_line(1);
+///     Err(error)
+/// }
+/// // Should get the following output:
+/// // Error: Error { error: UnknownInstruction, line: 1 }
+/// ```
 #[derive(ThisError, Debug, PartialEq)]
 #[error("{error} at line {line}")]
 pub struct Error {

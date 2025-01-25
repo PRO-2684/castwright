@@ -9,17 +9,7 @@
 //!
 //! ## Usage
 //!
-//! Mostly, you'll deal with the [`Script`] struct and [`Error`] struct.
-//!
-//! ### [`Script`]
-//!
-//! The `Script` struct represents a castwright script, and you can parse a script from a reader (`impl BufRead`) using the [`Script::parse`] method. It returns a `Script` instance if the parsing is successful, or an `Error` instance if it fails.
-//!
-//! You can then execute the `Script` instance using the [`Script::execute`] method to get an [`AsciiCast`] struct. Then you can write the asciicast to a writer (`impl Write`) using the [`AsciiCast::write`] method.
-//!
-//! ### [`Error`]
-//!
-//! The `Error` struct represents an error that occurred during parsing or execution. It contains an [`ErrorType`] enum variant that specifies the type of error, and the line number where the error occurred.
+//! Mostly, you'll deal with the [`Script`] struct and [`Error`] struct. Under rare circumstances, you might need to use the [`AsciiCast`] struct and the [`ErrorType`] enum.
 //!
 //! ## Example
 //!
@@ -239,7 +229,23 @@ impl ExecutionContext {
     }
 }
 
-/// A `.cwrt` script
+/// The `Script` struct represents a castwright script, conventionally with the `.cwrt` extension. You can **parse** a script from a reader (`impl BufRead`) using the [`Script::parse`] method, which returns a `Script` instance if the parsing is successful, or an [`Error`] instance if it fails.
+///
+/// You can then **execute** the `Script` instance using the [`execute`](`Script::execute`) method to get an [`AsciiCast`] struct, which can be **written** to a writer (`impl Write`) using the [`write`](`AsciiCast::write`) method.
+///
+/// ## Example
+///
+/// ```rust
+/// use castwright::Script;
+/// use std::io::BufReader;
+///
+/// let text = r#"
+///     $ echo "Hello, World!"
+/// "#;
+/// let text = text.trim();
+/// let reader = BufReader::new(text.as_bytes());
+/// let script = Script::parse(reader).unwrap();
+/// ```
 #[derive(Debug)]
 pub struct Script {
     /// The instructions in the script.
