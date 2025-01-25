@@ -13,7 +13,8 @@ pub(super) use empty::EmptyInstruction;
 pub(super) use marker::MarkerInstruction;
 pub(super) use print::PrintInstruction;
 
-pub(super) trait InstructionTrait: std::fmt::Debug {
+/// Trait for instructions.
+pub(super) trait Instruction: std::fmt::Debug {
     /// Parse a line into `Self`. Remember to check `expect_continuation` for non-empty instructions, like:
     ///
     /// ```rust ignore
@@ -28,10 +29,11 @@ pub(super) trait InstructionTrait: std::fmt::Debug {
     fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast);
 }
 
+/// Parse an instruction from a string.
 pub(super) fn parse_instruction(
     s: &str,
     context: &mut ParseContext,
-) -> Result<Box<dyn InstructionTrait>, ErrorType> {
+) -> Result<Box<dyn Instruction>, ErrorType> {
     let s = s.trim();
     let Some(first) = s.chars().next() else {
         return Ok(Box::new(EmptyInstruction::new()));
@@ -48,10 +50,10 @@ pub(super) fn parse_instruction(
     }
 }
 
-impl PartialEq for dyn InstructionTrait {
+impl PartialEq for dyn Instruction {
     fn eq(&self, other: &Self) -> bool {
         // Compare the debug representations of the instructions.
-        // This is a rather crude way to compare instructions, but it is only used in tests.
+        // This is a rather crude way to compare instructions, but is acceptable since it is only used in tests.
         format!("{:?}", self) == format!("{:?}", other)
     }
 }
@@ -64,7 +66,7 @@ mod tests {
     #[test]
     fn instruction_with_space() {
         let mut context = ParseContext::new();
-        let instructions: [(&str, Box<dyn InstructionTrait>); 12] = [
+        let instructions: [(&str, Box<dyn Instruction>); 12] = [
             (
                 " @@width 123",
                 Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
@@ -120,7 +122,7 @@ mod tests {
     #[test]
     fn instruction_without_space() {
         let mut context = ParseContext::new();
-        let instructions: [(&str, Box<dyn InstructionTrait>); 6] = [
+        let instructions: [(&str, Box<dyn Instruction>); 6] = [
             (
                 "@@width 123",
                 Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
@@ -154,7 +156,7 @@ mod tests {
     fn empty_instruction() {
         let empty_lines = ["", " ", "\t", "\t ", " \t", "\n", "\r\n", "# some comment"];
         let mut context = ParseContext::new();
-        let expected: Box<dyn InstructionTrait> = Box::new(EmptyInstruction::new());
+        let expected: Box<dyn Instruction> = Box::new(EmptyInstruction::new());
         for line in empty_lines.iter() {
             assert_eq!(&parse_instruction(line, &mut context).unwrap(), &expected);
         }

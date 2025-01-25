@@ -1,12 +1,12 @@
-//! Module for parsing empty instructions.
+//! Module for parsing marker instructions.
 
-use super::{AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
+use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
-/// An empty instruction.
+/// A marker instruction.
 #[derive(Debug, PartialEq)]
 pub struct MarkerInstruction(String);
 
-impl InstructionTrait for MarkerInstruction {
+impl Instruction for MarkerInstruction {
     /// Parse a line into an `MarkerInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         if context.expect_continuation {

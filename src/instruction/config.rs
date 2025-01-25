@@ -1,6 +1,6 @@
 //! Module for parsing config instructions.
 
-use super::{util, AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
+use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 use std::time::Duration;
 
 /// A configuration instruction type.
@@ -50,7 +50,7 @@ fn parse_positive_u16(s: &str) -> Result<u16, ErrorType> {
     }
 }
 
-impl InstructionTrait for ConfigInstruction {
+impl Instruction for ConfigInstruction {
     /// Parse a line into a `ConfigInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         if context.expect_continuation {

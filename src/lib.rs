@@ -55,7 +55,7 @@ mod util;
 
 pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
-use instruction::{parse_instruction, InstructionTrait};
+use instruction::{parse_instruction, Instruction};
 use std::{io::BufRead, time::Duration};
 
 /// A parsing context for the script.
@@ -74,12 +74,12 @@ impl ParseContext {
             expect_continuation: false,
         }
     }
-    /// Create a context with given start character.
+    /// Create a context with a different starting character.
     #[allow(dead_code, reason = "Only used in tests")]
     fn with_start(&self, start: char) -> Self {
         Self { start, ..*self }
     }
-    /// Create a context with given continuation expectation.
+    /// Create a context with a different expectation for continuation.
     #[allow(dead_code, reason = "Only used in tests")]
     fn expect_continuation(&self, expect_continuation: bool) -> Self {
         Self {
@@ -138,10 +138,15 @@ impl Configuration {
 
 /// Temporary configuration for the script.
 struct TemporaryConfiguration {
+    /// The shell prompt to use in the asciicast.
     prompt: Option<String>,
+    /// The secondary prompt to use in the asciicast (for continuation lines).
     secondary_prompt: Option<String>,
+    /// The string to signify a line split in a multiline command.
     line_split: Option<String>,
+    /// Whether the command should be executed silently.
     hidden: Option<bool>,
+    /// Typing delay between characters in a command or print instruction.
     delay: Option<Duration>,
 }
 
@@ -237,7 +242,8 @@ impl ExecutionContext {
 /// A `.cw` script
 #[derive(Debug)]
 pub struct Script {
-    instructions: Vec<Box<dyn InstructionTrait>>,
+    /// The instructions in the script.
+    instructions: Vec<Box<dyn Instruction>>,
 }
 
 impl Script {
@@ -295,7 +301,7 @@ mod tests {
         let reader = BufReader::new(text.as_bytes());
         let script = Script::parse(reader).unwrap();
         let mut context = ParseContext::new();
-        let expected: Vec<Box<dyn InstructionTrait>> = vec![
+        let expected: Vec<Box<dyn Instruction>> = vec![
             Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
             Box::new(ConfigInstruction::parse("hidden true", &mut context).unwrap()),
             Box::new(PrintInstruction::parse("print", &mut context).unwrap()),

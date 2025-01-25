@@ -1,6 +1,6 @@
 //! Module for parsing command instructions.
 
-use super::{AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
+use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
 /// A command instruction.
 #[derive(Debug, PartialEq)]
@@ -13,7 +13,7 @@ pub struct CommandInstruction {
     continuation: bool,
 }
 
-impl InstructionTrait for CommandInstruction {
+impl Instruction for CommandInstruction {
     /// Parse a line into a `CommandInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         let s = s.trim();

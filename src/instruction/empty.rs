@@ -1,12 +1,12 @@
 //! Module for parsing empty instructions.
 
-use super::{AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
+use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
 /// An empty instruction.
 #[derive(Debug)]
 pub struct EmptyInstruction;
 
-impl InstructionTrait for EmptyInstruction {
+impl Instruction for EmptyInstruction {
     /// Parse a line into an `EmptyInstruction`.
     fn parse(_s: &str, _context: &mut ParseContext) -> Result<Self, ErrorType> {
         Ok(Self)

@@ -1,12 +1,12 @@
-//! Module for parsing empty instructions.
+//! Module for parsing print instructions.
 
-use super::{util, AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
+use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
-/// An empty instruction.
+/// A print instruction.
 #[derive(Debug, PartialEq)]
 pub struct PrintInstruction(String);
 
-impl InstructionTrait for PrintInstruction {
+impl Instruction for PrintInstruction {
     /// Parse a line into an `PrintInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         let content = util::parse_loose_string(s)?;
