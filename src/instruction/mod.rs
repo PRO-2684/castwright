@@ -7,7 +7,7 @@ mod frontmatter;
 mod marker;
 mod print;
 
-use super::{util, AsciiCast, ErrorType, ExecutionContext, ParseContext, FrontMatterState};
+use super::{util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, ParseContext};
 pub(super) use command::CommandInstruction;
 pub(super) use config::ConfigInstruction;
 pub(super) use empty::EmptyInstruction;

@@ -1,5 +1,6 @@
 //! Module for serializing an [asciicast v2 header](https://docs.asciinema.org/manual/asciicast/v2/#header).
 
+use crate::util::get_terminal_size;
 use serde::Serialize;
 
 /// The header of an asciicast v2 file.
@@ -75,10 +76,11 @@ impl Serialize for Header {
 impl Header {
     /// Create a new header with the given width and height.
     pub fn new() -> Self {
+        let (width, height) = get_terminal_size();
         Header {
             version: 2,
-            width: 80,
-            height: 24,
+            width,
+            height,
             timestamp: None,
             idle_time_limit: None,
             title: None,

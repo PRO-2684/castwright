@@ -34,10 +34,10 @@ The following keys are supported in the front matter:
 - `title`: Set the title of the asciicast.
     - **Type**: [LooseString](#loosestring).
     - **Default**: `Castwright Script`
-- `shell`: Set the shell to be used for executing commands.
+- `shell`: Set the shell to be used for executing commands. (Not implemented yet)
     - **Type**: [LooseString](#loosestring), which represents the shell executable.
     - **Default**: `bash`
-- `quit`: Set the quit command to be used for exiting the shell.
+- `quit`: Set the quit command to be used for exiting the shell. (Not implemented yet)
     - **Type**: [LooseString](#loosestring), which represents the quit command.
     - **Default**: `exit`
 - `idle`: Set the idle time limit for the asciicast.

@@ -48,38 +48,6 @@ pub use error::{Error, ErrorType};
 use instruction::{parse_instruction, Instruction};
 use std::{io::BufRead, time::Duration};
 
-/// The front matter of the script.
-#[derive(Debug, PartialEq)]
-struct FrontMatter {
-    /// Terminal width.
-    width: u16,
-    /// Terminal height.
-    height: u16,
-    /// Title of the asciicast.
-    title: String,
-    /// The shell to use.
-    shell: String,
-    /// The quit command.
-    quit: String,
-    /// Idle time limit.
-    idle: Duration,
-}
-
-impl FrontMatter {
-    /// Create a new `FrontMatter` with default values.
-    fn new() -> Self {
-        let (width, height) = util::get_terminal_size();
-        Self {
-            width,
-            height,
-            title: "Castwright Script".to_string(),
-            shell: "bash".to_string(),
-            quit: "exit".to_string(),
-            idle: Duration::from_secs(5),
-        }
-    }
-}
-
 /// Front matter parsing state.
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum FrontMatterState {
@@ -106,7 +74,7 @@ impl FrontMatterState {
         match self {
             Self::None => *self = Self::End,
             Self::Start => return Err(ErrorType::ExpectedKeyValuePair),
-            Self::End => {}, // Do nothing
+            Self::End => {} // Do nothing
         }
         Ok(())
     }
@@ -324,11 +292,6 @@ impl Script {
         for instruction in &self.instructions {
             instruction.execute(&mut context, &mut cast);
         }
-        // // Update the header with the final configuration
-        // cast.width(context.front_matter.width)
-        //     .height(context.front_matter.height)
-        //     .title(context.front_matter.title.clone())
-        //     .idle_time_limit(context.front_matter.idle.as_secs_f64());
         cast
     }
 }
@@ -337,8 +300,8 @@ impl Script {
 mod tests {
     use super::*;
     use instruction::{
-        CommandInstruction, ConfigInstruction, EmptyInstruction, MarkerInstruction,
-        PrintInstruction, FrontMatterInstruction,
+        CommandInstruction, ConfigInstruction, EmptyInstruction, FrontMatterInstruction,
+        MarkerInstruction, PrintInstruction,
     };
     use std::io::BufReader;
 
@@ -411,9 +374,9 @@ mod tests {
     fn script_malformed_instruction() {
         let malformed_scripts = [
             // Config instruction
-            "#abc\n@",                   // Expected character after @
-            "#abc\n@@",                  // Expected character after @@
-            "#abc\n@@wid",               // Unrecognized configuration instruction
+            "#abc\n@",                  // Expected character after @
+            "#abc\n@@",                 // Expected character after @@
+            "#abc\n@@wid",              // Unrecognized configuration instruction
             "@@prompt $\n@@height abc", // Malformed integer
             "@@prompt $\n@idle 1",      // Malformed duration - no suffix
             "@@prompt $\n@idle 1min",   // Malformed duration - invalid suffix

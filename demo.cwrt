@@ -1,22 +1,19 @@
 # Comments start with `#`, which won't have any effect on the outcome
 
-# To print some content as it is, prefix with `%`
-% This will be printed as it is
-# Output:
-# This will be printed as it is
-# To include whitespace characters or escape sequences, use `"` to wrap your string:
-% "  Printed with indent"
-
-# Metadata or persistent configuration (`@@`)
+# Metadata
+---
 # Sets configuration for all FOLLOWING commands
 # Set the terminal width, default is current terminal width
-# @@width 80
+# width: 80
 # Set the terminal height, default is current terminal height
-# @@height 24
+# height: 24
 # Title of the asciicast (no point setting this using temporary configuration)
-@@title Castwright Script
+title: Castwright Script Demo
 # Terminal idle timeout
-@@idle 1s
+idle: 1s
+---
+
+# Persistent configuration (`@@`)
 # Delay between each character
 @@delay 100ms
 # ...
@@ -34,6 +31,13 @@ $ echo "Hello, World again!"
 # Output:
 # $ echo "Hello, World again!"
 # Hello, World again!
+
+# To print some content as it is, prefix with `%`
+% This will be printed as it is
+# Output:
+# This will be printed as it is
+# To include whitespace characters or escape sequences, use `"` to wrap your string:
+% "  Printed with indent"
 
 # Marker (`!`)
 ! Multiline

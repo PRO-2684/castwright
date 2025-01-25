@@ -112,44 +112,42 @@ mod tests {
 
     #[test]
     fn test_parse_positive_u16() {
-        assert_eq!(parse_positive_u16("0"), Err(ErrorType::MalformedInstruction));
+        assert_eq!(
+            parse_positive_u16("0"),
+            Err(ErrorType::MalformedInstruction)
+        );
         assert_eq!(parse_positive_u16("1"), Ok(1));
     }
 
     #[test]
     fn front_matter_instruction() {
         let mut parse_context = ParseContext::new();
-        assert_eq!(
-            FrontMatterInstruction::parse("---", &mut parse_context),
-            Ok(FrontMatterInstruction::Delimiter)
-        );
-        assert_eq!(
-            FrontMatterInstruction::parse("width: 80", &mut parse_context),
-            Ok(FrontMatterInstruction::Width(80))
-        );
-        assert_eq!(
-            FrontMatterInstruction::parse("height: 24", &mut parse_context),
-            Ok(FrontMatterInstruction::Height(24))
-        );
-        assert_eq!(
-            FrontMatterInstruction::parse("title: Hello, world!", &mut parse_context),
-            Ok(FrontMatterInstruction::Title("Hello, world!".to_string()))
-        );
-        assert_eq!(
-            FrontMatterInstruction::parse("shell: /bin/bash", &mut parse_context),
-            Ok(FrontMatterInstruction::Shell("/bin/bash".to_string()))
-        );
-        assert_eq!(
-            FrontMatterInstruction::parse("quit: exit", &mut parse_context),
-            Ok(FrontMatterInstruction::Quit("exit".to_string()))
-        );
-        assert_eq!(
-            FrontMatterInstruction::parse("idle: 1s", &mut parse_context),
-            Ok(FrontMatterInstruction::Idle(Duration::from_secs(1)))
-        );
-        assert_eq!(
-            FrontMatterInstruction::parse("---", &mut parse_context),
-            Ok(FrontMatterInstruction::Delimiter)
-        );
+        let instructions = [
+            ("---", FrontMatterInstruction::Delimiter),
+            ("width: 80", FrontMatterInstruction::Width(80)),
+            ("height: 24", FrontMatterInstruction::Height(24)),
+            (
+                "title: Hello, world!",
+                FrontMatterInstruction::Title("Hello, world!".to_string()),
+            ),
+            (
+                "shell: /bin/bash",
+                FrontMatterInstruction::Shell("/bin/bash".to_string()),
+            ),
+            (
+                "quit: exit",
+                FrontMatterInstruction::Quit("exit".to_string()),
+            ),
+            (
+                "idle: 1s",
+                FrontMatterInstruction::Idle(Duration::from_secs(1)),
+            ),
+        ];
+        for (line, expected) in instructions.iter() {
+            assert_eq!(
+                &FrontMatterInstruction::parse(line, &mut parse_context).unwrap(),
+                expected
+            );
+        }
     }
 }

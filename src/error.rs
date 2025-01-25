@@ -37,6 +37,8 @@ pub enum ErrorType {
     /// Did not expect a continuation line, but got one.
     #[error("Unexpected continuation")]
     UnexpectedContinuation,
+
+    // Other errors
     /// The feature is not implemented.
     #[error("Not implemented {0}")]
     NotImplemented(&'static str),
