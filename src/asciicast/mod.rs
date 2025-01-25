@@ -13,6 +13,12 @@ pub struct AsciiCast {
     events: Vec<Event>,
 }
 
+impl Default for AsciiCast {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AsciiCast {
     /// Create a new asciicast.
     pub fn new() -> Self {

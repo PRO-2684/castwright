@@ -23,14 +23,10 @@ impl Instruction for CommandInstruction {
             _ => return Err(ErrorType::UnknownInstruction),
         };
         let continuation = s.ends_with('\\');
-        if start {
-            if context.expect_continuation {
-                return Err(ErrorType::ExpectedContinuation);
-            }
-        } else {
-            if !context.expect_continuation {
-                return Err(ErrorType::UnexpectedContinuation);
-            }
+        if start && context.expect_continuation {
+            return Err(ErrorType::ExpectedContinuation);
+        } else if !start && !context.expect_continuation {
+            return Err(ErrorType::UnexpectedContinuation);
         }
         context.expect_continuation = continuation;
         let command = if continuation {
@@ -83,8 +79,8 @@ impl Instruction for CommandInstruction {
         } else {
             context.elapsed += delay;
             cast.output(context.elapsed, "\r\n".to_string());
-            // Move `context.command` out, replace it with an empty string
-            let mut command = std::mem::replace(&mut context.command, String::new());
+            // Take `context.command` out, replacing with an empty string
+            let mut command = std::mem::take(&mut context.command);
             command.push_str(&self.command);
             // Dummy output to simulate the command being executed
             // TODO: Implement actual command execution

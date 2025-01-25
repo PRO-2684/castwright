@@ -318,6 +318,6 @@ mod tests {
         assert_eq!(resolved.prompt, "~> ".to_string());
         assert_eq!(resolved.secondary_prompt, "| ".to_string());
         assert_eq!(resolved.line_split, "\\".to_string());
-        assert_eq!(resolved.hidden, true);
+        assert!(resolved.hidden);
     }
 }

@@ -9,7 +9,7 @@ pub fn parse_duration(s: &str) -> Result<Duration, ErrorType> {
     // Split the number and the suffix
     let split_at = s
         .chars()
-        .position(|c| !c.is_digit(10))
+        .position(|c| !c.is_ascii_digit())
         .ok_or(ErrorType::MalformedInstruction)?;
     let (num, suffix) = s.split_at(split_at);
     // Parse the number

@@ -79,7 +79,7 @@ In addition, castwright provides various commands for customizing the produced a
 - [x] Write to an asciicast file.
 - [x] Terminal width and height detection.
 - [x] Better `pub` API.
-- [ ] Run `cargo clippy`.
+- [x] Run `cargo clippy`.
 - [ ] Actual command execution and output capture.
 
 ## Credits
