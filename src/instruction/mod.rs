@@ -3,24 +3,34 @@
 mod command;
 mod config;
 mod empty;
+mod frontmatter;
 mod marker;
 mod print;
 
-use super::{util, AsciiCast, ErrorType, ExecutionContext, ParseContext};
+use super::{util, AsciiCast, ErrorType, ExecutionContext, ParseContext, FrontMatterState};
 pub(super) use command::CommandInstruction;
 pub(super) use config::ConfigInstruction;
 pub(super) use empty::EmptyInstruction;
+pub(super) use frontmatter::FrontMatterInstruction;
 pub(super) use marker::MarkerInstruction;
 pub(super) use print::PrintInstruction;
 
 /// Trait for instructions.
 pub(super) trait Instruction: std::fmt::Debug {
-    /// Parse a line into `Self`. Remember to check `expect_continuation` for non-empty instructions, like:
+    /// Parse a line into `Self`. Remember to:
+    ///
+    /// Check `expect_continuation` for non-empty instructions, like:
     ///
     /// ```rust ignore
     /// if context.expect_continuation {
     ///    return Err(ErrorType::ExpectedContinuation);
     /// }
+    /// ```
+    ///
+    /// End front matter state for non-empty non-frontmatter instructions, like:
+    ///
+    /// ```rust ignore
+    /// context.front_matter_state.end()?;
     /// ```
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType>
     where
@@ -46,7 +56,8 @@ pub(super) fn parse_instruction(
         '!' => Ok(Box::new(MarkerInstruction::parse(&trimmed, context)?)),
         '#' => Ok(Box::new(EmptyInstruction::new())),
         '$' | '>' => Ok(Box::new(CommandInstruction::parse(&trimmed, context)?)),
-        _ => Err(ErrorType::UnknownInstruction),
+        // _ => Err(ErrorType::UnknownInstruction),
+        _ => Ok(Box::new(FrontMatterInstruction::parse(s, context)?)),
     }
 }
 
@@ -66,11 +77,7 @@ mod tests {
     #[test]
     fn instruction_with_space() {
         let mut context = ParseContext::new();
-        let instructions: [(&str, Box<dyn Instruction>); 12] = [
-            (
-                " @@width 123",
-                Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
-            ),
+        let instructions: [(&str, Box<dyn Instruction>); 10] = [
             (
                 " @delay 2ms",
                 Box::new(ConfigInstruction::parse("delay 2ms", &mut context).unwrap()),
@@ -89,10 +96,6 @@ mod tests {
                 Box::new(
                     CommandInstruction::parse("command", &mut context.with_start('$')).unwrap(),
                 ),
-            ),
-            (
-                " @@ width 123",
-                Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
             ),
             (
                 " @ delay 2ms",
@@ -122,11 +125,7 @@ mod tests {
     #[test]
     fn instruction_without_space() {
         let mut context = ParseContext::new();
-        let instructions: [(&str, Box<dyn Instruction>); 6] = [
-            (
-                "@@width 123",
-                Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
-            ),
+        let instructions: [(&str, Box<dyn Instruction>); 5] = [
             (
                 "@delay 2ms",
                 Box::new(ConfigInstruction::parse("delay 2ms", &mut context).unwrap()),

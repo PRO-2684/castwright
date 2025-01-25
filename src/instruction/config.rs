@@ -6,20 +6,6 @@ use std::time::Duration;
 /// A configuration instruction type.
 #[derive(Debug, PartialEq)]
 enum ConfigInstructionType {
-    // Configuration that doesn't apply to instructions (metadata)
-    /// Terminal width.
-    Width(u16),
-    /// Terminal height.
-    Height(u16),
-    /// Title of the asciicast.
-    Title(String),
-    /// The shell to use.
-    Shell(String),
-    /// The quit command.
-    Quit(String),
-    /// Idle time limit.
-    Idle(Duration),
-
     // Configuration that applies to other instructions (directive)
     /// The shell prompt to use in the asciicast.
     Prompt(String),
@@ -40,19 +26,10 @@ pub struct ConfigInstruction {
     persistent: bool,
 }
 
-/// Parse a positive integer, returning `0` if the string is `auto`.
-fn parse_positive_u16(s: &str) -> Result<u16, ErrorType> {
-    let v = s.parse().map_err(|_| ErrorType::MalformedInstruction)?;
-    if v == 0 {
-        Err(ErrorType::MalformedInstruction)
-    } else {
-        Ok(v)
-    }
-}
-
 impl Instruction for ConfigInstruction {
     /// Parse a line into a `ConfigInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
+        context.front_matter_state.end()?;
         if context.expect_continuation {
             return Err(ErrorType::ExpectedContinuation);
         }
@@ -65,56 +42,6 @@ impl Instruction for ConfigInstruction {
             return Err(ErrorType::MalformedInstruction);
         };
         let instruction_type = match first {
-            "width" => {
-                if !persistent {
-                    // Using `width` as a temporary configuration is meaningless
-                    return Err(ErrorType::MalformedInstruction);
-                }
-                let width = iter.next().ok_or(ErrorType::MalformedInstruction)?;
-                let width = parse_positive_u16(width)?;
-                Ok(ConfigInstructionType::Width(width))
-            }
-            "height" => {
-                if !persistent {
-                    // Using `height` as a temporary configuration is meaningless
-                    return Err(ErrorType::MalformedInstruction);
-                }
-                let height = iter.next().ok_or(ErrorType::MalformedInstruction)?;
-                let height = parse_positive_u16(height)?;
-                Ok(ConfigInstructionType::Height(height))
-            }
-            "title" => {
-                if !persistent {
-                    // Using `title` as a temporary configuration is meaningless
-                    return Err(ErrorType::MalformedInstruction);
-                }
-                let title = util::parse_loose_string(s[5..].trim())?;
-                Ok(ConfigInstructionType::Title(title))
-            }
-            "shell" => {
-                if !persistent {
-                    // Using `shell` as a temporary configuration is meaningless
-                    return Err(ErrorType::MalformedInstruction);
-                }
-                let shell = util::parse_loose_string(s[5..].trim())?;
-                Ok(ConfigInstructionType::Shell(shell))
-            }
-            "quit" => {
-                if !persistent {
-                    // Using `quit` as a temporary configuration is meaningless
-                    return Err(ErrorType::MalformedInstruction);
-                }
-                let quit = util::parse_loose_string(s[4..].trim())?;
-                Ok(ConfigInstructionType::Quit(quit))
-            }
-            "idle" => {
-                if !persistent {
-                    // Using `idle` as a temporary configuration is meaningless
-                    return Err(ErrorType::MalformedInstruction);
-                }
-                let idle = iter.next().ok_or(ErrorType::MalformedInstruction)?;
-                Ok(ConfigInstructionType::Idle(util::parse_duration(idle)?))
-            }
             "prompt" => {
                 let prompt = util::parse_loose_string(s[6..].trim())?;
                 Ok(ConfigInstructionType::Prompt(prompt))
@@ -157,12 +84,12 @@ impl Instruction for ConfigInstruction {
         if self.persistent {
             let config = &mut context.persistent;
             match &self.instruction_type {
-                Width(width) => config.width = *width,
-                Height(height) => config.height = *height,
-                Title(title) => config.title = title.clone(),
-                Shell(shell) => config.shell = shell.clone(),
-                Quit(quit) => config.quit = quit.clone(),
-                Idle(idle) => config.idle = *idle,
+                // Width(width) => config.width = *width,
+                // Height(height) => config.height = *height,
+                // Title(title) => config.title = title.clone(),
+                // Shell(shell) => config.shell = shell.clone(),
+                // Quit(quit) => config.quit = quit.clone(),
+                // Idle(idle) => config.idle = *idle,
                 Prompt(prompt) => config.prompt = prompt.clone(),
                 SecondaryPrompt(secondary_prompt) => {
                     config.secondary_prompt = secondary_prompt.clone()
@@ -181,7 +108,6 @@ impl Instruction for ConfigInstruction {
                 LineSplit(line_split) => config.line_split = Some(line_split.clone()),
                 Hidden(hidden) => config.hidden = Some(*hidden),
                 Delay(delay) => config.delay = Some(*delay),
-                _ => unreachable!(),
             }
         }
     }
@@ -196,15 +122,15 @@ mod tests {
     fn config_instruction_type() {
         let mut context = ParseContext::new();
         let instructions = [
-            ("@width 123", Width(123)),
-            ("@height 456", Height(456)),
-            (
-                "@title castwright demo",
-                Title("castwright demo".to_string()),
-            ),
-            ("@shell bash ", Shell("bash".to_string())),
-            ("@quit \"exit \"", Quit("exit ".to_string())),
-            ("@idle 1s", Idle(Duration::from_secs(1))),
+            // ("@width 123", Width(123)),
+            // ("@height 456", Height(456)),
+            // (
+            //     "@title castwright demo",
+            //     Title("castwright demo".to_string()),
+            // ),
+            // ("@shell bash ", Shell("bash".to_string())),
+            // ("@quit \"exit \"", Quit("exit ".to_string())),
+            // ("@idle 1s", Idle(Duration::from_secs(1))),
             ("@prompt \"$ \"", Prompt("$ ".to_string())),
             (
                 "@secondary-prompt \"> \"",
@@ -229,12 +155,12 @@ mod tests {
     fn config_instruction_persistent() {
         let mut context = ParseContext::new();
         let instructions = [
-            ("@width 123", true),
-            ("@height 456", true),
-            ("@title castwright demo", true),
-            ("@shell bash ", true),
-            ("@quit \"exit \"", true),
-            ("@idle 1s", true),
+            // ("@width 123", true),
+            // ("@height 456", true),
+            // ("@title castwright demo", true),
+            // ("@shell bash ", true),
+            // ("@quit \"exit \"", true),
+            // ("@idle 1s", true),
             ("@prompt \"$ \"", true),
             ("secondary-prompt \"> \"", false),
             ("line-split \\", false),
@@ -296,10 +222,10 @@ mod tests {
         let mut context = ExecutionContext::new();
         let mut cast = AsciiCast::new();
         let instructions = [
-            "@width 123",
-            "@height 456",
-            "@title another title",
-            "@idle 2ms",
+            // "@width 123",
+            // "@height 456",
+            // "@title another title",
+            // "@idle 2ms",
             "prompt \"~> \"",
             "secondary-prompt \"| \"",
             "line-split \\",
@@ -311,10 +237,10 @@ mod tests {
                 .execute(&mut context, &mut cast);
         }
         let resolved = context.consume_temporary();
-        assert_eq!(resolved.width, 123);
-        assert_eq!(resolved.height, 456);
-        assert_eq!(resolved.title, "another title");
-        assert_eq!(resolved.idle, Duration::from_millis(2));
+        // assert_eq!(resolved.width, 123);
+        // assert_eq!(resolved.height, 456);
+        // assert_eq!(resolved.title, "another title");
+        // assert_eq!(resolved.idle, Duration::from_millis(2));
         assert_eq!(resolved.prompt, "~> ".to_string());
         assert_eq!(resolved.secondary_prompt, "| ".to_string());
         assert_eq!(resolved.line_split, "\\".to_string());

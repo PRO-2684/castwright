@@ -9,6 +9,7 @@ pub struct MarkerInstruction(String);
 impl Instruction for MarkerInstruction {
     /// Parse a line into an `MarkerInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
+        context.front_matter_state.end()?;
         if context.expect_continuation {
             return Err(ErrorType::ExpectedContinuation);
         }

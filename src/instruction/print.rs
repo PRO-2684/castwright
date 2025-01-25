@@ -9,10 +9,11 @@ pub struct PrintInstruction(String);
 impl Instruction for PrintInstruction {
     /// Parse a line into an `PrintInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
-        let content = util::parse_loose_string(s)?;
+        context.front_matter_state.end()?;
         if context.expect_continuation {
             return Err(ErrorType::ExpectedContinuation);
         }
+        let content = util::parse_loose_string(s)?;
         Ok(Self(content))
     }
     /// Execute the instruction

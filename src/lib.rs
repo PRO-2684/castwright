@@ -48,40 +48,9 @@ pub use error::{Error, ErrorType};
 use instruction::{parse_instruction, Instruction};
 use std::{io::BufRead, time::Duration};
 
-/// A parsing context for the script.
-struct ParseContext {
-    /// The starting character of the command.
-    start: char,
-    /// Whether we're expecting a continuation.
-    expect_continuation: bool,
-}
-
-impl ParseContext {
-    /// Create a new `ParseContext`.
-    fn new() -> Self {
-        Self {
-            start: ' ',
-            expect_continuation: false,
-        }
-    }
-    /// Create a context with a different starting character.
-    #[allow(dead_code, reason = "Only used in tests")]
-    fn with_start(&self, start: char) -> Self {
-        Self { start, ..*self }
-    }
-    /// Create a context with a different expectation for continuation.
-    #[allow(dead_code, reason = "Only used in tests")]
-    fn expect_continuation(&self, expect_continuation: bool) -> Self {
-        Self {
-            expect_continuation,
-            ..*self
-        }
-    }
-}
-
-/// Persistent configuration for the script.
-#[derive(Clone, Debug, PartialEq)]
-struct Configuration {
+/// The front matter of the script.
+#[derive(Debug, PartialEq)]
+struct FrontMatter {
     /// Terminal width.
     width: u16,
     /// Terminal height.
@@ -94,6 +63,58 @@ struct Configuration {
     quit: String,
     /// Idle time limit.
     idle: Duration,
+}
+
+impl FrontMatter {
+    /// Create a new `FrontMatter` with default values.
+    fn new() -> Self {
+        let (width, height) = util::get_terminal_size();
+        Self {
+            width,
+            height,
+            title: "Castwright Script".to_string(),
+            shell: "bash".to_string(),
+            quit: "exit".to_string(),
+            idle: Duration::from_secs(5),
+        }
+    }
+}
+
+/// Front matter parsing state.
+#[derive(Debug, PartialEq, Clone, Copy)]
+enum FrontMatterState {
+    /// Nothing has been parsed yet.
+    None,
+    /// We're expecting key-value pairs. (First occurrence of `---`)
+    Start,
+    /// We've parsed the key-value pairs. (Second occurrence of `---`)
+    End,
+}
+
+impl FrontMatterState {
+    /// Take in an occurrence of `---`.
+    fn next(&mut self) -> Result<(), ErrorType> {
+        match self {
+            Self::None => *self = Self::Start,
+            Self::Start => *self = Self::End,
+            Self::End => return Err(ErrorType::FrontMatterExists),
+        }
+        Ok(())
+    }
+    /// End the front matter parsing, since an instruction has been encountered.
+    fn end(&mut self) -> Result<(), ErrorType> {
+        match self {
+            Self::None => *self = Self::End,
+            Self::Start => return Err(ErrorType::ExpectedKeyValuePair),
+            Self::End => {}, // Do nothing
+        }
+        Ok(())
+    }
+}
+
+/// Configuration for the script.
+#[derive(Clone, Debug, PartialEq)]
+struct Configuration {
     /// The shell prompt to use in the asciicast.
     prompt: String,
     /// The secondary prompt to use in the asciicast (for continuation lines).
@@ -109,14 +130,7 @@ struct Configuration {
 impl Configuration {
     /// Create a new `Configuration` with default values.
     fn new() -> Self {
-        let (width, height) = util::get_terminal_size();
         Self {
-            width,
-            height,
-            title: "Castwright Script".to_string(),
-            shell: "bash".to_string(),
-            quit: "exit".to_string(),
-            idle: Duration::from_secs(5),
             prompt: "$ ".to_string(),
             secondary_prompt: "> ".to_string(),
             line_split: " \\".to_string(),
@@ -161,8 +175,44 @@ impl TemporaryConfiguration {
     }
 }
 
+/// A parsing context for the script.
+struct ParseContext {
+    /// Front matter parsing state.
+    front_matter_state: FrontMatterState,
+    /// The starting character of the command.
+    start: char,
+    /// Whether we're expecting a continuation.
+    expect_continuation: bool,
+}
+
+impl ParseContext {
+    /// Create a new `ParseContext`.
+    fn new() -> Self {
+        Self {
+            front_matter_state: FrontMatterState::None,
+            start: ' ',
+            expect_continuation: false,
+        }
+    }
+    /// Create a context with a different starting character.
+    #[allow(dead_code, reason = "Only used in tests")]
+    fn with_start(&self, start: char) -> Self {
+        Self { start, ..*self }
+    }
+    /// Create a context with a different expectation for continuation.
+    #[allow(dead_code, reason = "Only used in tests")]
+    fn expect_continuation(&self, expect_continuation: bool) -> Self {
+        Self {
+            expect_continuation,
+            ..*self
+        }
+    }
+}
+
 /// An execution context for the script.
 struct ExecutionContext {
+    // /// Front matter.
+    // front_matter: FrontMatter,
     /// Persistent configuration.
     persistent: Configuration,
     /// Temporary configuration.
@@ -177,6 +227,7 @@ impl ExecutionContext {
     /// Create a new `ExecutionContext` with default values.
     fn new() -> Self {
         Self {
+            // front_matter: FrontMatter::new(),
             persistent: Configuration::new(),
             temporary: TemporaryConfiguration::new(),
             elapsed: 0,
@@ -273,11 +324,11 @@ impl Script {
         for instruction in &self.instructions {
             instruction.execute(&mut context, &mut cast);
         }
-        // Update the header with the final configuration
-        cast.width(context.persistent.width)
-            .height(context.persistent.height)
-            .title(context.persistent.title.clone())
-            .idle_time_limit(context.persistent.idle.as_secs_f64());
+        // // Update the header with the final configuration
+        // cast.width(context.front_matter.width)
+        //     .height(context.front_matter.height)
+        //     .title(context.front_matter.title.clone())
+        //     .idle_time_limit(context.front_matter.idle.as_secs_f64());
         cast
     }
 }
@@ -287,14 +338,16 @@ mod tests {
     use super::*;
     use instruction::{
         CommandInstruction, ConfigInstruction, EmptyInstruction, MarkerInstruction,
-        PrintInstruction,
+        PrintInstruction, FrontMatterInstruction,
     };
     use std::io::BufReader;
 
     #[test]
     fn script() {
         let text = r#"
-            @@width 123
+            ---
+            width: 123
+            ---
             @hidden true
             %print
             !marker
@@ -308,7 +361,9 @@ mod tests {
         let script = Script::parse(reader).unwrap();
         let mut context = ParseContext::new();
         let expected: Vec<Box<dyn Instruction>> = vec![
-            Box::new(ConfigInstruction::parse("@width 123", &mut context).unwrap()),
+            Box::new(FrontMatterInstruction::Delimiter),
+            Box::new(FrontMatterInstruction::Width(123)),
+            Box::new(FrontMatterInstruction::Delimiter),
             Box::new(ConfigInstruction::parse("hidden true", &mut context).unwrap()),
             Box::new(PrintInstruction::parse("print", &mut context).unwrap()),
             Box::new(MarkerInstruction::parse("marker", &mut context).unwrap()),
@@ -333,7 +388,9 @@ mod tests {
     #[test]
     fn script_unknown_instruction() {
         let text = r#"
-            @@width 123
+            ---
+            width: 123
+            ---
             @hidden
             %print
             !marker
@@ -346,7 +403,7 @@ mod tests {
         let reader = BufReader::new(text.as_bytes());
         assert_eq!(
             Script::parse(reader).unwrap_err(),
-            ErrorType::UnknownInstruction.with_line(8)
+            ErrorType::UnknownInstruction.with_line(10)
         );
     }
 
@@ -357,11 +414,11 @@ mod tests {
             "#abc\n@",                   // Expected character after @
             "#abc\n@@",                  // Expected character after @@
             "#abc\n@@wid",               // Unrecognized configuration instruction
-            "@@width 123\n@@height abc", // Malformed integer
-            "@@width 123\n@idle 1",      // Malformed duration - no suffix
-            "@@width 123\n@idle 1min",   // Malformed duration - invalid suffix
-            "@@width 123\n@delay",       // Malformed duration - no value
-            "@@width 123\n@hidden what", // Malformed boolean
+            "@@prompt $\n@@height abc", // Malformed integer
+            "@@prompt $\n@idle 1",      // Malformed duration - no suffix
+            "@@prompt $\n@idle 1min",   // Malformed duration - invalid suffix
+            "@@prompt $\n@delay",       // Malformed duration - no value
+            "@@prompt $\n@hidden what", // Malformed boolean
         ];
         for text in malformed_scripts.iter() {
             let text = text.trim();
@@ -377,7 +434,7 @@ mod tests {
     fn script_expected_continuation() {
         let text = r#"
             $command \
-            @@width 123
+            @hidden true
         "#;
         let text = text.trim();
         let reader = BufReader::new(text.as_bytes());
@@ -402,26 +459,26 @@ mod tests {
     }
 
     #[test]
-    fn execution_context() {
+    fn execution_context_consume_temporary() {
         let mut context = ExecutionContext::new();
         context.temporary.prompt = Some("$$ ".to_string());
         context.temporary.secondary_prompt = Some(">> ".to_string());
-        let (width, height) = util::get_terminal_size();
-        let expected = Configuration {
-            width,
-            height,
-            title: "Castwright Script".to_string(),
-            shell: "bash".to_string(),
-            quit: "exit".to_string(),
-            idle: Duration::from_secs(5),
+        // let (width, height) = util::get_terminal_size();
+        let expected_config = Configuration {
+            // width,
+            // height,
+            // title: "Castwright Script".to_string(),
+            // shell: "bash".to_string(),
+            // quit: "exit".to_string(),
+            // idle: Duration::from_secs(5),
             prompt: "$$ ".to_string(),
             secondary_prompt: ">> ".to_string(),
             line_split: " \\".to_string(),
             hidden: false,
             delay: Duration::from_millis(100),
         };
-        let calculated = context.consume_temporary();
-        assert_eq!(calculated, expected);
+        let calculated_config = context.consume_temporary();
+        assert_eq!(calculated_config, expected_config);
         assert!(context.temporary.is_empty());
     }
 }

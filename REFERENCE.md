@@ -4,7 +4,49 @@
 
 > Conventionally, `.cwrt` is used as the file extension for `castwright` scripts.
 
-A `castwright` script is line-based, with each line representing a single instruction, much like an interactive shell. The first character of the line determine the type of instruction, followed by instruction-specific argument(s). Below is a table of prefixes and their corresponding instruction types.
+A `castwright` script consists of two parts: the front matter and the body.
+
+The [front matter](#front-matter), whose syntax is a subset of the standard YAML front matter, allows you to customize the metadata of the output asciicast, and can be skipped if you don't need it.
+
+The body is line-based, with each line representing a single instruction, much like an interactive shell. The first character of the line determine the type of instruction, followed by instruction-specific argument(s). See [Instruction Types](#instruction-types) for a table of prefixes and their corresponding instruction types. Any line that does not start with one of those prefixes will result in an error (`UnknownInstruction`).
+
+## Front Matter
+
+The front matter must be enclosed by a pair of triple dashes (`---`). It consists of key-value pairs, where the key is a [String](#string) and the value's type depends on the key. The key-value pairs are separated by a colon (`:`), and each pair is on a separate line. The key is case-insensitive, and the value is case-sensitive. The front matter ends with another pair of triple dashes (`---`). Example:
+
+```yaml
+---
+title: My Asciicast
+shell: bash
+idle: 5s
+prompt: "$ "
+---
+```
+
+The following keys are supported in the front matter:
+
+- `width`: Set the width of the terminal.
+    - **Type**: [Integer](#integer).
+    - **Default**: Current terminal width, or $80$ if not available.
+- `height`: Set the height of the terminal.
+    - **Type**: [Integer](#integer).
+    - **Default**: Current terminal height, or $24$ if not available.
+- `title`: Set the title of the asciicast.
+    - **Type**: [LooseString](#loosestring).
+    - **Default**: `Castwright Script`
+- `shell`: Set the shell to be used for executing commands.
+    - **Type**: [LooseString](#loosestring), which represents the shell executable.
+    - **Default**: `bash`
+- `quit`: Set the quit command to be used for exiting the shell.
+    - **Type**: [LooseString](#loosestring), which represents the quit command.
+    - **Default**: `exit`
+- `idle`: Set the idle time limit for the asciicast.
+    - **Type**: [Duration](#duration).
+    - **Default**: `5s`
+
+Internally, front matter delimiters and key-value pairs are also treated as instructions.
+
+## Instruction Types
 
 | Prefix | Instruction Type |
 | ------ | ---------------- |
@@ -15,10 +57,6 @@ A `castwright` script is line-based, with each line representing a single instru
 | `#`    | [Comment](#comment) |
 | `!`    | [Marker](#marker) |
 | `%`    | [Print](#print) |
-
-Any line that does not start with one of the above prefixes will result in an error (`UnknownInstruction`).
-
-## Instruction Types
 
 ### Command
 
@@ -40,68 +78,36 @@ $ echo "Multi-" \
 
 ### Configuration
 
-A configuration instruction configures the behavior of the output or other instructions. It can be classified based on its effect as either [**metadata**](#metadata) or [**directive**](#directive), or based on its scope as either [**persistent**](#persistent) or [**temporary**](#temporary). For simplicity, we will skip the "configuration" word and refer to these instructions as metadata, directive, persistent, or temporary instructions. Below is a list of valid keywords for configuration instructions.
+A configuration instruction configures the behavior of the output or other instructions. It can be classified based on its scope as either [**persistent**](#persistent) or [**temporary**](#temporary). Below is a list of valid keywords for configuration instructions.
 
-- `width`: Set the width of the terminal.
-    - **Effect**: Metadata; **Scope**: Persistent.
-    - **Parameter**: A positive [Integer](#integer).
-    - **Default**: Current terminal width, or $80$ if not available.
-- `height`: Set the height of the terminal.
-    - **Effect**: Metadata; **Scope**: Persistent.
-    - **Parameter**: A positive [Integer](#integer).
-    - **Default**: Current terminal height, or $24$ if not available.
-- `title`: Set the title of the asciicast.
-    - **Effect**: Metadata; **Scope**: Persistent.
-    - **Parameter**: A [LooseString](#loosestring).
-    - **Default**: `@@title Castwright Script`
-- `shell`: Set the shell to be used for executing commands.
-    - **Effect**: Metadata; **Scope**: Persistent.
-    - **Parameter**: A [LooseString](#loosestring), which represents the shell executable.
-    - **Default**: `@@shell bash`
-- `quit`: Set the quit command to be used for exiting the shell.
-    - **Effect**: Metadata; **Scope**: Persistent.
-    - **Parameter**: A [LooseString](#loosestring), which represents the quit command.
-    - **Default**: `@@quit exit`
-- `idle`: Set the idle time limit for the asciicast.
-    - **Effect**: Directive; **Scope**: Persistent.
-    - **Parameter**: A [Duration](#duration).
-    - **Default**: `@@idle 5s`
 - `prompt`: Set the shell prompt to use in the asciicast output.
-    - **Effect**: Directive; **Scope**: Persistent or Temporary.
+    - **Scope**: Persistent or Temporary.
     - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@prompt "$ "`
 - `secondary-prompt`: Set the secondary prompt to use in the asciicast output.
-    - **Effect**: Directive; **Scope**: Persistent or Temporary.
+    - **Scope**: Persistent or Temporary.
     - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@secondary-prompt "> "`
 - `line-split`: Set the string to signify a line split in a multiline command.
-    - **Effect**: Directive; **Scope**: Persistent or Temporary.
+    - **Scope**: Persistent or Temporary.
     - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@line-split " \\"`
 - `hidden`: Set whether the command should be executed silently.
-    - **Effect**: Directive; **Scope**: Persistent or Temporary.
+    - **Scope**: Persistent or Temporary.
     - **Parameter**: An [OptionalBoolean(true)](#optionaldefault).
     - **Default**: `@@hidden false`
 - `delay`: Set the typing delay between characters in a command.
-    - **Effect**: Directive; **Scope**: Persistent or Temporary.
+    - **Scope**: Persistent or Temporary.
     - **Parameter**: An [Duration](#duration).
     - **Default**: `@@delay 100ms`
 
-#### Metadata
-
-A metadata instruction provides information about the asciicast output, such as the `width` and `height` of the terminal or the `title` of the asciicast.
-
-#### Directive
-
-A directive instruction changes the behavior of instructions, such as the typing `delay` or whether a command should be `hidden`.
-
 #### Persistent
 
-A persistent instruction starts with two `@`, and affects all subsequent instructions until another configuration instruction overrides it. It is useful for setting up the environment for the entire script when put at the beginning.
+A persistent config instruction starts with two `@`, and affects all subsequent instructions until another configuration instruction overrides it. It is useful for setting up the environment for the entire script when put at the beginning.
 
 #### Temporary
 
-A temporary instruction starts with only one `@`, and affects only the next [print](#print) or [command](#command) instruction. Note that continuation of a command is considered the same instruction. It is useful for changing the behavior of a single instruction without affecting the rest of the script.
+A temporary config instruction starts with only one `@`, and affects only the next [print](#print) or [command](#command) instruction. Note that continuation of a command is considered the same instruction. It is useful for changing the behavior of a single instruction without affecting the rest of the script.
 
 ### Empty
 

@@ -16,6 +16,7 @@ pub struct CommandInstruction {
 impl Instruction for CommandInstruction {
     /// Parse a line into a `CommandInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
+        context.front_matter_state.end()?;
         let s = s.trim();
         let start = match context.start {
             '$' => true,

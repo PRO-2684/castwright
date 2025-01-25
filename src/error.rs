@@ -5,13 +5,26 @@ use thiserror::Error as ThisError;
 /// Possible types of errors that can occur while parsing a single line of a `.cwrt` file. An enum variant represents a specific type of error, and can be converted to an [`Error`] with the [`with_line`](`ErrorType::with_line`) method. (See the [`Error`] struct for an example)
 #[derive(ThisError, Debug)]
 pub enum ErrorType {
-    // General parsing errors
+    // Foreign errors
     /// An io error occurred while reading the file.
     #[error("IO error: \"{0}\"")]
     Io(std::io::Error),
     /// A `serde_json` error occurred while parsing.
     #[error("JSON error: \"{0}\"")]
     Json(serde_json::Error),
+
+    // Front matter errors
+    /// Expected key-value pair, but got instruction.
+    #[error("Expected key-value pair")]
+    ExpectedKeyValuePair,
+    /// Expected closing front matter delimiter, but got none.
+    #[error("Expected closing front matter delimiter")]
+    ExpectedClosingDelimiter,
+    /// There is already a front matter block.
+    #[error("Front matter already exists")]
+    FrontMatterExists,
+
+    // Instruction errors
     /// The first non-whitespace character of the line is not recognized.
     #[error("Unknown instruction")]
     UnknownInstruction,
@@ -41,6 +54,9 @@ impl PartialEq for ErrorType {
         match (self, other) {
             (Self::Io(_), Self::Io(_)) => true,
             (Self::Json(_), Self::Json(_)) => true,
+            (Self::ExpectedKeyValuePair, Self::ExpectedKeyValuePair) => true,
+            (Self::ExpectedClosingDelimiter, Self::ExpectedClosingDelimiter) => true,
+            (Self::FrontMatterExists, Self::FrontMatterExists) => true,
             (Self::UnknownInstruction, Self::UnknownInstruction) => true,
             (Self::MalformedInstruction, Self::MalformedInstruction) => true,
             (Self::ExpectedContinuation, Self::ExpectedContinuation) => true,
