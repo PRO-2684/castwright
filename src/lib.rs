@@ -239,7 +239,7 @@ impl ExecutionContext {
     }
 }
 
-/// A `.cw` script
+/// A `.cwrt` script
 #[derive(Debug)]
 pub struct Script {
     /// The instructions in the script.

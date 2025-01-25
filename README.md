@@ -30,7 +30,7 @@ Usage: castwright [-i <input>] [-o <output>] [-x]
 🎥 Scripted terminal recording.
 
 Options:
-  -i, --input       the path to the input file (castwright script `.cw`), or
+  -i, --input       the path to the input file (castwright script `.cwrt`), or
                     stdin if not provided
   -o, --output      the path to the output file (asciicast `.cast`), or stdout
                     if not provided
@@ -41,7 +41,7 @@ Options:
 
 ### Castwright Script
 
-A castwright script is a text file, conventionally with the `.cw` extension. It is line-based, with each line representing a single instruction. For example:
+A castwright script is a text file, conventionally with the `.cwrt` extension. It is line-based, with each line representing a single instruction. For example:
 
 ```plaintext
 $ echo "Hello, World!"

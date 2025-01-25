@@ -2,7 +2,7 @@
 
 ## Introduction
 
-> Conventionally, `.cw` is used as the file extension for `castwright` scripts.
+> Conventionally, `.cwrt` is used as the file extension for `castwright` scripts.
 
 A `castwright` script is line-based, with each line representing a single instruction, much like an interactive shell. The first character of the line determine the type of instruction, followed by instruction-specific argument(s). Below is a table of prefixes and their corresponding instruction types.
 

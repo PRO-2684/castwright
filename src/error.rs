@@ -2,7 +2,7 @@
 
 use thiserror::Error as ThisError;
 
-/// Possible types of errors that can occur while parsing a single line of a `.cw` file.
+/// Possible types of errors that can occur while parsing a single line of a `.cwrt` file.
 #[derive(ThisError, Debug)]
 pub enum ErrorType {
     // General parsing errors
