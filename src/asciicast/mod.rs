@@ -113,19 +113,19 @@ impl<'a> AsciiCast<'a> {
 
     // Events
     /// Write an output event to the asciicast.
-    pub fn output(&mut self, time: u64, data: String) -> Result<&mut Self, ErrorType> {
+    pub fn output(&mut self, time: u64, data: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
         self.write_event(&Event::output(time, data))?;
         Ok(self)
     }
     /// Write an input event to the asciicast.
-    pub fn input(&mut self, time: u64, data: String) -> Result<&mut Self, ErrorType> {
+    pub fn input(&mut self, time: u64, data: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
         self.write_event(&Event::input(time, data))?;
         Ok(self)
     }
     /// Write a marker event to the asciicast.
-    pub fn marker(&mut self, time: u64, name: String) -> Result<&mut Self, ErrorType> {
+    pub fn marker(&mut self, time: u64, name: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
         self.write_event(&Event::marker(time, name))?;
         Ok(self)
@@ -133,7 +133,7 @@ impl<'a> AsciiCast<'a> {
     /// Write a resize event to the asciicast.
     pub fn resize(&mut self, time: u64, columns: u16, rows: u16) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
-        self.write_event(&Event::resize(time, columns, rows))?;
+        self.write_event(&Event::resize(time, &format!("{}x{}", columns, rows)))?;
         Ok(self)
     }
     /// Write an event to the writer.
@@ -159,9 +159,9 @@ mod tests {
             .idle_time_limit(2.5)?
             .title("Test".to_string())?
             .write_header()?
-            .output(0, "Hello, world!".to_string())?
-            .input(100, "echo Hello, world!".to_string())?
-            .marker(200, "marker".to_string())?
+            .output(0, "Hello, world!")?
+            .input(100, "echo Hello, world!")?
+            .marker(200, "marker")?
             .resize(300, 80, 25)?;
         let expected = r#"{"version":2,"width":80,"height":24,"timestamp":1000000,"idle_time_limit":2.5,"title":"Test"}
 [0.0,"o","Hello, world!"]
@@ -183,9 +183,9 @@ mod tests {
             .timestamp(1_000_000)?
             .idle_time_limit(2.5)?
             .title("Test".to_string())?
-            .output(0, "Hello, world!".to_string())?
-            .input(100, "echo Hello, world!".to_string())?
-            .marker(200, "marker".to_string())?
+            .output(0, "Hello, world!")?
+            .input(100, "echo Hello, world!")?
+            .marker(200, "marker")?
             .resize(300, 80, 25)?;
         let expected = r#"{"version":2,"width":80,"height":24,"timestamp":1000000,"idle_time_limit":2.5,"title":"Test"}
 [0.0,"o","Hello, world!"]
@@ -215,7 +215,7 @@ mod tests {
         let mut writer = Vec::new();
         let mut asciicast = AsciiCast::new(&mut writer);
         asciicast.width(80)?;
-        asciicast.output(0, "Hello, world!".to_string())?;
+        asciicast.output(0, "Hello, world!")?;
         match asciicast.width(80) {
             Ok(_) => panic!("Expected error"),
             Err(err) => assert_eq!(err, ErrorType::HeaderAlreadyWritten),

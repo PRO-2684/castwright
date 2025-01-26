@@ -21,7 +21,7 @@ impl Instruction for MarkerInstruction {
         context: &mut ExecutionContext,
         cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
-        cast.marker(context.elapsed, self.0.clone())?;
+        cast.marker(context.elapsed, &self.0)?;
         Ok(())
     }
 }

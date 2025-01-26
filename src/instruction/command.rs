@@ -64,35 +64,36 @@ impl Instruction for CommandInstruction {
             return Ok(());
         }
         let prompt = if self.start {
-            config.prompt.clone()
+            &config.prompt
         } else {
-            config.secondary_prompt.clone()
+            &config.secondary_prompt
         };
         let delay = config.delay.as_micros() as u64;
         cast.output(context.elapsed, prompt)?;
         for character in self.command.chars() {
             context.elapsed += delay;
-            cast.output(context.elapsed, character.to_string())?;
+            // https://stackoverflow.com/a/67898224/16468609
+            cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
         }
         if self.continuation {
             context.elapsed += delay;
-            cast.output(context.elapsed, config.line_split.clone())?;
+            cast.output(context.elapsed, &config.line_split)?;
             context.elapsed += delay;
-            cast.output(context.elapsed, "\r\n".to_string())?;
+            cast.output(context.elapsed, "\r\n")?;
             context.command.push_str(&self.command);
             context.command.push(' ');
         } else {
             context.elapsed += delay;
-            cast.output(context.elapsed, "\r\n".to_string())?;
+            cast.output(context.elapsed, "\r\n")?;
             // Take `context.command` out, replacing with an empty string
             let mut command = std::mem::take(&mut context.command);
             command.push_str(&self.command);
             // Dummy output to simulate the command being executed
             // TODO: Implement actual command execution
             context.elapsed += delay;
-            cast.output(context.elapsed, format!("Executed command: {command}"))?;
+            cast.output(context.elapsed, &format!("Executed command: {command}"))?;
             context.elapsed += delay;
-            cast.output(context.elapsed, "\r\n".to_string())?;
+            cast.output(context.elapsed, "\r\n")?;
         }
         Ok(())
     }

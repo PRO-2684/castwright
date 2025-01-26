@@ -5,16 +5,16 @@ use serde::Serialize;
 /// The event of an asciicast v2 file.
 // From https://github.com/asciinema/asciinema/blob/f0f908872ca0364128b546bcc8af918d2fc47566/src/asciicast/v2.rs#L38-L45
 #[derive(Debug)]
-pub(super) struct Event {
+pub(super) struct Event<'a> {
     /// Indicates when the event happened, represented as the number of milliseconds since the beginning of the recording session.
     time: u64,
     /// Type of the event.
     code: EventCode,
     /// Event specific data, described separately for each event code.
-    data: String,
+    data: &'a str,
 }
 
-impl Serialize for Event {
+impl Serialize for Event<'_> {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
@@ -30,9 +30,9 @@ impl Serialize for Event {
     }
 }
 
-impl Event {
+impl<'a> Event<'a> {
     /// Create a new output event.
-    pub fn output(time: u64, data: String) -> Self {
+    pub fn output(time: u64, data: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Output,
@@ -40,7 +40,7 @@ impl Event {
         }
     }
     /// Create a new input event.
-    pub fn input(time: u64, data: String) -> Self {
+    pub fn input(time: u64, data: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Input,
@@ -48,7 +48,7 @@ impl Event {
         }
     }
     /// Create a new marker event.
-    pub fn marker(time: u64, name: String) -> Self {
+    pub fn marker(time: u64, name: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Marker,
@@ -56,11 +56,11 @@ impl Event {
         }
     }
     /// Create a new resize event.
-    pub fn resize(time: u64, columns: u16, rows: u16) -> Self {
+    pub fn resize(time: u64, dim: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Resize,
-            data: format!("{}x{}", columns, rows),
+            data: dim,
         }
     }
 }
@@ -100,7 +100,7 @@ mod tests {
         let event = Event {
             time: 1_002_345,
             code: EventCode::Output,
-            data: "Hello, world!".to_string(),
+            data: "Hello, world!",
         };
         let expected = r#"[1.002345,"o","Hello, world!"]"#;
         let serialized = serde_json::to_string(&event)?;

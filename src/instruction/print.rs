@@ -30,10 +30,10 @@ impl Instruction for PrintInstruction {
         let delay = config.delay.as_micros() as u64;
         for character in self.0.chars() {
             context.elapsed += delay;
-            cast.output(context.elapsed, character.to_string())?;
+            cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
         }
         context.elapsed += delay;
-        cast.output(context.elapsed, "\r\n".to_string())?;
+        cast.output(context.elapsed, "\r\n")?;
         Ok(())
     }
 }
