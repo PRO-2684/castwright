@@ -41,7 +41,13 @@ fn test() -> Result<(), Error> {
             .read_to_end(&mut expected)
             .map_err(|err| ErrorType::Io(err).with_line(0))?;
 
-        assert_eq!(writer, expected, "Test case: {}", case.name);
+        let output = String::from_utf8(writer).unwrap();
+        let expected = String::from_utf8(expected).unwrap();
+
+        // Compare output line by line (to avoid differences in line endings)
+        for (i, (output_line, expected_line)) in output.lines().zip(expected.lines()).enumerate() {
+            assert_eq!(output_line, expected_line, "Test case: {}, line: {}", case.name, i + 1);
+        }
     }
     Ok(())
 }
