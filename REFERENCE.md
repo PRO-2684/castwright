@@ -1,10 +1,10 @@
-# `castwright` Script Reference
+# `CastWright` Script Reference
 
 ## Introduction
 
-> Conventionally, `.cwrt` is used as the file extension for `castwright` scripts.
+> Conventionally, `.cwrt` is used as the file extension for CastWright scripts.
 
-A `castwright` script consists of two parts: the front matter and the body.
+A CastWright script consists of two parts: the front matter and the body.
 
 The [front matter](#front-matter), whose syntax is a subset of the standard YAML front matter, allows you to customize the metadata of the output asciicast, and can be skipped if you don't need it.
 
@@ -33,7 +33,7 @@ The following keys are supported in the front matter:
     - **Default**: Current terminal height, or $24$ if not available.
 - `title`: Set the title of the asciicast.
     - **Type**: [LooseString](#loosestring).
-    - **Default**: `Castwright Script`
+    - **Default**: None.
 - `shell`: Set the shell to be used for executing commands. (Not implemented yet)
     - **Type**: [LooseString](#loosestring), which represents the shell executable.
     - **Default**: `bash`
@@ -42,7 +42,7 @@ The following keys are supported in the front matter:
     - **Default**: `exit`
 - `idle`: Set the idle time limit for the asciicast.
     - **Type**: [Duration](#duration).
-    - **Default**: `5s`
+    - **Default**: None.
 
 Internally, front matter delimiters and key-value pairs are also treated as instructions.
 
@@ -115,7 +115,7 @@ Empty instructions do nothing. They may take the form of an [empty line](#empty-
 
 #### Empty Line
 
-An empty line is a line that contains only whitespace characters. Useful for separating sections of your castwright script.
+An empty line is a line that contains only whitespace characters. Useful for separating sections of your CastWright script.
 
 #### Comment
 

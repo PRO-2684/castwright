@@ -187,7 +187,7 @@ mod tests {
         let meaningless_instructions = [
             "width 123",
             "height 456",
-            "title castwright demo",
+            "title CastWright demo",
             "shell bash",
             "quit \"exit \"",
             "idle 1s",

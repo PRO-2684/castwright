@@ -8,7 +8,7 @@
 # Set the terminal height, default is current terminal height
 # height: 24
 # Title of the asciicast (no point setting this using temporary configuration)
-title: Castwright Script Demo
+title: CastWright Script Demo
 # Terminal idle timeout
 idle: 1s
 ---

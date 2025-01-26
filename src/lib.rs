@@ -1,11 +1,11 @@
-//! # Castwright
+//! # CastWright
 //!
 //! 🎥 Scripted terminal recording.
 //!
 //! ## Note
 //!
 //! - This project is still in the early stages of development, with some core features missing or incomplete.
-//! - If you see this message, it means that you're viewing the documentation of the `castwright` library. For the CLI, please refer to the [README](https://github.com/PRO-2684/castwright#castwright); for the castwright script format, please refer to the [REFERENCE](https://github.com/PRO-2684/castwright/blob/main/REFERENCE.md).
+//! - If you see this message, it means that you're viewing the documentation of the `castwright` library. For the CLI, please refer to the [README](https://github.com/PRO-2684/castwright#castwright); for the CastWright script format, please refer to the [REFERENCE](https://github.com/PRO-2684/castwright/blob/main/REFERENCE.md).
 //!
 //! ## Usage
 //!
@@ -249,7 +249,7 @@ impl ExecutionContext {
     }
 }
 
-/// The `CastWright` struct represents the main entry point for the Castwright library. An instance of `CastWright` can be configured, parses and executes castwright scripts, and writes the resulting asciicast to a writer.
+/// The `CastWright` struct represents the main entry point for the CastWright library. An instance of `CastWright` can be configured, parses and executes CastWright scripts, and writes the resulting asciicast to a writer.
 ///
 /// ## Instantiation
 ///
@@ -263,7 +263,7 @@ impl ExecutionContext {
 ///
 /// ## Running
 ///
-/// To parse and execute a castwright script and write the resulting asciicast, use the [`run`](`CastWright::run`) method, which takes mutable references to a reader and a writer.
+/// To parse and execute a CastWright script and write the resulting asciicast, use the [`run`](`CastWright::run`) method, which takes mutable references to a reader and a writer.
 ///
 /// ## Example
 ///
@@ -278,7 +278,7 @@ impl ExecutionContext {
 /// let text = text.trim();
 /// let mut reader = BufReader::new(text.as_bytes());
 /// let mut writer = Vec::new();
-/// // Castwright
+/// // CastWright
 /// let mut castwright = CastWright::new(); // Instantiation
 /// castwright
 ///     .execute(true) // Configuration
@@ -315,7 +315,7 @@ impl CastWright {
         self.execute = execute;
         self
     }
-    /// Interpret and run a castwright script from a reader, writing the asciicast to a writer.
+    /// Interpret and run a CastWright script from a reader, writing the asciicast to a writer.
     pub fn run(&self, reader: &mut impl BufRead, writer: &mut impl Write) -> Result<(), Error> {
         let mut parse_context = ParseContext::new();
         let mut execution_context = ExecutionContext::new();

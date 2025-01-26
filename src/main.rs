@@ -10,7 +10,7 @@ use std::{
 #[derive(FromArgs)]
 #[argh(help_triggers("-h", "--help"))]
 struct Args {
-    /// the path to the input file (castwright script `.cwrt`), or stdin if not provided
+    /// the path to the input file (CastWright script `.cwrt`), or stdin if not provided
     #[argh(option, short = 'i')]
     input: Option<String>,
     /// the path to the output file (asciicast `.cast`), or stdout if not provided

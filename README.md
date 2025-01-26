@@ -1,4 +1,4 @@
-# castwright
+# CastWright
 
 > [!WARNING]
 > This project is still in the early stages of development, with some core features missing or incomplete. Please refer to the [TODO](#todo) section for more information.
@@ -10,11 +10,11 @@
 > [!NOTE]
 > The name `castwright` is a portmanteau of `asciicast` and `playwright`.
 
-Have you re-recorded the same session over and over again, either to hit the right speed or to avoid mistakes? Ever wanted to automate the process of recording terminal sessions, like shell scripts automate the process of running commands? Well, `castwright` is here to help.
+Have you re-recorded the same session over and over again, either to hit the right speed or to avoid mistakes? Ever wanted to automate the process of recording terminal sessions, like shell scripts automate the process of running commands? Well, CastWright is here to help.
 
 ## Features
 
-- **Painless scripting**: `castwright` scripts are very intuitive and similar to an interactive shell, making it easy to understand, write, and maintain.
+- **Painless scripting**: CastWright scripts are very intuitive and similar to an interactive shell, making it easy to understand, write, and maintain.
 
 ## Installation
 
@@ -30,7 +30,7 @@ Usage: castwright [-i <input>] [-o <output>] [-x]
 🎥 Scripted terminal recording.
 
 Options:
-  -i, --input       the path to the input file (castwright script `.cwrt`), or
+  -i, --input       the path to the input file (CastWright script `.cwrt`), or
                     stdin if not provided
   -o, --output      the path to the output file (asciicast `.cast`), or stdout
                     if not provided
@@ -39,9 +39,9 @@ Options:
   -h, --help        display usage information
 ```
 
-### Castwright Script
+### CastWright Script
 
-A castwright script is a text file, conventionally with the `.cwrt` extension. It is line-based, with each line representing a single instruction. For example:
+A CastWright script is a text file, conventionally with the `.cwrt` extension. It is line-based, with each line representing a single instruction. For example:
 
 ```plaintext
 $ echo "Hello, World!"
@@ -71,11 +71,11 @@ $ echo "Multi-" \
 Multi- line command
 ```
 
-In addition, castwright provides various instructions for customizing the produced asciicast, like typing speed or title. See [`REFERENCE.md`](./REFERENCE.md) for a detailed reference, or example castwright scripts under the [`tests`](./tests/) directory.
+In addition, CastWright provides various instructions for customizing the produced asciicast, like typing speed or title. See [`REFERENCE.md`](./REFERENCE.md) for a detailed reference, or example CastWright scripts under the [`tests`](./tests/) directory.
 
 ## TODO
 
-- [x] Implement the `castwright` script parser.
+- [x] Implement the CastWright script parser.
 - [x] Write to an asciicast file.
 - [x] Terminal width and height detection.
 - [x] Better `pub` API.
