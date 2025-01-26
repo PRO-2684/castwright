@@ -1,5 +1,5 @@
 use argh::FromArgs;
-use castwright::{Error, ErrorType, Script};
+use castwright::{Error, ErrorType, CastWright};
 use disperror::DispError;
 use std::{
     fs::File,
@@ -41,8 +41,6 @@ fn main() -> Result<(), DispError<Error>> {
     };
     let mut reader = std::io::BufReader::new(reader);
 
-    let script = Script::parse(&mut reader)?;
-
     let mut writer: &mut dyn Write = match &args.output {
         Some(path) => {
             let path = std::path::Path::new(&path);
@@ -54,6 +52,9 @@ fn main() -> Result<(), DispError<Error>> {
         }
     };
 
-    script.execute(&mut writer)?;
+    CastWright::new()
+        .execute(args.execute)
+        .run(&mut reader, &mut writer)?;
+
     Ok(())
 }

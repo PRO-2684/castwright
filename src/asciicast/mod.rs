@@ -12,7 +12,7 @@ use std::io::Write;
 ///
 /// ## Creation
 ///
-/// Can be created using the [`AsciiCast::new`] method, which returns an empty asciicast without any events. To create an asciicast with events, you can [`parse`](crate::Script::parse) from a reader, or call respective methods to add events (see "Events" section).
+/// Can be created using the [`AsciiCast::new`] method, which returns an empty asciicast without any events. To modify header and write events to an asciicast, you can call respective methods (see "Header" and "Events" section).
 ///
 /// ## Modification
 ///
@@ -25,6 +25,8 @@ use std::io::Write;
 /// - [`timestamp`](AsciiCast::timestamp): Set the unix timestamp of the beginning of the recording session.
 /// - [`idle_time_limit`](AsciiCast::idle_time_limit): Set the idle time limit.
 /// - [`title`](AsciiCast::title): Set the title of the asciicast.
+///
+/// After you've finished, write the header to the asciicast using the [`write_header`](AsciiCast::write_header) method explicitly. If you don't, the header will be written implicitly when you write the first event. Note that the header can only be written once, either explicitly or implicitly.
 ///
 /// ### Events
 ///

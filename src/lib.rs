@@ -9,12 +9,12 @@
 //!
 //! ## Usage
 //!
-//! Mostly, you'll deal with the [`Script`] struct and [`Error`] struct. Under rare circumstances, you might need to deal with the [`ErrorType`] enum. If you're writing your own tool for generating asciicasts, you can use the [`AsciiCast`] struct.
+//! Mostly, you'll deal with the [`CastWright`] struct and [`Error`] struct. When you want to you manually create errors, you need to deal with the [`ErrorType`] enum. If you're writing your own tool for generating asciicasts, you can use the [`AsciiCast`] struct.
 //!
 //! ## Example
 //!
 //! ```rust
-//! use castwright::{Script, Error};
+//! use castwright::{CastWright, Error};
 //! use std::io::BufReader;
 //!
 //! fn main() -> Result<(), Error> {
@@ -25,10 +25,10 @@
 //!         > "command"
 //!     "#;
 //!     let text = text.trim();
-//!     let reader = BufReader::new(text.as_bytes());
-//!     let script = Script::parse(reader)?;
+//!     let mut reader = BufReader::new(text.as_bytes());
 //!     let mut stdout = std::io::stdout().lock();
-//!     let cast = script.execute(&mut stdout)?;
+//!     let castwright = CastWright::new();
+//!     castwright.run(&mut reader, &mut stdout)?;
 //!     Ok(())
 //! }
 //! ```
@@ -44,7 +44,7 @@ mod util;
 
 pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
-use instruction::{parse_instruction, Instruction};
+use instruction::parse_instruction;
 use std::{
     io::{BufRead, Write},
     time::Duration,
@@ -181,8 +181,6 @@ impl ParseContext {
 
 /// An execution context for the script.
 struct ExecutionContext {
-    // /// Front matter.
-    // front_matter: FrontMatter,
     /// Persistent configuration.
     persistent: Configuration,
     /// Temporary configuration.
@@ -191,6 +189,7 @@ struct ExecutionContext {
     elapsed: u64,
     /// Previous commands to be concatenated.
     command: String,
+    // TODO: `execute` field
 }
 
 impl ExecutionContext {
@@ -250,108 +249,99 @@ impl ExecutionContext {
     }
 }
 
-/// The `Script` struct represents a castwright script, conventionally with the `.cwrt` extension. You can **parse** a script from a reader (`impl BufRead`) using the [`Script::parse`] method, which returns a `Script` instance if the parsing is successful, or an [`Error`] instance if it fails.
+/// The `CastWright` struct represents the main entry point for the Castwright library. An instance of `CastWright` can be configured, parses and executes castwright scripts, and writes the resulting asciicast to a writer.
 ///
-/// You can then **execute** the `Script` instance using the [`execute`](`Script::execute`) method to get an [`AsciiCast`] struct, which can be **written** to a writer (`impl Write`) using the [`write`](`AsciiCast::write`) method.
+/// ## Instantiation
+///
+/// To instantiate a `CastWright` instance, use the [`CastWright::new`] method.
+///
+/// ## Configuration
+///
+/// You can then configure the instance using the following methods:
+///
+/// - [`execute`](`CastWright::execute`): Set whether to execute and capture the output of shell commands.
+///
+/// ## Running
+///
+/// To parse and execute a castwright script and write the resulting asciicast, use the [`run`](`CastWright::run`) method, which takes mutable references to a reader and a writer.
 ///
 /// ## Example
 ///
 /// ```rust
-/// use castwright::Script;
+/// use castwright::CastWright;
 /// use std::io::BufReader;
 ///
+/// // Input & output
 /// let text = r#"
 ///     $ echo "Hello, World!"
 /// "#;
 /// let text = text.trim();
-/// let reader = BufReader::new(text.as_bytes());
-/// let script = Script::parse(reader).unwrap();
+/// let mut reader = BufReader::new(text.as_bytes());
+/// let mut writer = Vec::new();
+/// // Castwright
+/// let mut castwright = CastWright::new(); // Instantiation
+/// castwright
+///     .execute(true) // Configuration
+///     .run(&mut reader, &mut writer) // Running
+///     .unwrap();
+/// ```
+///
+/// If you prefer one-liners:
+///
+/// ```rust
+/// # use castwright::CastWright;
+/// # use std::io::BufReader;
+/// # let text = r#"
+/// #     $ echo "Hello, World!"
+/// # "#;
+/// # let text = text.trim();
+/// # let mut reader = BufReader::new(text.as_bytes());
+/// # let mut writer = Vec::new();
+/// CastWright::new().execute(true).run(&mut reader, &mut writer).unwrap();
 /// ```
 #[derive(Debug)]
-pub struct Script {
-    /// The instructions in the script.
-    instructions: Vec<Box<dyn Instruction>>,
+pub struct CastWright {
+    /// Whether to execute and capture the output of shell commands, instead of using dummy output.
+    execute: bool,
 }
 
-impl Script {
-    /// Parse a castwright script from a reader.
-    pub fn parse(reader: &mut impl BufRead) -> Result<Self, Error> {
-        let mut instructions = Vec::new();
-        let mut context = ParseContext::new();
-        for (line_number, line) in reader.lines().enumerate() {
-            let line = line.map_err(|err| ErrorType::Io(err).with_line(line_number))?;
-            let instruction =
-                parse_instruction(&line, &mut context).map_err(|e| e.with_line(line_number + 1))?;
-            instructions.push(instruction);
-        }
-        Ok(Self { instructions })
+impl CastWright {
+    /// Create a new `CastWright` instance.
+    pub fn new() -> Self {
+        Self { execute: false }
     }
-
-    /// Execute the script and write the asciicast to a writer.
-    pub fn execute(&self, writer: &mut impl Write) -> Result<(), Error> {
-        let mut context = ExecutionContext::new();
+    /// Set whether to execute and capture the output of shell commands.
+    pub fn execute(&mut self, execute: bool) -> &mut Self {
+        self.execute = execute;
+        self
+    }
+    /// Interpret and run a castwright script from a reader, writing the asciicast to a writer.
+    pub fn run(&self, reader: &mut impl BufRead, writer: &mut impl Write) -> Result<(), Error> {
+        let mut parse_context = ParseContext::new();
+        let mut execution_context = ExecutionContext::new();
         let mut cast = AsciiCast::new(writer);
-        for instruction in &self.instructions {
-            // TODO: Merge with parse
+        for (line_number, line) in reader.lines().enumerate() {
+            let line = line.map_err(|err| ErrorType::Io(err).with_line(line_number + 1))?;
+            let instruction =
+                parse_instruction(&line, &mut parse_context).map_err(|e| e.with_line(line_number + 1))?;
             instruction
-                .execute(&mut context, &mut cast)
-                .map_err(|e| e.with_line(0))?;
+                .execute(&mut execution_context, &mut cast)
+                .map_err(|e| e.with_line(line_number))?;
         }
         Ok(())
+    }
+}
+
+impl Default for CastWright {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use instruction::{
-        CommandInstruction, ConfigInstruction, EmptyInstruction, FrontMatterInstruction,
-        MarkerInstruction, PrintInstruction,
-    };
     use std::io::BufReader;
-
-    #[test]
-    fn script() {
-        let text = r#"
-            ---
-            width: 123
-            ---
-            @hidden true
-            %print
-            !marker
-            #comment
-            $single command
-            $command \
-            >continuation
-        "#;
-        let text = text.trim();
-        let mut reader = BufReader::new(text.as_bytes());
-        let script = Script::parse(&mut reader).unwrap();
-        let mut context = ParseContext::new();
-        let expected: Vec<Box<dyn Instruction>> = vec![
-            Box::new(FrontMatterInstruction::Delimiter),
-            Box::new(FrontMatterInstruction::Width(123)),
-            Box::new(FrontMatterInstruction::Delimiter),
-            Box::new(ConfigInstruction::parse("hidden true", &mut context).unwrap()),
-            Box::new(PrintInstruction::parse("print", &mut context).unwrap()),
-            Box::new(MarkerInstruction::parse("marker", &mut context).unwrap()),
-            Box::new(EmptyInstruction::new()),
-            Box::new(
-                CommandInstruction::parse("single command", &mut context.with_start('$')).unwrap(),
-            ),
-            Box::new(
-                CommandInstruction::parse("command \\", &mut context.with_start('$')).unwrap(),
-            ),
-            Box::new(
-                CommandInstruction::parse(
-                    "continuation",
-                    &mut context.with_start('>').expect_continuation(true),
-                )
-                .unwrap(),
-            ),
-        ];
-        assert_eq!(script.instructions, expected);
-    }
 
     #[test]
     fn script_unknown_instruction() {
@@ -370,7 +360,7 @@ mod tests {
         let text = text.trim();
         let mut reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            Script::parse(&mut reader).unwrap_err(),
+            CastWright::new().run(&mut reader, &mut std::io::sink()).unwrap_err(),
             ErrorType::UnknownInstruction.with_line(10)
         );
     }
@@ -392,7 +382,7 @@ mod tests {
             let text = text.trim();
             let mut reader = BufReader::new(text.as_bytes());
             assert_eq!(
-                Script::parse(&mut reader).unwrap_err(),
+                CastWright::new().run(&mut reader, &mut std::io::sink()).unwrap_err(),
                 ErrorType::MalformedInstruction.with_line(2)
             );
         }
@@ -407,7 +397,7 @@ mod tests {
         let text = text.trim();
         let mut reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            Script::parse(&mut reader).unwrap_err(),
+            CastWright::new().run(&mut reader, &mut std::io::sink()).unwrap_err(),
             ErrorType::ExpectedContinuation.with_line(2)
         );
     }
@@ -421,7 +411,7 @@ mod tests {
         let text = text.trim();
         let mut reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            Script::parse(&mut reader).unwrap_err(),
+            CastWright::new().run(&mut reader, &mut std::io::sink()).unwrap_err(),
             ErrorType::UnexpectedContinuation.with_line(2)
         );
     }
@@ -431,14 +421,7 @@ mod tests {
         let mut context = ExecutionContext::new();
         context.temporary.prompt = Some("$$ ".to_string());
         context.temporary.secondary_prompt = Some(">> ".to_string());
-        // let (width, height) = util::get_terminal_size();
         let expected_config = Configuration {
-            // width,
-            // height,
-            // title: "Castwright Script".to_string(),
-            // shell: "bash".to_string(),
-            // quit: "exit".to_string(),
-            // idle: Duration::from_secs(5),
             prompt: "$$ ".to_string(),
             secondary_prompt: ">> ".to_string(),
             line_split: " \\".to_string(),

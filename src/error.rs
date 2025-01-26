@@ -82,7 +82,7 @@ impl PartialEq for ErrorType {
 /// ### Propagating an error in `fn main`
 ///
 /// ```rust should_panic
-/// use castwright::{Script, Error};
+/// use castwright::{CastWright, Error};
 /// use std::io::BufReader;
 ///
 /// fn main() -> Result<(), Error> {
@@ -91,10 +91,10 @@ impl PartialEq for ErrorType {
 ///         > continuation
 ///     "#;
 ///     let text = text.trim();
-///     let reader = BufReader::new(text.as_bytes());
-///     let script = Script::parse(reader)?;
+///     let mut reader = BufReader::new(text.as_bytes());
 ///     let mut stdout = std::io::stdout().lock();
-///     script.execute(&mut stdout)?;
+///     let castwright = CastWright::new();
+///     castwright.run(&mut reader, &mut stdout)?;
 ///     Ok(())
 /// }
 /// // Should get the following output:
