@@ -9,7 +9,7 @@
 //!
 //! ## Usage
 //!
-//! Mostly, you'll deal with the [`Script`] struct and [`Error`] struct. Under rare circumstances, you might need to use the [`AsciiCast`] struct and the [`ErrorType`] enum.
+//! Mostly, you'll deal with the [`Script`] struct and [`Error`] struct. Under rare circumstances, you might need to deal with the [`ErrorType`] enum. If you're writing your own tool for generating asciicasts, you can use the [`AsciiCast`] struct.
 //!
 //! ## Example
 //!
@@ -27,9 +27,8 @@
 //!     let text = text.trim();
 //!     let reader = BufReader::new(text.as_bytes());
 //!     let script = Script::parse(reader)?;
-//!     let cast = script.execute();
 //!     let mut stdout = std::io::stdout().lock();
-//!     cast.write(&mut stdout)?;
+//!     let cast = script.execute(&mut stdout)?;
 //!     Ok(())
 //! }
 //! ```
@@ -46,7 +45,7 @@ mod util;
 pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
 use instruction::{parse_instruction, Instruction};
-use std::{io::BufRead, time::Duration};
+use std::{io::{BufRead, Write}, time::Duration};
 
 /// Front matter parsing state.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -285,14 +284,16 @@ impl Script {
         Ok(Self { instructions })
     }
 
-    /// Execute the script and return the generated asciicast.
-    pub fn execute(&self) -> AsciiCast {
+    /// Execute the script and write the asciicast to a writer.
+    pub fn execute(&self, writer: &mut dyn Write) -> Result<(), Error> {
         let mut context = ExecutionContext::new();
-        let mut cast = AsciiCast::new();
+        let mut cast = AsciiCast::new(writer);
         for instruction in &self.instructions {
             instruction.execute(&mut context, &mut cast);
         }
-        cast
+        // TODO: Stream the asciicast instead of writing it all at once
+        cast.write()?;
+        Ok(())
     }
 }
 

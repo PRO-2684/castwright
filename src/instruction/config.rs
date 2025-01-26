@@ -220,12 +220,9 @@ mod tests {
     fn execute_config_instruction() {
         let mut parse_context = ParseContext::new();
         let mut context = ExecutionContext::new();
-        let mut cast = AsciiCast::new();
+        let mut sink = std::io::sink(); // Drop all output
+        let mut cast = AsciiCast::new(&mut sink);
         let instructions = [
-            // "@width 123",
-            // "@height 456",
-            // "@title another title",
-            // "@idle 2ms",
             "prompt \"~> \"",
             "secondary-prompt \"| \"",
             "line-split \\",
@@ -237,10 +234,6 @@ mod tests {
                 .execute(&mut context, &mut cast);
         }
         let resolved = context.consume_temporary();
-        // assert_eq!(resolved.width, 123);
-        // assert_eq!(resolved.height, 456);
-        // assert_eq!(resolved.title, "another title");
-        // assert_eq!(resolved.idle, Duration::from_millis(2));
         assert_eq!(resolved.prompt, "~> ".to_string());
         assert_eq!(resolved.secondary_prompt, "| ".to_string());
         assert_eq!(resolved.line_split, "\\".to_string());

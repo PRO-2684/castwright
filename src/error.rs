@@ -87,9 +87,8 @@ impl PartialEq for ErrorType {
 ///     let text = text.trim();
 ///     let reader = BufReader::new(text.as_bytes());
 ///     let script = Script::parse(reader)?;
-///     let cast = script.execute();
 ///     let mut stdout = std::io::stdout().lock();
-///     cast.write(&mut stdout)?;
+///     script.execute(&mut stdout)?;
 ///     Ok(())
 /// }
 /// // Should get the following output:

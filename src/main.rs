@@ -63,8 +63,7 @@ fn main() -> Result<(), DispError<Error>> {
     let input = get_reader(&args.input)?;
     let reader = std::io::BufReader::new(input);
     let script = Script::parse(reader)?;
-    let cast = script.execute();
     let mut output = get_writer(&args.output)?;
-    cast.write(&mut output)?;
+    script.execute(&mut output)?;
     Ok(())
 }

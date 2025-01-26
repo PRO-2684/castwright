@@ -5,6 +5,7 @@ mod header;
 use super::{Error, ErrorType};
 use event::Event;
 use header::Header;
+use std::io::Write;
 
 /// An asciicast v2 file. Usually you'll only need the [`write`](AsciiCast::write) method.
 ///
@@ -36,24 +37,19 @@ use header::Header;
 /// ## Output
 ///
 /// You can write the asciicast to a writer (`impl std::io::Write`) using the [`write`](AsciiCast::write) method.
-#[derive(Debug)]
-pub struct AsciiCast {
+pub struct AsciiCast<'a> {
     header: Header,
     events: Vec<Event>,
+    writer: &'a mut dyn Write,
 }
 
-impl Default for AsciiCast {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl AsciiCast {
+impl<'a> AsciiCast<'a> {
     /// Create a new asciicast.
-    pub fn new() -> Self {
+    pub fn new(writer: &'a mut dyn Write) -> Self {
         Self {
             header: Header::new(),
             events: Vec::new(),
+            writer,
         }
     }
 
@@ -108,12 +104,12 @@ impl AsciiCast {
 
     // Output
     /// Write the asciicast to a writer.
-    pub fn write(&self, writer: &mut impl std::io::Write) -> Result<(), Error> {
+    pub fn write(&mut self) -> Result<(), Error> {
         use serde_json::ser::to_writer;
-        to_writer(&mut *writer, &self.header).map_err(|err| ErrorType::Json(err).with_line(0))?;
+        to_writer(&mut self.writer, &self.header).map_err(|err| ErrorType::Json(err).with_line(0))?;
         for event in &self.events {
-            writeln!(&mut *writer).map_err(|err| ErrorType::Io(err).with_line(0))?;
-            to_writer(&mut *writer, event).map_err(|err| ErrorType::Json(err).with_line(0))?;
+            writeln!(&mut self.writer).map_err(|err| ErrorType::Io(err).with_line(0))?;
+            to_writer(&mut self.writer, event).map_err(|err| ErrorType::Json(err).with_line(0))?;
         }
         Ok(())
     }
@@ -126,7 +122,7 @@ mod tests {
     #[test]
     fn test_write() {
         let mut writer = Vec::new();
-        let mut asciicast = AsciiCast::new();
+        let mut asciicast = AsciiCast::new(&mut writer);
         asciicast
             .width(80)
             .height(24)
@@ -137,7 +133,7 @@ mod tests {
             .input(100, "echo Hello, world!".to_string())
             .marker(200, "marker".to_string())
             .resize(300, 80, 25);
-        asciicast.write(&mut writer).unwrap();
+        asciicast.write().unwrap();
         let expected = r#"{"version":2,"width":80,"height":24,"timestamp":1000000,"idle_time_limit":2.5,"title":"Test"}
 [0.0,"o","Hello, world!"]
 [0.0001,"i","echo Hello, world!"]
