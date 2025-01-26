@@ -90,9 +90,7 @@ impl Instruction for CommandInstruction {
             // Dummy output to simulate the command being executed
             // TODO: Implement actual command execution
             context.elapsed += delay;
-            cast.output(context.elapsed, "Executed command: ".to_string())?;
-            context.elapsed += delay;
-            cast.output(context.elapsed, command)?;
+            cast.output(context.elapsed, format!("Executed command: {command}"))?;
             context.elapsed += delay;
             cast.output(context.elapsed, "\r\n".to_string())?;
         }
