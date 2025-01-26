@@ -1,5 +1,5 @@
 use argh::FromArgs;
-use castwright::{Error, ErrorType, CastWright};
+use castwright::{CastWright, Error, ErrorType};
 use disperror::DispError;
 use std::{
     fs::File,

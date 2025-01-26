@@ -322,8 +322,8 @@ impl CastWright {
         let mut cast = AsciiCast::new(writer);
         for (line_number, line) in reader.lines().enumerate() {
             let line = line.map_err(|err| ErrorType::Io(err).with_line(line_number + 1))?;
-            let instruction =
-                parse_instruction(&line, &mut parse_context).map_err(|e| e.with_line(line_number + 1))?;
+            let instruction = parse_instruction(&line, &mut parse_context)
+                .map_err(|e| e.with_line(line_number + 1))?;
             instruction
                 .execute(&mut execution_context, &mut cast)
                 .map_err(|e| e.with_line(line_number))?;
@@ -360,7 +360,9 @@ mod tests {
         let text = text.trim();
         let mut reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            CastWright::new().run(&mut reader, &mut std::io::sink()).unwrap_err(),
+            CastWright::new()
+                .run(&mut reader, &mut std::io::sink())
+                .unwrap_err(),
             ErrorType::UnknownInstruction.with_line(10)
         );
     }
@@ -382,7 +384,9 @@ mod tests {
             let text = text.trim();
             let mut reader = BufReader::new(text.as_bytes());
             assert_eq!(
-                CastWright::new().run(&mut reader, &mut std::io::sink()).unwrap_err(),
+                CastWright::new()
+                    .run(&mut reader, &mut std::io::sink())
+                    .unwrap_err(),
                 ErrorType::MalformedInstruction.with_line(2)
             );
         }
@@ -397,7 +401,9 @@ mod tests {
         let text = text.trim();
         let mut reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            CastWright::new().run(&mut reader, &mut std::io::sink()).unwrap_err(),
+            CastWright::new()
+                .run(&mut reader, &mut std::io::sink())
+                .unwrap_err(),
             ErrorType::ExpectedContinuation.with_line(2)
         );
     }
@@ -411,7 +417,9 @@ mod tests {
         let text = text.trim();
         let mut reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            CastWright::new().run(&mut reader, &mut std::io::sink()).unwrap_err(),
+            CastWright::new()
+                .run(&mut reader, &mut std::io::sink())
+                .unwrap_err(),
             ErrorType::UnexpectedContinuation.with_line(2)
         );
     }
