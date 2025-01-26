@@ -275,7 +275,7 @@ pub struct Script {
 
 impl Script {
     /// Parse a castwright script from a reader.
-    pub fn parse(reader: impl BufRead) -> Result<Self, Error> {
+    pub fn parse(reader: &mut impl BufRead) -> Result<Self, Error> {
         let mut instructions = Vec::new();
         let mut context = ParseContext::new();
         for (line_number, line) in reader.lines().enumerate() {
@@ -288,7 +288,7 @@ impl Script {
     }
 
     /// Execute the script and write the asciicast to a writer.
-    pub fn execute(&self, writer: &mut dyn Write) -> Result<(), Error> {
+    pub fn execute(&self, writer: &mut impl Write) -> Result<(), Error> {
         let mut context = ExecutionContext::new();
         let mut cast = AsciiCast::new(writer);
         for instruction in &self.instructions {
@@ -325,8 +325,8 @@ mod tests {
             >continuation
         "#;
         let text = text.trim();
-        let reader = BufReader::new(text.as_bytes());
-        let script = Script::parse(reader).unwrap();
+        let mut reader = BufReader::new(text.as_bytes());
+        let script = Script::parse(&mut reader).unwrap();
         let mut context = ParseContext::new();
         let expected: Vec<Box<dyn Instruction>> = vec![
             Box::new(FrontMatterInstruction::Delimiter),
@@ -368,9 +368,9 @@ mod tests {
             unknown
         "#;
         let text = text.trim();
-        let reader = BufReader::new(text.as_bytes());
+        let mut reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            Script::parse(reader).unwrap_err(),
+            Script::parse(&mut reader).unwrap_err(),
             ErrorType::UnknownInstruction.with_line(10)
         );
     }
@@ -390,9 +390,9 @@ mod tests {
         ];
         for text in malformed_scripts.iter() {
             let text = text.trim();
-            let reader = BufReader::new(text.as_bytes());
+            let mut reader = BufReader::new(text.as_bytes());
             assert_eq!(
-                Script::parse(reader).unwrap_err(),
+                Script::parse(&mut reader).unwrap_err(),
                 ErrorType::MalformedInstruction.with_line(2)
             );
         }
@@ -405,9 +405,9 @@ mod tests {
             @hidden true
         "#;
         let text = text.trim();
-        let reader = BufReader::new(text.as_bytes());
+        let mut reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            Script::parse(reader).unwrap_err(),
+            Script::parse(&mut reader).unwrap_err(),
             ErrorType::ExpectedContinuation.with_line(2)
         );
     }
@@ -419,9 +419,9 @@ mod tests {
             >continuation
         "#;
         let text = text.trim();
-        let reader = BufReader::new(text.as_bytes());
+        let mut reader = BufReader::new(text.as_bytes());
         assert_eq!(
-            Script::parse(reader).unwrap_err(),
+            Script::parse(&mut reader).unwrap_err(),
             ErrorType::UnexpectedContinuation.with_line(2)
         );
     }

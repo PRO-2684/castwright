@@ -71,7 +71,7 @@ $ echo "Multi-" \
 Multi- line command
 ```
 
-In addition, castwright provides various commands for customizing the produced asciicast, like typing speed or title. See [`REFERENCE.md`](./REFERENCE.md) for a detailed reference, or example castwright scripts under the [`tests`](./tests/) directory.
+In addition, castwright provides various instructions for customizing the produced asciicast, like typing speed or title. See [`REFERENCE.md`](./REFERENCE.md) for a detailed reference, or example castwright scripts under the [`tests`](./tests/) directory.
 
 ## TODO
 

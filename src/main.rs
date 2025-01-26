@@ -39,9 +39,9 @@ fn main() -> Result<(), DispError<Error>> {
             &mut stdin.lock()
         }
     };
-    let reader = std::io::BufReader::new(reader);
+    let mut reader = std::io::BufReader::new(reader);
 
-    let script = Script::parse(reader)?;
+    let script = Script::parse(&mut reader)?;
 
     let mut writer: &mut dyn Write = match &args.output {
         Some(path) => {
