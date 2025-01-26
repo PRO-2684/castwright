@@ -326,7 +326,7 @@ impl CastWright {
                 .map_err(|e| e.with_line(line_number + 1))?;
             instruction
                 .execute(&mut execution_context, &mut cast)
-                .map_err(|e| e.with_line(line_number))?;
+                .map_err(|e| e.with_line(line_number + 1))?;
         }
         Ok(())
     }
