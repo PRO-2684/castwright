@@ -80,7 +80,7 @@ In addition, CastWright provides various instructions for customizing the produc
 - [x] Terminal width and height detection.
 - [x] Better `pub` API.
 - [x] Run `cargo clippy`.
-- [ ] Integration tests.
+- [x] Integration tests.
 - [ ] Actual command execution and output capture.
 
 ## Credits

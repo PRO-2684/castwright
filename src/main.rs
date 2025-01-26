@@ -4,6 +4,7 @@ use disperror::DispError;
 use std::{
     fs::File,
     io::{Read, Write},
+    path::Path,
 };
 
 /// 🎥 Scripted terminal recording.
@@ -31,7 +32,7 @@ fn main() -> Result<(), DispError<Error>> {
 
     let reader: &mut dyn Read = match &args.input {
         Some(path) => {
-            let path = std::path::Path::new(&path);
+            let path = Path::new(&path);
             &mut File::open(path).map_err(|err| ErrorType::Io(err).with_line(0))?
         }
         None => {
@@ -43,7 +44,7 @@ fn main() -> Result<(), DispError<Error>> {
 
     let mut writer: &mut dyn Write = match &args.output {
         Some(path) => {
-            let path = std::path::Path::new(&path);
+            let path = Path::new(&path);
             &mut File::create(path).map_err(|err| ErrorType::Io(err).with_line(0))?
         }
         None => {
