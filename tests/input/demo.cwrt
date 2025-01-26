@@ -4,9 +4,9 @@
 ---
 # Sets configuration for all FOLLOWING commands
 # Set the terminal width, default is current terminal width
-# width: 80
+width: 80
 # Set the terminal height, default is current terminal height
-# height: 24
+height: 24
 # Title of the asciicast (no point setting this using temporary configuration)
 title: CastWright Script Demo
 # Terminal idle timeout
