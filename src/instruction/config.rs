@@ -78,18 +78,12 @@ impl Instruction for ConfigInstruction {
         })
     }
     /// Execute the configuration instruction.
-    fn execute(&self, context: &mut ExecutionContext, _cast: &mut AsciiCast) {
+    fn execute(&self, context: &mut ExecutionContext, _cast: &mut AsciiCast) -> Result<(), ErrorType> {
         use ConfigInstructionType::*;
         // Modify the configuration
         if self.persistent {
             let config = &mut context.persistent;
             match &self.instruction_type {
-                // Width(width) => config.width = *width,
-                // Height(height) => config.height = *height,
-                // Title(title) => config.title = title.clone(),
-                // Shell(shell) => config.shell = shell.clone(),
-                // Quit(quit) => config.quit = quit.clone(),
-                // Idle(idle) => config.idle = *idle,
                 Prompt(prompt) => config.prompt = prompt.clone(),
                 SecondaryPrompt(secondary_prompt) => {
                     config.secondary_prompt = secondary_prompt.clone()
@@ -110,6 +104,7 @@ impl Instruction for ConfigInstruction {
                 Delay(delay) => config.delay = Some(*delay),
             }
         }
+        Ok(())
     }
 }
 
@@ -122,15 +117,6 @@ mod tests {
     fn config_instruction_type() {
         let mut context = ParseContext::new();
         let instructions = [
-            // ("@width 123", Width(123)),
-            // ("@height 456", Height(456)),
-            // (
-            //     "@title castwright demo",
-            //     Title("castwright demo".to_string()),
-            // ),
-            // ("@shell bash ", Shell("bash".to_string())),
-            // ("@quit \"exit \"", Quit("exit ".to_string())),
-            // ("@idle 1s", Idle(Duration::from_secs(1))),
             ("@prompt \"$ \"", Prompt("$ ".to_string())),
             (
                 "@secondary-prompt \"> \"",
@@ -155,12 +141,6 @@ mod tests {
     fn config_instruction_persistent() {
         let mut context = ParseContext::new();
         let instructions = [
-            // ("@width 123", true),
-            // ("@height 456", true),
-            // ("@title castwright demo", true),
-            // ("@shell bash ", true),
-            // ("@quit \"exit \"", true),
-            // ("@idle 1s", true),
             ("@prompt \"$ \"", true),
             ("secondary-prompt \"> \"", false),
             ("line-split \\", false),
@@ -231,7 +211,8 @@ mod tests {
         for line in instructions.iter() {
             ConfigInstruction::parse(line, &mut parse_context)
                 .unwrap()
-                .execute(&mut context, &mut cast);
+                .execute(&mut context, &mut cast)
+                .unwrap();
         }
         let resolved = context.consume_temporary();
         assert_eq!(resolved.prompt, "~> ".to_string());

@@ -289,10 +289,9 @@ impl Script {
         let mut context = ExecutionContext::new();
         let mut cast = AsciiCast::new(writer);
         for instruction in &self.instructions {
-            instruction.execute(&mut context, &mut cast);
+            // TODO: Merge with parse
+            instruction.execute(&mut context, &mut cast).map_err(|e| e.with_line(0))?;
         }
-        // TODO: Stream the asciicast instead of writing it all at once
-        cast.write()?;
         Ok(())
     }
 }

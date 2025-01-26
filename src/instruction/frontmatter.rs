@@ -75,24 +75,25 @@ impl Instruction for FrontMatterInstruction {
         }
     }
     /// Execute the front matter instruction.
-    fn execute(&self, _context: &mut ExecutionContext, cast: &mut AsciiCast) {
+    fn execute(&self, _context: &mut ExecutionContext, cast: &mut AsciiCast) -> Result<(), ErrorType> {
         match self {
             FrontMatterInstruction::Width(width) => {
-                cast.width(*width);
+                cast.width(*width)?;
             }
             FrontMatterInstruction::Height(height) => {
-                cast.height(*height);
+                cast.height(*height)?;
             }
             FrontMatterInstruction::Title(title) => {
-                cast.title(title.clone());
+                cast.title(title.clone())?;
             }
-            // FrontMatterInstruction::Shell(shell) => { cast.shell(shell.clone()); },
-            // FrontMatterInstruction::Quit(quit) => { cast.quit(quit.clone()); },
+            // FrontMatterInstruction::Shell(shell) => { cast.shell(shell.clone())?; },
+            // FrontMatterInstruction::Quit(quit) => { cast.quit(quit.clone())?; },
             FrontMatterInstruction::Idle(idle) => {
-                cast.idle_time_limit(idle.as_secs_f64());
+                cast.idle_time_limit(idle.as_secs_f64())?;
             }
             _ => {}
         }
+        Ok(())
     }
 }
 

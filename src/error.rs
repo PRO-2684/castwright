@@ -38,6 +38,11 @@ pub enum ErrorType {
     #[error("Unexpected continuation")]
     UnexpectedContinuation,
 
+    // Asciicast errors
+    /// The header has already been written.
+    #[error("Header already written")]
+    HeaderAlreadyWritten,
+
     // Other errors
     /// The feature is not implemented.
     #[error("Not implemented {0}")]
@@ -63,6 +68,7 @@ impl PartialEq for ErrorType {
             (Self::MalformedInstruction, Self::MalformedInstruction) => true,
             (Self::ExpectedContinuation, Self::ExpectedContinuation) => true,
             (Self::UnexpectedContinuation, Self::UnexpectedContinuation) => true,
+            (Self::HeaderAlreadyWritten, Self::HeaderAlreadyWritten) => true,
             (Self::NotImplemented(a), Self::NotImplemented(b)) => a == b,
             _ => false,
         }

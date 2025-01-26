@@ -17,7 +17,7 @@ impl Instruction for PrintInstruction {
         Ok(Self(content))
     }
     /// Execute the instruction
-    fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) {
+    fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) -> Result<(), ErrorType> {
         let config = if context.has_temporary() {
             &context.consume_temporary()
         } else {
@@ -26,9 +26,10 @@ impl Instruction for PrintInstruction {
         let delay = config.delay.as_micros() as u64;
         for character in self.0.chars() {
             context.elapsed += delay;
-            cast.output(context.elapsed, character.to_string());
+            cast.output(context.elapsed, character.to_string())?;
         }
         context.elapsed += delay;
-        cast.output(context.elapsed, "\r\n".to_string());
+        cast.output(context.elapsed, "\r\n".to_string())?;
+        Ok(())
     }
 }

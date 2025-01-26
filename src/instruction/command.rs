@@ -42,7 +42,7 @@ impl Instruction for CommandInstruction {
         })
     }
     /// Execute the instruction
-    fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) {
+    fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) -> Result<(), ErrorType> {
         let config = if context.has_temporary() {
             if self.continuation {
                 // The temporary context is needed for the continuation commands
@@ -57,7 +57,7 @@ impl Instruction for CommandInstruction {
         };
         if config.hidden {
             // TODO: Execute command silently
-            return;
+            return Ok(());
         }
         let prompt = if self.start {
             config.prompt.clone()
@@ -65,33 +65,34 @@ impl Instruction for CommandInstruction {
             config.secondary_prompt.clone()
         };
         let delay = config.delay.as_micros() as u64;
-        cast.output(context.elapsed, prompt);
+        cast.output(context.elapsed, prompt)?;
         for character in self.command.chars() {
             context.elapsed += delay;
-            cast.output(context.elapsed, character.to_string());
+            cast.output(context.elapsed, character.to_string())?;
         }
         if self.continuation {
             context.elapsed += delay;
-            cast.output(context.elapsed, config.line_split.clone());
+            cast.output(context.elapsed, config.line_split.clone())?;
             context.elapsed += delay;
-            cast.output(context.elapsed, "\r\n".to_string());
+            cast.output(context.elapsed, "\r\n".to_string())?;
             context.command.push_str(&self.command);
             context.command.push(' ');
         } else {
             context.elapsed += delay;
-            cast.output(context.elapsed, "\r\n".to_string());
+            cast.output(context.elapsed, "\r\n".to_string())?;
             // Take `context.command` out, replacing with an empty string
             let mut command = std::mem::take(&mut context.command);
             command.push_str(&self.command);
             // Dummy output to simulate the command being executed
             // TODO: Implement actual command execution
             context.elapsed += delay;
-            cast.output(context.elapsed, "Executed command: ".to_string());
+            cast.output(context.elapsed, "Executed command: ".to_string())?;
             context.elapsed += delay;
-            cast.output(context.elapsed, command);
+            cast.output(context.elapsed, command)?;
             context.elapsed += delay;
-            cast.output(context.elapsed, "\r\n".to_string());
+            cast.output(context.elapsed, "\r\n".to_string())?;
         }
+        Ok(())
     }
 }
 
