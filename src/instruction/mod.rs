@@ -36,7 +36,11 @@ pub(super) trait Instruction: std::fmt::Debug {
     where
         Self: Sized;
     /// Execute the instruction.
-    fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) -> Result<(), ErrorType>;
+    fn execute(
+        &self,
+        context: &mut ExecutionContext,
+        cast: &mut AsciiCast,
+    ) -> Result<(), ErrorType>;
 }
 
 /// Parse an instruction from a string.

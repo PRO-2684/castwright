@@ -32,8 +32,7 @@ fn main() -> Result<(), DispError<Error>> {
     let reader: &mut dyn Read = match &args.input {
         Some(path) => {
             let path = std::path::Path::new(&path);
-            &mut File::open(path)
-                .map_err(|err| ErrorType::Io(err).with_line(0))?
+            &mut File::open(path).map_err(|err| ErrorType::Io(err).with_line(0))?
         }
         None => {
             let stdin = std::io::stdin();

@@ -75,7 +75,11 @@ impl Instruction for FrontMatterInstruction {
         }
     }
     /// Execute the front matter instruction.
-    fn execute(&self, _context: &mut ExecutionContext, cast: &mut AsciiCast) -> Result<(), ErrorType> {
+    fn execute(
+        &self,
+        _context: &mut ExecutionContext,
+        cast: &mut AsciiCast,
+    ) -> Result<(), ErrorType> {
         match self {
             FrontMatterInstruction::Width(width) => {
                 cast.width(*width)?;

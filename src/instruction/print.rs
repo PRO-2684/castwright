@@ -17,7 +17,11 @@ impl Instruction for PrintInstruction {
         Ok(Self(content))
     }
     /// Execute the instruction
-    fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) -> Result<(), ErrorType> {
+    fn execute(
+        &self,
+        context: &mut ExecutionContext,
+        cast: &mut AsciiCast,
+    ) -> Result<(), ErrorType> {
         let config = if context.has_temporary() {
             &context.consume_temporary()
         } else {

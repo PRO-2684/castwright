@@ -12,7 +12,11 @@ impl Instruction for EmptyInstruction {
         Ok(Self)
     }
     /// Execute the instruction
-    fn execute(&self, _context: &mut ExecutionContext, _cast: &mut AsciiCast) -> Result<(), ErrorType> {
+    fn execute(
+        &self,
+        _context: &mut ExecutionContext,
+        _cast: &mut AsciiCast,
+    ) -> Result<(), ErrorType> {
         // Do nothing
         Ok(())
     }

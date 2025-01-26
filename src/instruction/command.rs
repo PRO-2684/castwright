@@ -42,7 +42,11 @@ impl Instruction for CommandInstruction {
         })
     }
     /// Execute the instruction
-    fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) -> Result<(), ErrorType> {
+    fn execute(
+        &self,
+        context: &mut ExecutionContext,
+        cast: &mut AsciiCast,
+    ) -> Result<(), ErrorType> {
         let config = if context.has_temporary() {
             if self.continuation {
                 // The temporary context is needed for the continuation commands

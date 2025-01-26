@@ -78,7 +78,11 @@ impl Instruction for ConfigInstruction {
         })
     }
     /// Execute the configuration instruction.
-    fn execute(&self, context: &mut ExecutionContext, _cast: &mut AsciiCast) -> Result<(), ErrorType> {
+    fn execute(
+        &self,
+        context: &mut ExecutionContext,
+        _cast: &mut AsciiCast,
+    ) -> Result<(), ErrorType> {
         use ConfigInstructionType::*;
         // Modify the configuration
         if self.persistent {

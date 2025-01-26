@@ -16,7 +16,11 @@ impl Instruction for MarkerInstruction {
         Ok(Self(s.to_string()))
     }
     /// Execute the instruction
-    fn execute(&self, context: &mut ExecutionContext, cast: &mut AsciiCast) -> Result<(), ErrorType> {
+    fn execute(
+        &self,
+        context: &mut ExecutionContext,
+        cast: &mut AsciiCast,
+    ) -> Result<(), ErrorType> {
         cast.marker(context.elapsed, self.0.clone())?;
         Ok(())
     }

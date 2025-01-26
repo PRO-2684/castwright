@@ -45,7 +45,10 @@ mod util;
 pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
 use instruction::{parse_instruction, Instruction};
-use std::{io::{BufRead, Write}, time::Duration};
+use std::{
+    io::{BufRead, Write},
+    time::Duration,
+};
 
 /// Front matter parsing state.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -290,7 +293,9 @@ impl Script {
         let mut cast = AsciiCast::new(writer);
         for instruction in &self.instructions {
             // TODO: Merge with parse
-            instruction.execute(&mut context, &mut cast).map_err(|e| e.with_line(0))?;
+            instruction
+                .execute(&mut context, &mut cast)
+                .map_err(|e| e.with_line(0))?;
         }
         Ok(())
     }

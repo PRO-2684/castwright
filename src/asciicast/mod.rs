@@ -5,8 +5,8 @@ mod header;
 use super::ErrorType;
 use event::Event;
 use header::Header;
-use std::io::Write;
 use serde_json::ser::to_writer;
+use std::io::Write;
 
 /// An asciicast v2 file. Usually you'll only need the [`write`](AsciiCast::write) method.
 ///
