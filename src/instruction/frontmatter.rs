@@ -34,7 +34,7 @@ impl Instruction for FrontMatterInstruction {
         if s == "---" {
             // A delimiter line.
             context.front_matter_state.next()?;
-            return Ok(FrontMatterInstruction::Delimiter);
+            Ok(FrontMatterInstruction::Delimiter)
         } else if matches!(context.front_matter_state, FrontMatterState::Start) {
             // We are expecting a key-value pair.
             let mut iter = s.splitn(2, ':');
@@ -44,11 +44,11 @@ impl Instruction for FrontMatterInstruction {
             let value = iter.next().ok_or(ErrorType::ExpectedKeyValuePair)?.trim();
             match key {
                 "width" => {
-                    let width = parse_positive_u16(&value)?;
+                    let width = parse_positive_u16(value)?;
                     Ok(FrontMatterInstruction::Width(width))
                 }
                 "height" => {
-                    let height = parse_positive_u16(&value)?;
+                    let height = parse_positive_u16(value)?;
                     Ok(FrontMatterInstruction::Height(height))
                 }
                 "title" => {
@@ -64,7 +64,7 @@ impl Instruction for FrontMatterInstruction {
                     Ok(FrontMatterInstruction::Quit(value))
                 }
                 "idle" => {
-                    let idle = util::parse_duration(&value)?;
+                    let idle = util::parse_duration(value)?;
                     Ok(FrontMatterInstruction::Idle(idle))
                 }
                 _ => Err(ErrorType::MalformedInstruction),
