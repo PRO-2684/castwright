@@ -161,19 +161,6 @@ impl ParseContext {
             expect_continuation: false,
         }
     }
-    /// Create a context with a different starting character.
-    #[allow(dead_code, reason = "Only used in tests")]
-    fn with_start(&self, start: char) -> Self {
-        Self { start, ..*self }
-    }
-    /// Create a context with a different expectation for continuation.
-    #[allow(dead_code, reason = "Only used in tests")]
-    fn expect_continuation(&self, expect_continuation: bool) -> Self {
-        Self {
-            expect_continuation,
-            ..*self
-        }
-    }
 }
 
 /// An execution context for the script.
@@ -332,6 +319,14 @@ impl CastWright {
 impl Default for CastWright {
     fn default() -> Self {
         Self::new()
+    }
+}
+
+#[cfg(test)]
+impl ParseContext {
+    /// Create a context with a different starting character.
+    fn with_start(&self, start: char) -> Self {
+        Self { start, ..*self }
     }
 }
 
