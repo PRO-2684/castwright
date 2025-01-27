@@ -27,7 +27,7 @@ impl Instruction for PrintInstruction {
         } else {
             &context.persistent
         };
-        let delay = config.delay.as_micros() as u64;
+        let delay = config.delay;
         for character in self.0.chars() {
             context.elapsed += delay;
             cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;

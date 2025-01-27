@@ -45,10 +45,7 @@ mod util;
 pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
 use instruction::parse_instruction;
-use std::{
-    io::{BufRead, Write},
-    time::Duration,
-};
+use std::io::{BufRead, Write};
 
 /// Front matter parsing state.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -93,8 +90,8 @@ struct Configuration {
     line_split: String,
     /// Whether the command should be executed silently.
     hidden: bool,
-    /// Typing delay between characters in a command or print instruction.
-    delay: Duration,
+    /// Typing delay between characters in a command or print instruction, in microseconds (µs).
+    delay: u64,
 }
 
 impl Configuration {
@@ -105,7 +102,7 @@ impl Configuration {
             secondary_prompt: "> ".to_string(),
             line_split: " \\".to_string(),
             hidden: false,
-            delay: Duration::from_millis(100),
+            delay: 100_000,
         }
     }
 }
@@ -121,7 +118,7 @@ struct TemporaryConfiguration {
     /// Whether the command should be executed silently.
     hidden: Option<bool>,
     /// Typing delay between characters in a command or print instruction.
-    delay: Option<Duration>,
+    delay: Option<u64>,
 }
 
 impl TemporaryConfiguration {
@@ -434,7 +431,7 @@ mod tests {
             secondary_prompt: ">> ".to_string(),
             line_split: " \\".to_string(),
             hidden: false,
-            delay: Duration::from_millis(100),
+            delay: 100_000,
         };
         let calculated_config = context.consume_temporary();
         assert_eq!(calculated_config, expected_config);

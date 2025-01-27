@@ -68,7 +68,7 @@ impl Instruction for CommandInstruction {
         } else {
             &config.secondary_prompt
         };
-        let delay = config.delay.as_micros() as u64;
+        let delay = config.delay;
         cast.output(context.elapsed, prompt)?;
         for character in self.command.chars() {
             context.elapsed += delay;

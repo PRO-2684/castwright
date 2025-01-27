@@ -1,7 +1,6 @@
 //! Module for parsing config instructions.
 
 use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
-use std::time::Duration;
 
 /// A configuration instruction type.
 #[derive(Debug, PartialEq)]
@@ -15,8 +14,8 @@ enum ConfigInstructionType {
     LineSplit(String),
     /// Whether the command should be executed silently.
     Hidden(bool),
-    /// Typing delay between characters in a command or print instruction.
-    Delay(Duration),
+    /// Typing delay between characters in a command or print instruction, in microseconds (µs).
+    Delay(u64),
 }
 
 /// A configuration instruction.
@@ -68,7 +67,9 @@ impl Instruction for ConfigInstruction {
             }
             "delay" => {
                 let delay = iter.next().ok_or(ErrorType::MalformedInstruction)?;
-                Ok(ConfigInstructionType::Delay(util::parse_duration(delay)?))
+                Ok(ConfigInstructionType::Delay(
+                    util::parse_duration(delay)?.as_micros() as u64,
+                ))
             }
             _ => Err(ErrorType::MalformedInstruction),
         }?;
@@ -115,7 +116,6 @@ impl Instruction for ConfigInstruction {
 #[cfg(test)]
 mod tests {
     use super::{ConfigInstructionType::*, *};
-    use std::time::Duration;
 
     #[test]
     fn config_instruction_type() {
@@ -129,7 +129,7 @@ mod tests {
             ("@line-split \\", LineSplit("\\".to_string())),
             ("@hidden true", Hidden(true)),
             ("@hidden false", Hidden(false)),
-            ("@delay 2ms", Delay(Duration::from_millis(2))),
+            ("@delay 2ms", Delay(2_000)),
         ];
         for (line, expected) in instructions.iter() {
             assert_eq!(

@@ -46,7 +46,13 @@ fn test() -> Result<(), Error> {
 
         // Compare output line by line (to avoid differences in line endings)
         for (i, (output_line, expected_line)) in output.lines().zip(expected.lines()).enumerate() {
-            assert_eq!(output_line, expected_line, "Test case: {}, line: {}", case.name, i + 1);
+            assert_eq!(
+                output_line,
+                expected_line,
+                "Test case: {}, line: {}",
+                case.name,
+                i + 1
+            );
         }
     }
     Ok(())
