@@ -40,6 +40,7 @@
 mod asciicast;
 mod error;
 mod instruction;
+mod shell;
 mod util;
 
 pub use asciicast::AsciiCast;
