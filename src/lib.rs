@@ -162,6 +162,11 @@ impl ParseContext {
             expect_continuation: false,
         }
     }
+    /// Create a context with a different starting character.
+    #[cfg(test)]
+    fn with_start(&self, start: char) -> Self {
+        Self { start, ..*self }
+    }
 }
 
 /// An execution context for the script.
@@ -305,6 +310,7 @@ impl CastWright {
         let mut parse_context = ParseContext::new();
         let mut execution_context = ExecutionContext::new();
         let mut cast = AsciiCast::new(writer);
+        let mut line_cnt = 0;
         for (line_number, line) in reader.lines().enumerate() {
             let line = line.map_err(|err| ErrorType::Io(err).with_line(line_number + 1))?;
             let instruction = parse_instruction(&line, &mut parse_context)
@@ -312,6 +318,10 @@ impl CastWright {
             instruction
                 .execute(&mut execution_context, &mut cast)
                 .map_err(|e| e.with_line(line_number + 1))?;
+            line_cnt += 1;
+        }
+        if parse_context.front_matter_state == FrontMatterState::Start {
+            return Err(ErrorType::ExpectedClosingDelimiter.with_line(line_cnt + 1));
         }
         Ok(())
     }
@@ -324,17 +334,60 @@ impl Default for CastWright {
 }
 
 #[cfg(test)]
-impl ParseContext {
-    /// Create a context with a different starting character.
-    fn with_start(&self, start: char) -> Self {
-        Self { start, ..*self }
-    }
-}
-
-#[cfg(test)]
 mod tests {
     use super::*;
     use std::io::BufReader;
+
+    #[test]
+    fn expected_key_value_pair() {
+        let text = r#"
+            ---
+            $command
+            ---
+        "#;
+        let text = text.trim();
+        let mut reader = BufReader::new(text.as_bytes());
+        assert_eq!(
+            CastWright::new()
+                .run(&mut reader, &mut std::io::sink())
+                .unwrap_err(),
+            ErrorType::ExpectedKeyValuePair.with_line(2)
+        );
+    }
+
+    #[test]
+    fn expected_closing_delimiter() {
+        let text = r#"
+            ---
+            width: 123
+        "#;
+        let text = text.trim();
+        let mut reader = BufReader::new(text.as_bytes());
+        assert_eq!(
+            CastWright::new()
+                .run(&mut reader, &mut std::io::sink())
+                .unwrap_err(),
+            ErrorType::ExpectedClosingDelimiter.with_line(3)
+        );
+    }
+
+    #[test]
+    fn front_matter_exists() {
+        let text = r#"
+            ---
+            width: 123
+            ---
+            ---
+        "#;
+        let text = text.trim();
+        let mut reader = BufReader::new(text.as_bytes());
+        assert_eq!(
+            CastWright::new()
+                .run(&mut reader, &mut std::io::sink())
+                .unwrap_err(),
+            ErrorType::FrontMatterExists.with_line(4)
+        );
+    }
 
     #[test]
     fn script_unknown_instruction() {
