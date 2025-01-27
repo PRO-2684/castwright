@@ -8,11 +8,11 @@ use header::Header;
 use serde_json::ser::to_writer;
 use std::io::Write;
 
-/// An asciicast v2 file. Usually you'll only need the [`write`](AsciiCast::write) method.
+/// An asciicast v2 file.
 ///
 /// ## Creation
 ///
-/// Can be created using the [`AsciiCast::new`] method, which returns an empty asciicast without any events. To modify header and write events to an asciicast, you can call respective methods (see "Header" and "Events" section).
+/// Can be created using the [`AsciiCast::new`] method, which accepts a writer and returns an empty asciicast without any events. To modify header and write events to an asciicast, you can call respective methods (see "Header" and "Events" section).
 ///
 /// ## Modification
 ///
@@ -39,7 +39,7 @@ use std::io::Write;
 ///
 /// ## Output
 ///
-/// You can write the asciicast to a writer (`impl std::io::Write`) using the [`write`](AsciiCast::write) method.
+/// The asciicast will be streamed to the writer you provided, every time you add an event or write the header.
 pub struct AsciiCast<'a> {
     header: Header,
     writer: &'a mut dyn Write,
