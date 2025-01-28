@@ -77,7 +77,7 @@ impl Instruction for FrontMatterInstruction {
     /// Execute the front matter instruction.
     fn execute(
         &self,
-        _context: &mut ExecutionContext,
+        context: &mut ExecutionContext,
         cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
         match self {
@@ -90,7 +90,9 @@ impl Instruction for FrontMatterInstruction {
             FrontMatterInstruction::Title(title) => {
                 cast.title(title.clone())?;
             }
-            // FrontMatterInstruction::Shell(shell) => { cast.shell(shell.clone())?; },
+            FrontMatterInstruction::Shell(shell) => {
+                context.shell = shell.clone();
+            },
             // FrontMatterInstruction::Quit(quit) => { cast.quit(quit.clone())?; },
             FrontMatterInstruction::Idle(idle) => {
                 cast.idle_time_limit(idle.as_secs_f64())?;

@@ -34,8 +34,7 @@ Options:
                     stdin if not provided
   -o, --output      the path to the output file (asciicast `.cast`), or stdout
                     if not provided
-  -x, --execute     execute and capture the output of shell commands, instead of
-                    using dummy output (not implemented)
+  -x, --execute     execute and capture the output of shell commands
   -h, --help        display usage information
 ```
 

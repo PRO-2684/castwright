@@ -10,6 +10,8 @@ The [front matter](#front-matter), whose syntax is a subset of the standard YAML
 
 The body is line-based, with each line representing a single instruction, much like an interactive shell. The first character of the line determine the type of instruction, followed by instruction-specific argument(s). See [Instruction Types](#instruction-types) for a table of prefixes and their corresponding instruction types. Any line that does not start with one of those prefixes will result in an error (`UnknownInstruction`).
 
+Note that each command is executed in a separate shell session, so you cannot use `cd` to change the working directory, or define variables in one command and use them in another. If you need to do so, you can use a shell script file and execute it with a single command.
+
 ## Front Matter
 
 The front matter must be enclosed by a pair of triple dashes (`---`). It consists of key-value pairs, where the key is a [String](#string) and the value's type depends on the key. The key-value pairs are separated by a colon (`:`), and each pair is on a separate line. The key is case-insensitive, and the value is case-sensitive. The front matter ends with another pair of triple dashes (`---`). Example:
@@ -37,6 +39,7 @@ The following keys are supported in the front matter:
 - `shell`: Set the shell to be used for executing commands. (Not implemented yet)
     - **Type**: [LooseString](#loosestring), which represents the shell executable.
     - **Default**: `bash`
+    - Provided shell must accept `-c` flag for executing commands.
 - `quit`: Set the quit command to be used for exiting the shell. (Not implemented yet)
     - **Type**: [LooseString](#loosestring), which represents the quit command.
     - **Default**: `exit`

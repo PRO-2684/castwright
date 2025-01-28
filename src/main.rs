@@ -17,18 +17,13 @@ struct Args {
     /// the path to the output file (asciicast `.cast`), or stdout if not provided
     #[argh(option, short = 'o')]
     output: Option<String>,
-    /// execute and capture the output of shell commands, instead of using dummy output (not implemented)
+    /// execute and capture the output of shell commands
     #[argh(switch, short = 'x')]
     execute: bool,
 }
 
 fn main() -> Result<(), DispError<Error>> {
     let args: Args = argh::from_env();
-    if args.execute {
-        return Err(ErrorType::NotImplemented("`--execute` flag")
-            .with_line(0)
-            .into());
-    }
 
     let reader: &mut dyn Read = match &args.input {
         Some(path) => {

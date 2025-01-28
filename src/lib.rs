@@ -46,6 +46,7 @@ mod util;
 pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
 use instruction::parse_instruction;
+use shell::execute_command;
 use std::io::{BufRead, Write};
 
 /// Front matter parsing state.
@@ -179,18 +180,22 @@ struct ExecutionContext {
     elapsed: u64,
     /// Previous commands to be concatenated.
     command: String,
-    // TODO: `execute` field
+    /// The shell to use.
+    shell: String,
+    /// Whether to actually execute the commands.
+    execute: bool,
 }
 
 impl ExecutionContext {
     /// Create a new `ExecutionContext` with default values.
     fn new() -> Self {
         Self {
-            // front_matter: FrontMatter::new(),
             persistent: Configuration::new(),
             temporary: TemporaryConfiguration::new(),
             elapsed: 0,
             command: String::new(),
+            shell: "bash".to_string(),
+            execute: false,
         }
     }
     /// Check if the temporary configuration has any values.
@@ -291,7 +296,7 @@ impl ExecutionContext {
 /// ```
 #[derive(Debug)]
 pub struct CastWright {
-    /// Whether to execute and capture the output of shell commands, instead of using dummy output.
+    /// Whether to execute and capture the output of shell commands.
     execute: bool,
 }
 
@@ -311,6 +316,7 @@ impl CastWright {
         let mut execution_context = ExecutionContext::new();
         let mut cast = AsciiCast::new(writer);
         let mut line_cnt = 0;
+        execution_context.execute = self.execute;
         for (line_number, line) in reader.lines().enumerate() {
             let line = line.map_err(|err| ErrorType::Io(err).with_line(line_number + 1))?;
             let instruction = parse_instruction(&line, &mut parse_context)
@@ -342,7 +348,7 @@ mod tests {
     fn expected_key_value_pair() {
         let text = r#"
             ---
-            $command
+            $echo "Hello, World!"
             ---
         "#;
         let text = text.trim();
@@ -399,7 +405,7 @@ mod tests {
             %print
             !marker
             #comment
-            $command \
+            $echo "Hello, World!" \
             >continuation
             unknown
         "#;
@@ -441,7 +447,7 @@ mod tests {
     #[test]
     fn script_expected_continuation() {
         let text = r#"
-            $command \
+            $echo "Hello, World!" \
             @hidden true
         "#;
         let text = text.trim();
@@ -457,7 +463,7 @@ mod tests {
     #[test]
     fn script_unexpected_continuation() {
         let text = r#"
-            $command
+            $echo "Hello, World!"
             >continuation
         "#;
         let text = text.trim();

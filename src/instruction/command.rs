@@ -1,6 +1,6 @@
 //! Module for parsing command instructions.
 
-use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
+use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext, execute_command};
 
 /// A command instruction.
 #[derive(Debug, PartialEq)]
@@ -60,7 +60,10 @@ impl Instruction for CommandInstruction {
             &context.persistent
         };
         if config.hidden {
-            // TODO: Execute command silently
+            if context.execute {
+                // Execute command silently
+                execute_command(&context.shell, &self.command, true)?.consume()?;
+            }
             return Ok(());
         }
         let prompt = if self.start {
@@ -88,12 +91,18 @@ impl Instruction for CommandInstruction {
             // Take `context.command` out, replacing with an empty string
             let mut command = std::mem::take(&mut context.command);
             command.push_str(&self.command);
-            // Dummy output to simulate the command being executed
-            // TODO: Implement actual command execution
-            context.elapsed += delay;
-            cast.output(context.elapsed, &format!("Executed command: {command}"))?;
-            context.elapsed += delay;
-            cast.output(context.elapsed, "\r\n")?;
+            if context.execute {
+                let mut prev = std::time::Instant::now();
+                let reader = execute_command(&context.shell, &command, true)?;
+                for chunk in reader {
+                    let chunk = chunk?;
+                    let now = std::time::Instant::now();
+                    context.elapsed += now.duration_since(prev).as_micros() as u64;
+                    prev = now;
+                    cast.output(context.elapsed, &chunk)?;
+                }
+            }
+            // cast.output(context.elapsed, "\r\n")?;
         }
         Ok(())
     }

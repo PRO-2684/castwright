@@ -42,11 +42,6 @@ pub enum ErrorType {
     /// The header has already been written.
     #[error("Header already written")]
     HeaderAlreadyWritten,
-
-    // Other errors
-    /// The feature is not implemented.
-    #[error("Not implemented {0}")]
-    NotImplemented(&'static str),
 }
 
 impl ErrorType {
@@ -69,7 +64,6 @@ impl PartialEq for ErrorType {
             (Self::ExpectedContinuation, Self::ExpectedContinuation) => true,
             (Self::UnexpectedContinuation, Self::UnexpectedContinuation) => true,
             (Self::HeaderAlreadyWritten, Self::HeaderAlreadyWritten) => true,
-            (Self::NotImplemented(a), Self::NotImplemented(b)) => a == b,
             _ => false,
         }
     }
