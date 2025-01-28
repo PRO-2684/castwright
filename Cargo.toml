@@ -12,6 +12,7 @@ keywords = ["automation", "terminal", "asciinema", "recording", "asciicast"]
 [dependencies]
 argh = "0.1.13"
 disperror = "0.1.0"
+duct = "0.13.7"
 serde = "1.0.217"
 serde_json = "1.0.137"
 terminal_size = "0.4.1"
