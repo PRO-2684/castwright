@@ -5,7 +5,7 @@ use std::io::Read;
 
 use super::ErrorType;
 
-/// Execute a command using given shell, returning its output as a receiver.
+/// Execute a command using given shell, returning its output as an iterator, with `\n` replaced by `\r\n`.
 pub fn execute_command(shell: &str, command: &str, check: bool) -> Result<ReaderIterator, ErrorType> {
     // Spawn the command
     let mut command = cmd!(shell, "-c", command);
@@ -18,10 +18,13 @@ pub fn execute_command(shell: &str, command: &str, check: bool) -> Result<Reader
     Ok(iter)
 }
 
-/// Iterator over `ReaderHandle`.
+/// Iterator over `ReaderHandle`. Replace `\n` with `\r\n`.
 pub struct ReaderIterator{
-    reader: ReaderHandle,
+    /// Buffer for reading output.
     buffer: [u8; 1024],
+    /// Inner reader handle.
+    reader: ReaderHandle,
+    /// Error flag.
     error: bool,
 }
 
@@ -53,7 +56,10 @@ impl Iterator for ReaderIterator {
         match self.reader.read(&mut self.buffer) {
             Ok(0) => None,
             Ok(n) => {
-                let output = String::from_utf8_lossy(&self.buffer[..n]).to_string();
+                let raw = String::from_utf8_lossy(&self.buffer[..n]).to_string();
+                // Replace `\n` with `\r\n`
+                let output = replace_newline(&raw);
+                // FIXME: Edge case: if the previous chunk ends with `\r`, and the next chunk starts with `\n`, the `\n` will be replaced by `\r\n`.
                 Some(Ok(output))
             }
             Err(e) => {
@@ -62,6 +68,21 @@ impl Iterator for ReaderIterator {
             }
         }
     }
+}
+
+/// Replace `\n` with `\r\n`, except `\n` that are part of `\r\n`.
+fn replace_newline(s: &str) -> String {
+    let mut result = String::with_capacity(s.len());
+    let mut chars = s.chars();
+    let mut prev = ' ';
+    while let Some(c) = chars.next() {
+        if c == '\n' && prev != '\r' {
+            result.push('\r');
+        }
+        result.push(c);
+        prev = c;
+    }
+    result
 }
 
 #[cfg(test)]
@@ -80,7 +101,7 @@ mod tests {
         for chunk in reader {
             output.push_str(&chunk.unwrap());
         }
-        assert_eq!(output, "hello\n");
+        assert_eq!(output, "hello\r\n");
     }
 
     #[test]
@@ -92,7 +113,7 @@ mod tests {
         for chunk in reader {
             output.push_str(&chunk.unwrap());
         }
-        assert_eq!(output, "hello\n");
+        assert_eq!(output, "hello\r\n");
     }
 
     #[test]
@@ -100,7 +121,7 @@ mod tests {
         let command = "echo hello; echo world 1>&2";
         let shell = "bash";
         let reader = execute_command(shell, command, true).unwrap();
-        let expected = "hello\nworld\n";
+        let expected = "hello\r\nworld\r\n";
         let mut actual = String::new();
         for chunk in reader {
             actual.push_str(&chunk.unwrap());
@@ -114,7 +135,7 @@ mod tests {
         let command = "echo hello; sleep 1; echo world 1>&2";
         let shell = "bash";
         let reader = execute_command(shell, command, true).unwrap();
-        let expected = vec!["hello\n", "world\n"];
+        let expected = vec!["hello\r\n", "world\r\n"];
         let mut actual = Vec::new();
 
         let mut first = None;
@@ -143,5 +164,21 @@ mod tests {
             "Duration: {:?}",
             duration
         );
+    }
+
+    #[test]
+    fn replaced_newline() {
+        let cases = [
+            ("hello\nworld\r\n", "hello\r\nworld\r\n"),
+            ("hello\nworld\n", "hello\r\nworld\r\n"),
+            ("hello\nworld", "hello\r\nworld"),
+            ("hello\r\nworld", "hello\r\nworld"),
+            ("hello\r\nworld\n", "hello\r\nworld\r\n"),
+            ("hello\rworld", "hello\rworld"),
+        ];
+        for (input, expected) in cases.iter() {
+            let actual = replace_newline(input);
+            assert_eq!(actual, *expected);
+        }
     }
 }

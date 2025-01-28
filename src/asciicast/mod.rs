@@ -138,7 +138,7 @@ impl<'a> AsciiCast<'a> {
     }
     /// Write an event to the writer.
     fn write_event(&mut self, event: &Event) -> Result<(), ErrorType> {
-        to_writer(&mut self.writer, event).map_err(ErrorType::Json)?;
+        event.write(&mut self.writer).map_err(ErrorType::Json)?;
         writeln!(&mut self.writer).map_err(ErrorType::Io)?;
         Ok(())
     }
@@ -164,10 +164,10 @@ mod tests {
             .marker(200, "marker")?
             .resize(300, 80, 25)?;
         let expected = r#"{"version":2,"width":80,"height":24,"timestamp":1000000,"idle_time_limit":2.5,"title":"Test"}
-[0.0,"o","Hello, world!"]
-[0.0001,"i","echo Hello, world!"]
-[0.0002,"m","marker"]
-[0.0003,"r","80x25"]
+[0.000000,"o","Hello, world!"]
+[0.000100,"i","echo Hello, world!"]
+[0.000200,"m","marker"]
+[0.000300,"r","80x25"]
 "#;
         assert_eq!(String::from_utf8(writer).unwrap(), expected);
         Ok(())
@@ -188,10 +188,10 @@ mod tests {
             .marker(200, "marker")?
             .resize(300, 80, 25)?;
         let expected = r#"{"version":2,"width":80,"height":24,"timestamp":1000000,"idle_time_limit":2.5,"title":"Test"}
-[0.0,"o","Hello, world!"]
-[0.0001,"i","echo Hello, world!"]
-[0.0002,"m","marker"]
-[0.0003,"r","80x25"]
+[0.000000,"o","Hello, world!"]
+[0.000100,"i","echo Hello, world!"]
+[0.000200,"m","marker"]
+[0.000300,"r","80x25"]
 "#;
         assert_eq!(String::from_utf8(writer).unwrap(), expected);
         Ok(())

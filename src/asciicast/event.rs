@@ -63,6 +63,13 @@ impl<'a> Event<'a> {
             data: dim,
         }
     }
+    /// Write the event to the writer.
+    pub fn write(&self, writer: impl std::io::Write) -> Result<(), serde_json::Error> {
+        use serde::Serialize;
+        let mut serializer = serde_json::Serializer::with_formatter(writer, Formatter);
+        self.serialize(&mut serializer)?;
+        Ok(())
+    }
 }
 
 /// Type of an event.
@@ -91,6 +98,18 @@ impl Serialize for EventCode {
     }
 }
 
+/// Formatter that writes floating point numbers with 6 decimal places.
+struct Formatter;
+
+impl serde_json::ser::Formatter for Formatter {
+    fn write_f64<W>(&mut self, writer: &mut W, value: f64) -> std::io::Result<()>
+        where
+            W: ?Sized + std::io::Write, {
+        // Write the value with 6 decimal places.
+        write!(writer, "{value:.6}")
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -98,12 +117,14 @@ mod tests {
     #[test]
     fn event_serialize() -> serde_json::Result<()> {
         let event = Event {
-            time: 1_002_345,
+            time: 1_002_000,
             code: EventCode::Output,
             data: "Hello, world!",
         };
-        let expected = r#"[1.002345,"o","Hello, world!"]"#;
-        let serialized = serde_json::to_string(&event)?;
+        let expected = r#"[1.002000,"o","Hello, world!"]"#;
+        let mut serialized = Vec::new();
+        event.write(&mut serialized)?;
+        let serialized = String::from_utf8(serialized).unwrap();
         assert_eq!(serialized, expected);
         Ok(())
     }
