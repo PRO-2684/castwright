@@ -31,8 +31,7 @@ jobs:
     name: build-release
     needs: create-release
     strategy:
-      # fail-fast: false
-      fail-fast: true # For debugging
+      fail-fast: false
       matrix:
         build: [linux, macos, win-msvc]
         include:
