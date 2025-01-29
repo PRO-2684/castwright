@@ -1,0 +1,9 @@
+---
+title: CastWright Script with Sleep
+width: 80
+height: 24
+---
+
+@@delay 50ms
+
+$ echo hello; sleep 1; echo world 1>&2

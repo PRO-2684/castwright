@@ -131,6 +131,6 @@ impl PartialEq for ErrorType {
 pub struct Error {
     /// The type of error that occurred.
     error: ErrorType,
-    /// The line number where the error occurred, starting at 1. If `0`, the line number is unknown at this point.
+    /// The line number where the error occurred, starting at 1. If `0`, the error is not related to a specific line.
     line: usize,
 }

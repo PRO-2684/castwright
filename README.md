@@ -80,7 +80,8 @@ In addition, CastWright provides various instructions for customizing the produc
 - [x] Better `pub` API.
 - [x] Run `cargo clippy`.
 - [x] Integration tests.
-- [ ] Actual command execution and output capture.
+- [x] Actual command execution and output capture.
+    - [ ] Use a single shell session, instead of spawning a new one for each command.
 
 ## Credits
 

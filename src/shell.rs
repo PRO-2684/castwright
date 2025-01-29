@@ -12,6 +12,7 @@ pub fn execute_command(
     check: bool,
 ) -> Result<ReaderIterator, ErrorType> {
     // Spawn the command
+    // TODO: Shell session
     let mut command = cmd!(shell, "-c", command);
     if !check {
         command = command.unchecked(); // Don't check for status code (TODO: Config for this)
