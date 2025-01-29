@@ -318,17 +318,25 @@ impl CastWright {
         let mut line_cnt = 0;
         execution_context.execute = self.execute;
         for (line_number, line) in reader.lines().enumerate() {
-            let line = line.map_err(|err| ErrorType::Io(err).with_line(line_number + 1))?;
-            let instruction = parse_instruction(&line, &mut parse_context)
-                .map_err(|e| e.with_line(line_number + 1))?;
-            instruction
-                .execute(&mut execution_context, &mut cast)
+            self.run_line(line, &mut parse_context, &mut execution_context, &mut cast)
                 .map_err(|e| e.with_line(line_number + 1))?;
             line_cnt += 1;
         }
         if parse_context.front_matter_state == FrontMatterState::Start {
             return Err(ErrorType::ExpectedClosingDelimiter.with_line(line_cnt + 1));
         }
+        Ok(())
+    }
+    /// Interpret and run a line of a CastWright script.
+    fn run_line(
+        &self,
+        line: Result<String, std::io::Error>,
+        parse_context: &mut ParseContext,
+        execution_context: &mut ExecutionContext,
+        cast: &mut AsciiCast,
+    ) -> Result<(), ErrorType> {
+        let instruction = parse_instruction(&line?, parse_context)?;
+        instruction.execute(execution_context, cast)?;
         Ok(())
     }
 }

@@ -22,30 +22,29 @@ struct Args {
     execute: bool,
 }
 
+/// Create or open a file at the given path.
+fn file(path: &str, create: bool) -> Result<File, Error> {
+    let path = Path::new(path);
+    let file = if create {
+        File::create(path)
+    } else {
+        File::open(path)
+    };
+    file.map_err(|e| ErrorType::Io(e).with_line(0))
+}
+
 fn main() -> Result<(), DispError<Error>> {
     let args: Args = argh::from_env();
 
     let reader: &mut dyn Read = match &args.input {
-        Some(path) => {
-            let path = Path::new(&path);
-            &mut File::open(path).map_err(|err| ErrorType::Io(err).with_line(0))?
-        }
-        None => {
-            let stdin = std::io::stdin();
-            &mut stdin.lock()
-        }
+        Some(path) => &mut file(path, false)?,
+        None => &mut std::io::stdin().lock(),
     };
     let mut reader = std::io::BufReader::new(reader);
 
     let mut writer: &mut dyn Write = match &args.output {
-        Some(path) => {
-            let path = Path::new(&path);
-            &mut File::create(path).map_err(|err| ErrorType::Io(err).with_line(0))?
-        }
-        None => {
-            let stdout = std::io::stdout();
-            &mut stdout.lock()
-        }
+        Some(path) => &mut file(path, true)?,
+        None => &mut std::io::stdout().lock(),
     };
 
     CastWright::new()

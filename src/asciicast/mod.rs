@@ -90,8 +90,8 @@ impl<'a> AsciiCast<'a> {
     /// Write the header to the writer.
     pub fn write_header(&mut self) -> Result<&mut Self, ErrorType> {
         self.assert_header_not_written()?;
-        to_writer(&mut self.writer, &self.header).map_err(ErrorType::Json)?;
-        writeln!(&mut self.writer).map_err(ErrorType::Io)?;
+        to_writer(&mut self.writer, &self.header)?;
+        writeln!(&mut self.writer)?;
         self.header_written = true;
         Ok(self)
     }
@@ -138,8 +138,8 @@ impl<'a> AsciiCast<'a> {
     }
     /// Write an event to the writer.
     fn write_event(&mut self, event: &Event) -> Result<(), ErrorType> {
-        event.write(&mut self.writer).map_err(ErrorType::Json)?;
-        writeln!(&mut self.writer).map_err(ErrorType::Io)?;
+        event.write(&mut self.writer)?;
+        writeln!(&mut self.writer)?;
         Ok(())
     }
 }

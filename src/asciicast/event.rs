@@ -103,8 +103,9 @@ struct Formatter;
 
 impl serde_json::ser::Formatter for Formatter {
     fn write_f64<W>(&mut self, writer: &mut W, value: f64) -> std::io::Result<()>
-        where
-            W: ?Sized + std::io::Write, {
+    where
+        W: ?Sized + std::io::Write,
+    {
         // Write the value with 6 decimal places.
         write!(writer, "{value:.6}")
     }

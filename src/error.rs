@@ -51,6 +51,24 @@ impl ErrorType {
     }
 }
 
+impl From<std::io::Error> for ErrorType {
+    fn from(error: std::io::Error) -> Self {
+        Self::Io(error)
+    }
+}
+
+impl From<serde_json::Error> for ErrorType {
+    fn from(error: serde_json::Error) -> Self {
+        Self::Json(error)
+    }
+}
+
+impl From<std::num::ParseIntError> for ErrorType {
+    fn from(_: std::num::ParseIntError) -> Self {
+        Self::MalformedInstruction
+    }
+}
+
 impl PartialEq for ErrorType {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {

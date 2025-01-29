@@ -13,7 +13,7 @@ pub fn parse_duration(s: &str) -> Result<Duration, ErrorType> {
         .ok_or(ErrorType::MalformedInstruction)?;
     let (num, suffix) = s.split_at(split_at);
     // Parse the number
-    let num = num.parse().map_err(|_| ErrorType::MalformedInstruction)?;
+    let num = num.parse()?;
     // Parse the suffix
     match suffix {
         "s" => Ok(Duration::from_secs(num)),
@@ -25,7 +25,7 @@ pub fn parse_duration(s: &str) -> Result<Duration, ErrorType> {
 /// Parse a loose string. If starting with `"`, will deserialize it. Else, return the string as it is.
 pub fn parse_loose_string(s: &str) -> Result<String, ErrorType> {
     if s.starts_with('"') && s.ends_with('"') {
-        serde_json::from_str(s).map_err(ErrorType::Json)
+        Ok(serde_json::from_str(s)?)
     } else {
         Ok(s.to_string())
     }

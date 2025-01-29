@@ -7,7 +7,9 @@ mod frontmatter;
 mod marker;
 mod print;
 
-use super::{util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, ParseContext, execute_command};
+use super::{
+    execute_command, util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, ParseContext,
+};
 pub(super) use command::CommandInstruction;
 pub(super) use config::ConfigInstruction;
 pub(super) use empty::EmptyInstruction;
@@ -98,7 +100,11 @@ mod tests {
             (
                 " $echo \"Hello, World!\"",
                 Box::new(
-                    CommandInstruction::parse("echo \"Hello, World!\"", &mut context.with_start('$')).unwrap(),
+                    CommandInstruction::parse(
+                        "echo \"Hello, World!\"",
+                        &mut context.with_start('$'),
+                    )
+                    .unwrap(),
                 ),
             ),
             (
@@ -117,7 +123,11 @@ mod tests {
             (
                 "$ echo \"Hello, World!\"",
                 Box::new(
-                    CommandInstruction::parse("echo \"Hello, World!\"", &mut context.with_start('$')).unwrap(),
+                    CommandInstruction::parse(
+                        "echo \"Hello, World!\"",
+                        &mut context.with_start('$'),
+                    )
+                    .unwrap(),
                 ),
             ),
         ];
@@ -146,7 +156,11 @@ mod tests {
             (
                 "$echo \"Hello, World!\"",
                 Box::new(
-                    CommandInstruction::parse("echo \"Hello, World!\"", &mut context.with_start('$')).unwrap(),
+                    CommandInstruction::parse(
+                        "echo \"Hello, World!\"",
+                        &mut context.with_start('$'),
+                    )
+                    .unwrap(),
                 ),
             ),
         ];

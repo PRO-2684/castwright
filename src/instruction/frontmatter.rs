@@ -92,7 +92,7 @@ impl Instruction for FrontMatterInstruction {
             }
             FrontMatterInstruction::Shell(shell) => {
                 context.shell = shell.clone();
-            },
+            }
             // FrontMatterInstruction::Quit(quit) => { cast.quit(quit.clone())?; },
             FrontMatterInstruction::Idle(idle) => {
                 cast.idle_time_limit(idle.as_secs_f64())?;
@@ -105,7 +105,7 @@ impl Instruction for FrontMatterInstruction {
 
 /// Parse a positive integer.
 fn parse_positive_u16(s: &str) -> Result<u16, ErrorType> {
-    let v = s.parse().map_err(|_| ErrorType::MalformedInstruction)?;
+    let v = s.parse()?;
     if v == 0 {
         Err(ErrorType::MalformedInstruction)
     } else {

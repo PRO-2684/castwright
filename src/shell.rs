@@ -6,20 +6,24 @@ use std::io::Read;
 use super::ErrorType;
 
 /// Execute a command using given shell, returning its output as an iterator, with `\n` replaced by `\r\n`.
-pub fn execute_command(shell: &str, command: &str, check: bool) -> Result<ReaderIterator, ErrorType> {
+pub fn execute_command(
+    shell: &str,
+    command: &str,
+    check: bool,
+) -> Result<ReaderIterator, ErrorType> {
     // Spawn the command
     let mut command = cmd!(shell, "-c", command);
     if !check {
         command = command.unchecked(); // Don't check for status code (TODO: Config for this)
     }
-    let reader = command.stderr_to_stdout().reader().map_err(ErrorType::Io)?;
+    let reader = command.stderr_to_stdout().reader()?;
     let iter = ReaderIterator::new(reader);
 
     Ok(iter)
 }
 
 /// Iterator over `ReaderHandle`. Replace `\n` with `\r\n`.
-pub struct ReaderIterator{
+pub struct ReaderIterator {
     /// Buffer for reading output.
     buffer: [u8; 1024],
     /// Inner reader handle.
