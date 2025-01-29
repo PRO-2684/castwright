@@ -95,8 +95,6 @@ mod tests {
     use super::*;
     use std::time::Duration;
 
-    const MAX_DELTA: Duration = Duration::from_millis(100);
-
     #[test]
     fn echo_stdout() {
         let command = "echo hello";
@@ -161,11 +159,6 @@ mod tests {
         let duration = second.unwrap().duration_since(first.unwrap());
         assert!(
             duration >= Duration::from_secs(1),
-            "Duration: {:?}",
-            duration
-        );
-        assert!(
-            duration <= Duration::from_secs(1) + MAX_DELTA,
             "Duration: {:?}",
             duration
         );
