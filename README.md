@@ -70,7 +70,11 @@ $ echo "Multi-" \
 Multi- line command
 ```
 
-In addition, CastWright provides various instructions for customizing the produced asciicast, like typing speed or title. See [`REFERENCE.md`](./REFERENCE.md) for a detailed reference, or example CastWright scripts under the [`tests`](./tests/) directory.
+In addition, CastWright provides various instructions for customizing the produced asciicast, like typing speed or title. See [`REFERENCE.md`](./doc/REFERENCE.md) for a detailed reference, or example CastWright scripts under the [`tests`](./tests/) directory.
+
+## Caveats
+
+You can find a list of known caveats in [`CAVEATS.md`](./doc/CAVEATS.md#shell-session). Most notably, each command is executed in a separate shell session, which may not be ideal for some use cases.
 
 ## TODO
 

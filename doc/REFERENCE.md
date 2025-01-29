@@ -10,7 +10,7 @@ The [front matter](#front-matter), whose syntax is a subset of the standard YAML
 
 The body is line-based, with each line representing a single instruction, much like an interactive shell. The first character of the line determine the type of instruction, followed by instruction-specific argument(s). See [Instruction Types](#instruction-types) for a table of prefixes and their corresponding instruction types. Any line that does not start with one of those prefixes will result in an error (`UnknownInstruction`).
 
-Note that each command is executed in a separate shell session, so you cannot use `cd` to change the working directory, or define variables in one command and use them in another. If you need to do so, you can use a shell script file and execute it with a single command.
+Note that each command is executed in a separate shell session, so you cannot use `cd` to change the working directory, or define variables in one command and use them in another. This is a [known caveat](./CAVEATS.md#shell-session).
 
 ## Front Matter
 
@@ -63,7 +63,7 @@ Internally, front matter delimiters and key-value pairs are also treated as inst
 
 ### Command
 
-A command instruction prints, executes, and displays the output of a command. Usually, you'll use it the most in your script. Example:
+A command instruction prints, executes in a separate shell session, and displays the output of a command. Usually, you'll use it the most in your script. Example:
 
 ```plaintext
 $ echo "Hello, World!"
