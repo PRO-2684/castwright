@@ -14,7 +14,7 @@ struct Args {
     /// the path to the input file (CastWright script `.cwrt`), or stdin if not provided
     #[argh(option, short = 'i')]
     input: Option<String>,
-    /// the path to the output file (asciicast `.cast`), or stdout if not provided
+    /// the path to the output file (asciicast `.cast`), or stdout if not provided; If provided, preview mode will be enabled
     #[argh(option, short = 'o')]
     output: Option<String>,
     /// execute and capture the output of shell commands
@@ -49,6 +49,7 @@ fn main() -> Result<(), DispError<Error>> {
 
     CastWright::new()
         .execute(args.execute)
+        .preview(args.output.is_some())
         .run(&mut reader, &mut writer)?;
 
     Ok(())

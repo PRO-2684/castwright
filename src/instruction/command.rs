@@ -73,21 +73,26 @@ impl Instruction for CommandInstruction {
         };
         let delay = config.delay;
         cast.output(context.elapsed, prompt)?;
+        context.preview(prompt);
         for character in self.command.chars() {
             context.elapsed += delay;
             // https://stackoverflow.com/a/67898224/16468609
             cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
         }
+        context.preview(&self.command);
         if self.continuation {
             context.elapsed += delay;
             cast.output(context.elapsed, &config.line_split)?;
+            context.preview(&config.line_split);
             context.elapsed += delay;
             cast.output(context.elapsed, "\r\n")?;
+            context.preview("\r\n");
             context.command.push_str(&self.command);
             context.command.push(' ');
         } else {
             context.elapsed += delay;
             cast.output(context.elapsed, "\r\n")?;
+            context.preview("\r\n");
             // Take `context.command` out, replacing with an empty string
             let mut command = std::mem::take(&mut context.command);
             command.push_str(&self.command);
@@ -100,9 +105,9 @@ impl Instruction for CommandInstruction {
                     context.elapsed += now.duration_since(prev).as_micros() as u64;
                     prev = now;
                     cast.output(context.elapsed, &chunk)?;
+                    context.preview(&chunk);
                 }
             }
-            // cast.output(context.elapsed, "\r\n")?;
         }
         Ok(())
     }

@@ -32,8 +32,10 @@ impl Instruction for PrintInstruction {
             context.elapsed += delay;
             cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
         }
+        context.preview(&self.0);
         context.elapsed += delay;
         cast.output(context.elapsed, "\r\n")?;
+        context.preview("\r\n");
         Ok(())
     }
 }

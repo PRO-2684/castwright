@@ -172,18 +172,25 @@ impl ParseContext {
 
 /// An execution context for the script.
 struct ExecutionContext {
+    // General
     /// Persistent configuration.
     persistent: Configuration,
     /// Temporary configuration.
     temporary: TemporaryConfiguration,
-    /// Elapsed time in microseconds (µs).
-    elapsed: u64,
-    /// Previous commands to be concatenated.
-    command: String,
     /// The shell to use.
     shell: String,
+    /// Elapsed time in microseconds (µs).
+    elapsed: u64,
+
+    // Configuration
     /// Whether to actually execute the commands.
     execute: bool,
+    /// Whether to preview the asciicast.
+    preview: bool,
+
+    // Instruction-specific
+    /// Previous commands to be concatenated.
+    command: String,
 }
 
 impl ExecutionContext {
@@ -192,10 +199,11 @@ impl ExecutionContext {
         Self {
             persistent: Configuration::new(),
             temporary: TemporaryConfiguration::new(),
-            elapsed: 0,
-            command: String::new(),
             shell: "bash".to_string(),
+            elapsed: 0,
             execute: false,
+            preview: false,
+            command: String::new(),
         }
     }
     /// Check if the temporary configuration has any values.
@@ -241,6 +249,13 @@ impl ExecutionContext {
             config.delay = delay;
         }
         config
+    }
+
+    /// Print given string if preview is enabled.
+    fn preview(&self, s: &str) {
+        if self.preview {
+            print!("{}", s);
+        }
     }
 }
 
@@ -298,16 +313,23 @@ impl ExecutionContext {
 pub struct CastWright {
     /// Whether to execute and capture the output of shell commands.
     execute: bool,
+    /// Whether to preview the asciicast.
+    preview: bool,
 }
 
 impl CastWright {
     /// Create a new `CastWright` instance.
     pub fn new() -> Self {
-        Self { execute: false }
+        Self { execute: false, preview: false }
     }
     /// Set whether to execute and capture the output of shell commands.
     pub fn execute(&mut self, execute: bool) -> &mut Self {
         self.execute = execute;
+        self
+    }
+    /// Set whether to preview the asciicast.
+    pub fn preview(&mut self, preview: bool) -> &mut Self {
+        self.preview = preview;
         self
     }
     /// Interpret and run a CastWright script from a reader, writing the asciicast to a writer.
@@ -317,6 +339,7 @@ impl CastWright {
         let mut cast = AsciiCast::new(writer);
         let mut line_cnt = 0;
         execution_context.execute = self.execute;
+        execution_context.preview = self.preview;
         for (line_number, line) in reader.lines().enumerate() {
             self.run_line(line, &mut parse_context, &mut execution_context, &mut cast)
                 .map_err(|e| e.with_line(line_number + 1))?;

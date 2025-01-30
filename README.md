@@ -1,26 +1,43 @@
-# CastWright
+# 🎥 CastWright
 
 > [!WARNING]
-> This project is still in the early stages of development, with some core features missing or incomplete. Please refer to the [TODO](#todo) section for more information.
+> This project is still in the early stages of development.
 
 🎥 Scripted terminal recording.
 
-## Introduction
+## ℹ️ Introduction
 
 > [!NOTE]
 > The name `castwright` is a portmanteau of `asciicast` and `playwright`.
 
 Have you re-recorded the same session over and over again, either to hit the right speed or to avoid mistakes? Ever wanted to automate the process of recording terminal sessions, like shell scripts automate the process of running commands? Well, CastWright is here to help.
 
-## Features
+## 🪄 Features
 
-- **Painless scripting**: CastWright scripts are very intuitive and similar to an interactive shell, making it easy to understand, write, and maintain.
+- **Fast**: CastWright is designed to be fast, with running time close to actually executing the given shell commands.
+- **Efficient**: CastWright guarantees constant memory usage, by leveraging streaming I/O.
+<!-- - **Preview**: Previewing your asciicast, without typing delays, saving you the time for writing `&& asciinema play name.cast` and the typing delays. -->
+- **Intuitive**: CastWright scripts are very intuitive and similar to an interactive shell, making it easy to understand, write, and maintain.
+- **Customization**: CastWright scripts provide various instructions for customizing the produced asciicast, like typing speed or title.
+- **Reusability**: CastWright scripts can be reused across different environments, making it easy to share and collaborate.
 
-## Installation
+## 🚀 Installation
 
-TBD
+If you have `cargo-binstall`, you can install this tool by running:
 
-## Usage
+```shell
+cargo binstall castwright
+```
+
+Otherwise, you can install it from source:
+
+```shell
+cargo install castwright
+```
+
+Pre-built binaries are available at [Releases](https://github.com/PRO-2684/castwright/releases).
+
+## 📖 Usage
 
 ### Command Line Interface
 
@@ -72,11 +89,11 @@ Multi- line command
 
 In addition, CastWright provides various instructions for customizing the produced asciicast, like typing speed or title. See [`REFERENCE.md`](./doc/REFERENCE.md) for a detailed reference, or example CastWright scripts under the [`tests`](./tests/) directory.
 
-## Caveats
+## 🚫 Caveats
 
 You can find a list of known caveats in [`CAVEATS.md`](./doc/CAVEATS.md#shell-session). Most notably, each command is executed in a separate shell session, which may not be ideal for some use cases.
 
-## TODO
+## ✅ TODO
 
 - [x] Implement the CastWright script parser.
 - [x] Write to an asciicast file.
@@ -87,7 +104,7 @@ You can find a list of known caveats in [`CAVEATS.md`](./doc/CAVEATS.md#shell-se
 - [x] Actual command execution and output capture.
     - [ ] Use a single shell session, instead of spawning a new one for each command.
 
-## Credits
+## 🎉 Credits
 
 - [asciinema](https://asciinema.org)
 - [autocast](https://github.com/k9withabone/autocast)
