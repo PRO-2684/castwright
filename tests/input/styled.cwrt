@@ -7,9 +7,9 @@ height: 24
 # Cyan prompt
 @@prompt "\u001b[36m$ \u001b[0m"
 # Dimmed cyan secondary prompt
-@@secondary-prompt "\u001b[2;36m> \u001b[0m"
+@@secondary "\u001b[2;36m> \u001b[0m"
 # Dimmed line split
-@@line-split "\u001b[2m \\\u001b[0m"
+@@continuation "\u001b[2m \\\u001b[0m"
 
 $ echo "Multi-" \
 > "line" \

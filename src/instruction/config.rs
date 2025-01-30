@@ -11,7 +11,7 @@ enum ConfigInstructionType {
     /// The secondary prompt to use in the asciicast (for continuation lines).
     SecondaryPrompt(String),
     /// The string to signify a line split in a multiline command.
-    LineSplit(String),
+    LineContinuation(String),
     /// Whether the command should be executed silently.
     Hidden(bool),
     /// Typing delay between characters in a command or print instruction, in microseconds (µs).
@@ -40,18 +40,19 @@ impl Instruction for ConfigInstruction {
         let Some(first) = iter.next() else {
             return Err(ErrorType::MalformedInstruction);
         };
+        let len = first.len();
         let instruction_type = match first {
             "prompt" => {
-                let prompt = util::parse_loose_string(s[6..].trim())?;
+                let prompt = util::parse_loose_string(s[len..].trim())?;
                 Ok(ConfigInstructionType::Prompt(prompt))
             }
-            "secondary-prompt" => {
-                let prompt = util::parse_loose_string(s[16..].trim())?;
+            "secondary" | "secondary-prompt" => {
+                let prompt = util::parse_loose_string(s[len..].trim())?;
                 Ok(ConfigInstructionType::SecondaryPrompt(prompt))
             }
-            "line-split" => {
-                let split = util::parse_loose_string(s[10..].trim())?;
-                Ok(ConfigInstructionType::LineSplit(split))
+            "continuation" | "line-continuation" => {
+                let split = util::parse_loose_string(s[len..].trim())?;
+                Ok(ConfigInstructionType::LineContinuation(split))
             }
             "hidden" => {
                 let hidden = iter.next();
@@ -93,7 +94,7 @@ impl Instruction for ConfigInstruction {
                 SecondaryPrompt(secondary_prompt) => {
                     config.secondary_prompt = secondary_prompt.clone()
                 }
-                LineSplit(line_split) => config.line_split = line_split.clone(),
+                LineContinuation(line_split) => config.line_split = line_split.clone(),
                 Hidden(hidden) => config.hidden = *hidden,
                 Delay(delay) => config.delay = *delay,
             }
@@ -104,7 +105,7 @@ impl Instruction for ConfigInstruction {
                 SecondaryPrompt(secondary_prompt) => {
                     config.secondary_prompt = Some(secondary_prompt.clone())
                 }
-                LineSplit(line_split) => config.line_split = Some(line_split.clone()),
+                LineContinuation(line_split) => config.line_split = Some(line_split.clone()),
                 Hidden(hidden) => config.hidden = Some(*hidden),
                 Delay(delay) => config.delay = Some(*delay),
             }
@@ -122,11 +123,13 @@ mod tests {
         let mut context = ParseContext::new();
         let instructions = [
             ("@prompt \"$ \"", Prompt("$ ".to_string())),
+            ("@secondary \"> \"", SecondaryPrompt("> ".to_string())),
             (
                 "@secondary-prompt \"> \"",
                 SecondaryPrompt("> ".to_string()),
             ),
-            ("@line-split \\", LineSplit("\\".to_string())),
+            ("@continuation \\", LineContinuation("\\".to_string())),
+            ("@line-continuation \\", LineContinuation("\\".to_string())),
             ("@hidden true", Hidden(true)),
             ("@hidden false", Hidden(false)),
             ("@delay 2ms", Delay(2_000)),
@@ -146,8 +149,8 @@ mod tests {
         let mut context = ParseContext::new();
         let instructions = [
             ("@prompt \"$ \"", true),
-            ("secondary-prompt \"> \"", false),
-            ("line-split \\", false),
+            ("secondary \"> \"", false),
+            ("continuation \\", false),
             ("hidden true", false),
             ("delay 2ms", false),
         ];
@@ -208,8 +211,8 @@ mod tests {
         let mut cast = AsciiCast::new(&mut sink);
         let instructions = [
             "prompt \"~> \"",
-            "secondary-prompt \"| \"",
-            "line-split \\",
+            "secondary \"| \"",
+            "continuation \\",
             "hidden",
         ];
         for line in instructions.iter() {

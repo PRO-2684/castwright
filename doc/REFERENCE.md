@@ -83,26 +83,21 @@ $ echo "Multi-" \
 A configuration instruction configures the behavior of the output or other instructions. It can be classified based on its scope as either [**persistent**](#persistent) or [**temporary**](#temporary). Below is a list of valid keywords for configuration instructions.
 
 - `prompt`: Set the shell prompt to use in the asciicast output.
-    - **Scope**: Persistent or Temporary.
     - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@prompt "$ "`
     - Note: For a cyan prompt, try setting `@@prompt "\u001b[36m$ \u001b[0m"`
-- `secondary-prompt`: Set the secondary prompt to use in the asciicast output.
-    - **Scope**: Persistent or Temporary.
+- `secondary`/`secondary-prompt`: Set the secondary prompt to use in the asciicast output.
     - **Parameter**: A [LooseString](#loosestring).
-    - **Default**: `@@secondary-prompt "> "`
+    - **Default**: `@@secondary "> "`
     - Note: For a dimmed cyan secondary prompt, try setting `@@secondary-prompt "\u001b[2;36m> \u001b[0m"`
-- `line-split`: Set the string to signify a line split in a multiline command.
-    - **Scope**: Persistent or Temporary.
+- `continuation`/`line-continuation`: Set the string to signify that the command continues on the next line.
     - **Parameter**: A [LooseString](#loosestring).
-    - **Default**: `@@line-split " \\"`
-    - Note: For a dimmed line split, try setting `@@line-split "\u001b[2m \\\u001b[0m"`
+    - **Default**: `@@continuation " \\"`
+    - Note: For a dimmed line split, try setting `@@continuation "\u001b[2m \\\u001b[0m"`
 - `hidden`: Set whether the command should be executed silently.
-    - **Scope**: Persistent or Temporary.
-    - **Parameter**: An [OptionalBoolean(true)](#optionaldefault).
+    - **Parameter**: A [Boolean](#boolean), defaulting to `true` if omitted.
     - **Default**: `@@hidden false`
 - `delay`: Set the typing delay between characters in a command.
-    - **Scope**: Persistent or Temporary.
     - **Parameter**: An [Duration](#duration).
     - **Default**: `@@delay 100ms`
 
@@ -166,7 +161,3 @@ A string is a sequence of characters enclosed in double quotes (`"`). If you nee
 ### LooseString
 
 A loose string, if starting and ending with a `"` character, will be treated as a `String`. Otherwise, its raw value will be used. For example, `"123 "` will be parsed as `"123 "`, while `123 ` will be parsed as `"123"` (trimmed).
-
-### Optional\*(default)
-
-An optional argument can be of given type or omitted. If omitted, the `default` value will be used. For example, `OptionalBoolean(true)` means the argument can be `true`, `false`, or omitted, with `true` as the default value.
