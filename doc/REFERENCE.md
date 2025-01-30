@@ -21,7 +21,6 @@ The front matter must be enclosed by a pair of triple dashes (`---`). It consist
 title: My Asciicast
 shell: bash
 idle: 5s
-prompt: "$ "
 ---
 ```
 
@@ -87,14 +86,17 @@ A configuration instruction configures the behavior of the output or other instr
     - **Scope**: Persistent or Temporary.
     - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@prompt "$ "`
+    - Note: For a cyan prompt, try setting `@@prompt "\u001b[36m$ \u001b[0m"`
 - `secondary-prompt`: Set the secondary prompt to use in the asciicast output.
     - **Scope**: Persistent or Temporary.
     - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@secondary-prompt "> "`
+    - Note: For a dimmed cyan secondary prompt, try setting `@@secondary-prompt "\u001b[2;36m> \u001b[0m"`
 - `line-split`: Set the string to signify a line split in a multiline command.
     - **Scope**: Persistent or Temporary.
     - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@line-split " \\"`
+    - Note: For a dimmed line split, try setting `@@line-split "\u001b[2m \\\u001b[0m"`
 - `hidden`: Set whether the command should be executed silently.
     - **Scope**: Persistent or Temporary.
     - **Parameter**: An [OptionalBoolean(true)](#optionaldefault).
