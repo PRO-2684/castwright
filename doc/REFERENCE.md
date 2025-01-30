@@ -35,7 +35,7 @@ The following keys are supported in the front matter:
 - `title`: Set the title of the asciicast.
     - **Type**: [LooseString](#loosestring).
     - **Default**: None.
-- `shell`: Set the shell to be used for executing commands. (Not implemented yet)
+- `shell`: Set the shell to be used for executing commands.
     - **Type**: [LooseString](#loosestring), which represents the shell executable.
     - **Default**: `bash`
     - Provided shell must accept `-c` flag for executing commands.
