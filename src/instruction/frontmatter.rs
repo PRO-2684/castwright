@@ -157,4 +157,19 @@ mod tests {
             );
         }
     }
+
+    #[test]
+    fn empty_front_matter() {
+        let mut parse_context = ParseContext::new();
+        let instructions = [
+            ("---", FrontMatterInstruction::Delimiter),
+            ("---", FrontMatterInstruction::Delimiter),
+        ];
+        for (line, expected) in instructions.iter() {
+            assert_eq!(
+                &FrontMatterInstruction::parse(line, &mut parse_context).unwrap(),
+                expected
+            );
+        }
+    }
 }
