@@ -320,7 +320,10 @@ pub struct CastWright {
 impl CastWright {
     /// Create a new `CastWright` instance.
     pub fn new() -> Self {
-        Self { execute: false, preview: false }
+        Self {
+            execute: false,
+            preview: false,
+        }
     }
     /// Set whether to execute and capture the output of shell commands.
     pub fn execute(&mut self, execute: bool) -> &mut Self {

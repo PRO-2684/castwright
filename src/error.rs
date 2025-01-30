@@ -71,19 +71,22 @@ impl From<std::num::ParseIntError> for ErrorType {
 
 impl PartialEq for ErrorType {
     fn eq(&self, other: &Self) -> bool {
-        match (self, other) {
-            (Self::Io(_), Self::Io(_)) => true,
-            (Self::Json(_), Self::Json(_)) => true,
-            (Self::ExpectedKeyValuePair, Self::ExpectedKeyValuePair) => true,
-            (Self::ExpectedClosingDelimiter, Self::ExpectedClosingDelimiter) => true,
-            (Self::FrontMatterExists, Self::FrontMatterExists) => true,
-            (Self::UnknownInstruction, Self::UnknownInstruction) => true,
-            (Self::MalformedInstruction, Self::MalformedInstruction) => true,
-            (Self::ExpectedContinuation, Self::ExpectedContinuation) => true,
-            (Self::UnexpectedContinuation, Self::UnexpectedContinuation) => true,
-            (Self::HeaderAlreadyWritten, Self::HeaderAlreadyWritten) => true,
-            _ => false,
-        }
+        matches!(
+            (self, other),
+            (Self::Io(_), Self::Io(_))
+                | (Self::Json(_), Self::Json(_))
+                | (Self::ExpectedKeyValuePair, Self::ExpectedKeyValuePair)
+                | (
+                    Self::ExpectedClosingDelimiter,
+                    Self::ExpectedClosingDelimiter
+                )
+                | (Self::FrontMatterExists, Self::FrontMatterExists)
+                | (Self::UnknownInstruction, Self::UnknownInstruction)
+                | (Self::MalformedInstruction, Self::MalformedInstruction)
+                | (Self::ExpectedContinuation, Self::ExpectedContinuation)
+                | (Self::UnexpectedContinuation, Self::UnexpectedContinuation)
+                | (Self::HeaderAlreadyWritten, Self::HeaderAlreadyWritten)
+        )
     }
 }
 

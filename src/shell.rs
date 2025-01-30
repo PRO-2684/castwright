@@ -78,9 +78,9 @@ impl Iterator for ReaderIterator {
 /// Replace `\n` with `\r\n`, except `\n` that are part of `\r\n`.
 fn replace_newline(s: &str) -> String {
     let mut result = String::with_capacity(s.len());
-    let mut chars = s.chars();
+    let chars = s.chars();
     let mut prev = ' ';
-    while let Some(c) = chars.next() {
+    for c in chars {
         if c == '\n' && prev != '\r' {
             result.push('\r');
         }
