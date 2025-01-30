@@ -1,7 +1,12 @@
 # 🎥 CastWright
 
-> [!WARNING]
-> This project is still in the early stages of development.
+[![GitHub License](https://img.shields.io/github/license/PRO-2684/castwright?logo=opensourceinitiative)](https://github.com/PRO-2684/castwright/blob/main/LICENSE)
+[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/PRO-2684/castwright/release.yml?logo=githubactions)](https://github.com/PRO-2684/castwright/blob/main/.github/workflows/release.yml)
+[![GitHub Release](https://img.shields.io/github/v/release/PRO-2684/castwright?logo=githubactions)](https://github.com/PRO-2684/castwright/releases)
+[![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PRO-2684/castwright/total?logo=github)](https://github.com/PRO-2684/castwright/releases)
+[![GitHub Downloads (all assets, latest release)](https://img.shields.io/github/downloads/PRO-2684/castwright/latest/total?logo=github)](https://github.com/PRO-2684/castwright/releases/latest)
+[![Crates.io Version](https://img.shields.io/crates/v/castwright?logo=rust)](https://crates.io/crates/castwright)
+[![Crates.io Total Downloads](https://img.shields.io/crates/d/castwright?logo=rust)](https://crates.io/crates/castwright)
 
 🎥 Scripted terminal recording.
 
