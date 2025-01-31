@@ -94,7 +94,9 @@ impl Instruction for ConfigInstruction {
                 SecondaryPrompt(secondary_prompt) => {
                     config.secondary_prompt = secondary_prompt.clone()
                 }
-                LineContinuation(line_continuation) => config.line_continuation = line_continuation.clone(),
+                LineContinuation(line_continuation) => {
+                    config.line_continuation = line_continuation.clone()
+                }
                 Hidden(hidden) => config.hidden = *hidden,
                 Interval(interval) => config.interval = *interval,
             }
@@ -105,7 +107,9 @@ impl Instruction for ConfigInstruction {
                 SecondaryPrompt(secondary_prompt) => {
                     config.secondary_prompt = Some(secondary_prompt.clone())
                 }
-                LineContinuation(line_continuation) => config.line_continuation = Some(line_continuation.clone()),
+                LineContinuation(line_continuation) => {
+                    config.line_continuation = Some(line_continuation.clone())
+                }
                 Hidden(hidden) => config.hidden = Some(*hidden),
                 Interval(interval) => config.interval = Some(*interval),
             }

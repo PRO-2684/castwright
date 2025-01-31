@@ -118,7 +118,10 @@ fn replace_newline(s: &str) -> String {
 }
 
 /// Try to execute a built-in command. Return `Ok(false)` if the command is not a built-in command, `Ok(true)` if the command is a built-in command and executed successfully, and `Err` if an error occurred.
-fn execute_built_in_command(context: &mut ExecutionContext, command: &str) -> Result<bool, ErrorType> {
+fn execute_built_in_command(
+    context: &mut ExecutionContext,
+    command: &str,
+) -> Result<bool, ErrorType> {
     // Split the command in two parts: the command itself and its argument.
     let Some((cmd, arg)) = command.split_once(' ') else {
         return Ok(false);

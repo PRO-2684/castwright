@@ -45,10 +45,13 @@ mod util;
 
 pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
-use optfield::optfield;
 use instruction::parse_instruction;
+use optfield::optfield;
 use shell::execute_command;
-use std::{io::{BufRead, Write}, path::PathBuf};
+use std::{
+    io::{BufRead, Write},
+    path::PathBuf,
+};
 
 /// Front matter parsing state.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -195,7 +198,9 @@ impl ExecutionContext {
             persistent: Configuration::new(),
             temporary: TemporaryConfiguration::new(),
             shell: "bash".to_string(),
-            directory: PathBuf::from(".").canonicalize().expect("Failed to canonicalize current directory"),
+            directory: PathBuf::from(".")
+                .canonicalize()
+                .expect("Failed to canonicalize current directory"),
             elapsed: 0,
             execute: false,
             preview: false,
@@ -240,6 +245,7 @@ impl ExecutionContext {
 /// You can then configure the instance using the following methods:
 ///
 /// - [`execute`](`CastWright::execute`): Set whether to execute and capture the output of shell commands.
+/// - [`preview`](`CastWright::preview`): Set whether to preview the asciicast.
 ///
 /// ## Running
 ///
@@ -259,11 +265,8 @@ impl ExecutionContext {
 /// let mut reader = BufReader::new(text.as_bytes());
 /// let mut writer = Vec::new();
 /// // CastWright
-/// let mut castwright = CastWright::new(); // Instantiation
-/// castwright
-///     .execute(true) // Configuration
-///     .run(&mut reader, &mut writer) // Running
-///     .unwrap();
+/// let castwright = CastWright::new().execute(true); // Instantiation & configuration
+/// castwright.run(&mut reader, &mut writer).unwrap(); // Running
 /// ```
 ///
 /// If you prefer one-liners:
@@ -293,14 +296,12 @@ impl CastWright {
         Self::default()
     }
     /// Set whether to execute and capture the output of shell commands.
-    pub fn execute(&mut self, execute: bool) -> &mut Self {
-        self.execute = execute;
-        self
+    pub fn execute(self, execute: bool) -> Self {
+        Self { execute, ..self }
     }
     /// Set whether to preview the asciicast.
-    pub fn preview(&mut self, preview: bool) -> &mut Self {
-        self.preview = preview;
-        self
+    pub fn preview(self, preview: bool) -> Self {
+        Self { preview, ..self }
     }
     /// Interpret and run a CastWright script from a reader, writing the asciicast to a writer.
     pub fn run(&self, reader: &mut impl BufRead, writer: &mut impl Write) -> Result<(), Error> {
@@ -424,7 +425,7 @@ mod tests {
             "@@prompt $\n@@height abc", // Malformed integer
             "@@prompt $\n@idle 1",      // Malformed duration - no suffix
             "@@prompt $\n@idle 1min",   // Malformed duration - invalid suffix
-            "@@prompt $\n@interval",       // Malformed duration - no value
+            "@@prompt $\n@interval",    // Malformed duration - no value
             "@@prompt $\n@hidden what", // Malformed boolean
         ];
         for text in malformed_scripts.iter() {
