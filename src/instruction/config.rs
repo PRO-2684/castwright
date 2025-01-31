@@ -16,6 +16,10 @@ enum ConfigInstructionType {
     Hidden(bool),
     /// Typing interval between characters in a command or print instruction, in microseconds (µs).
     Interval(u64),
+    /// The start lag in microseconds (µs). i.e. Additional delay after displaying the prompt, before printing the command for command instructions, or before printing the content for print instructions.
+    StartLag(u64),
+    /// The end lag in microseconds (µs). i.e. Additional delay after printing the command for command instructions, or after printing the content for print instructions.
+    EndLag(u64),
 }
 
 /// A configuration instruction.
@@ -72,6 +76,14 @@ impl Instruction for ConfigInstruction {
                     util::parse_duration(interval)?.as_micros() as u64,
                 ))
             }
+            "start-lag" => {
+                let delay = iter.next().ok_or(ErrorType::MalformedInstruction)?;
+                Ok(ConfigInstructionType::StartLag(util::parse_duration(delay)?.as_micros() as u64))
+            }
+            "end-lag" => {
+                let delay = iter.next().ok_or(ErrorType::MalformedInstruction)?;
+                Ok(ConfigInstructionType::EndLag(util::parse_duration(delay)?.as_micros() as u64))
+            }
             _ => Err(ErrorType::MalformedInstruction),
         }?;
         Ok(Self {
@@ -99,6 +111,8 @@ impl Instruction for ConfigInstruction {
                 }
                 Hidden(hidden) => config.hidden = *hidden,
                 Interval(interval) => config.interval = *interval,
+                StartLag(delay) => config.start_lag = *delay,
+                EndLag(delay) => config.end_lag = *delay,
             }
         } else {
             let config = &mut context.temporary;
@@ -112,6 +126,8 @@ impl Instruction for ConfigInstruction {
                 }
                 Hidden(hidden) => config.hidden = Some(*hidden),
                 Interval(interval) => config.interval = Some(*interval),
+                StartLag(delay) => config.start_lag = Some(*delay),
+                EndLag(delay) => config.end_lag = Some(*delay),
             }
         }
         Ok(())
@@ -137,6 +153,8 @@ mod tests {
             ("@hidden true", Hidden(true)),
             ("@hidden false", Hidden(false)),
             ("@interval 2ms", Interval(2_000)),
+            ("@start-lag 1s", StartLag(1_000_000)),
+            ("@end-lag 1s", EndLag(1_000_000)),
         ];
         for (line, expected) in instructions.iter() {
             assert_eq!(
@@ -157,6 +175,7 @@ mod tests {
             ("continuation \\", false),
             ("hidden true", false),
             ("interval 2ms", false),
+            ("@start-lag 1s", true),
         ];
         for (line, expected) in instructions.iter() {
             assert_eq!(
@@ -179,6 +198,8 @@ mod tests {
             "hidden what",
             "interval",
             "interval 2",
+            "start-lag",
+            "start-lag 1",
         ];
         for line in malformed_instructions.iter() {
             assert!(matches!(
@@ -189,17 +210,17 @@ mod tests {
     }
 
     #[test]
-    fn meaningless_temporary_config_instruction() {
+    fn unknown_config_instruction() {
         let mut context = ParseContext::new();
-        let meaningless_instructions = [
+        let unknown_instructions = [
             "width 123",
-            "height 456",
+            "@height 456",
             "title CastWright demo",
             "shell bash",
             "quit \"exit \"",
             "idle 1s",
         ];
-        for line in meaningless_instructions.iter() {
+        for line in unknown_instructions.iter() {
             assert!(matches!(
                 ConfigInstruction::parse(line, &mut context).unwrap_err(),
                 ErrorType::MalformedInstruction,
@@ -218,6 +239,7 @@ mod tests {
             "secondary \"| \"",
             "continuation \\",
             "hidden",
+            "interval 2ms",
         ];
         for line in instructions.iter() {
             ConfigInstruction::parse(line, &mut parse_context)
@@ -230,5 +252,6 @@ mod tests {
         assert_eq!(resolved.secondary_prompt, "| ".to_string());
         assert_eq!(resolved.line_continuation, "\\".to_string());
         assert!(resolved.hidden);
+        assert_eq!(resolved.interval, 2_000);
     }
 }

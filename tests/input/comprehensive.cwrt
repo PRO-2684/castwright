@@ -14,9 +14,18 @@ idle: 1s
 ---
 
 # Persistent configuration (`@@`)
+# The shell prompt
+@@prompt "\u001b[36m$ \u001b[0m"
+# The secondary prompt
+@@secondary "\u001b[2;36m> \u001b[0m"
+# Line continuation
+@@continuation "\u001b[2m \\\u001b[0m"
+# Start lag
+@@start-lag 500ms
+# End lag
+@@end-lag 500ms
 # Interval between each character
 @@interval 100ms
-# ...
 
 # Temporary configuration (`@`): Configuration for this command only
 @hidden

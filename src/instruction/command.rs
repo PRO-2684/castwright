@@ -75,22 +75,26 @@ impl Instruction for CommandInstruction {
         let interval = config.interval;
         cast.output(context.elapsed, prompt)?;
         context.preview(prompt);
+        context.elapsed += config.start_lag;
         for character in self.command.chars() {
             context.elapsed += interval;
             // https://stackoverflow.com/a/67898224/16468609
             cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
         }
         context.preview(&self.command);
-        context.elapsed += interval;
         if self.continuation {
+            context.elapsed += interval;
             cast.output(context.elapsed, &config.line_continuation)?;
             context.preview(&config.line_continuation);
             context.elapsed += interval;
+            context.elapsed += config.end_lag;
             cast.output(context.elapsed, "\r\n")?;
             context.preview("\r\n");
             context.command.push_str(&self.command);
             context.command.push(' ');
         } else {
+            context.elapsed += interval;
+            context.elapsed += config.end_lag;
             cast.output(context.elapsed, "\r\n")?;
             context.preview("\r\n");
             // Take `context.command` out, replacing with an empty string

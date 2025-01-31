@@ -93,7 +93,7 @@ A configuration instruction configures the behavior of the output or other instr
 - `secondary`/`secondary-prompt`: Set the secondary prompt to use in the asciicast output.
     - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@secondary "> "`
-    - Note: For a dimmed cyan secondary prompt, try setting `@@secondary-prompt "\u001b[2;36m> \u001b[0m"`
+    - Note: For a dimmed cyan secondary prompt, try setting `@@secondary "\u001b[2;36m> \u001b[0m"`
 - `continuation`/`line-continuation`: Set the string to signify that the command continues on the next line.
     - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@continuation " \\"`
@@ -104,6 +104,12 @@ A configuration instruction configures the behavior of the output or other instr
 - `interval`: Set the typing interval between characters in a command.
     - **Parameter**: An [Duration](#duration).
     - **Default**: `@@interval 100ms`
+- `start-lag`: Set the start lag. i.e. Additional delay after displaying the prompt, before printing the command for command instructions, or before printing the content for print instructions.
+    - **Parameter**: An [Duration](#duration).
+    - **Default**: `@@start-lag 0s`
+- `end-lag`: Set the end lag. i.e. Additional delay after printing the command for command instructions, or after printing the content for print instructions.
+    - **Parameter**: An [Duration](#duration).
+    - **Default**: `@@end-lag 0s`
 
 #### Persistent
 

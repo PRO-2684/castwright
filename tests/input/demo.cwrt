@@ -6,6 +6,8 @@ idle: 1s
 ---
 
 @@interval 80ms
+@@start-lag 500ms
+@@end-lag 100ms
 @@prompt "\u001b[36m$ \u001b[0m"
 @@secondary "\u001b[2;36m> \u001b[0m"
 @@continuation "\u001b[2m \\\u001b[0m"

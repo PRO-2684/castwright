@@ -27,6 +27,7 @@ impl Instruction for PrintInstruction {
         } else {
             &context.persistent
         };
+        context.elapsed += config.start_lag;
         let interval = config.interval;
         for character in self.0.chars() {
             context.elapsed += interval;
@@ -34,6 +35,7 @@ impl Instruction for PrintInstruction {
         }
         context.preview(&self.0);
         context.elapsed += interval;
+        context.elapsed += config.end_lag;
         cast.output(context.elapsed, "\r\n")?;
         context.preview("\r\n");
         Ok(())

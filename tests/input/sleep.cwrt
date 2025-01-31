@@ -4,8 +4,6 @@ width: 80
 height: 24
 ---
 
-@@interval 50ms
-
 % --- sleep.cwrt start ---
 
 $ echo hello  \

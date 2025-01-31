@@ -104,6 +104,10 @@ struct Configuration {
     hidden: bool,
     /// Typing interval between characters in a command or print instruction, in microseconds (µs).
     interval: u64,
+    /// The start lag in microseconds (µs). i.e. Additional delay after displaying the prompt, before printing the command for command instructions, or before printing the content for print instructions.
+    start_lag: u64,
+    /// The end lag in microseconds (µs). i.e. Additional delay after printing the command for command instructions, or after printing the content for print instructions.
+    end_lag: u64,
 }
 
 impl Configuration {
@@ -121,6 +125,8 @@ impl Default for Configuration {
             line_continuation: " \\".to_string(),
             hidden: false,
             interval: 100_000,
+            start_lag: 0,
+            end_lag: 0,
         }
     }
 }
@@ -483,6 +489,8 @@ mod tests {
             line_continuation: " \\".to_string(),
             hidden: false,
             interval: 100_000,
+            start_lag: 0,
+            end_lag: 0,
         };
         let calculated_config = context.consume_temporary();
         assert_eq!(calculated_config, expected_config);
