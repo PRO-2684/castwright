@@ -1,0 +1,10 @@
+---
+width: 80
+height: 24
+title: CastWright Builtin Commands
+---
+
+$ cd tests/input
+$ ls
+$ cd ../output
+$ ls

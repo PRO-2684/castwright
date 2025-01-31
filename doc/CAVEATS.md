@@ -6,6 +6,9 @@ This section lists known issues and caveats of CastWright.
 
 ### Issue
 
+> [!NOTE]
+> CastWright implements some builtin shell commands to help you work around this limitation. See [REFERENCE.md](./REFERENCE.md#command) for more information.
+
 Each command in a CastWright script is executed in a separate shell session. This means that changes to the environment, like changing the working directory or setting environment variables, are not preserved between commands. This may not be ideal for some use cases.
 
 ### Workaround
@@ -13,20 +16,20 @@ Each command in a CastWright script is executed in a separate shell session. Thi
 Use multi-line shell commands to group related commands together. For example, you can change the following:
 
 ```plaintext
-$ cd ./path/to/directory
-$ cat file.txt
-$ cd ..
+$ export MY_VAR="Hello, World!"
+$ echo $MY_VAR
+$ unset MY_VAR
 ```
 
 To:
 
 ```plaintext
-$ cd ./path/to/directory \
-> && cat file.txt \
-> && cd ..
-# The above line can be omitted, since current implementation does not preserve the working directory between commands. However, it is recommended to include it for:
+$ export MY_VAR="Hello, World!" \
+> && echo $MY_VAR \
+> && unset MY_VAR
+# The above line can be omitted, since current implementation does not preserve the shell session. However, it is recommended to include it for:
 # Clarity and maintainability
-# Easy transition to a future implementation that preserves the working directory
+# Easy transition to a future implementation that preserves the shell session
 # Copy-pasting the commands to a shell script
 ```
 
@@ -56,7 +59,7 @@ Another solution is to modify a shell written in Rust and integrate it into Cast
 2. It makes CastWright bloated. We don't want to include a shell in CastWright. We want to keep it simple and lightweight.
 3. It does not work with other shells and can incur learning costs for users.
 
-#### Implement Common Builtin Shell Commands
+#### Implement Common Builtin Shell Commands (Current Solution)
 
 Another solution is to implement common builtin shell commands, like `cd`. This way, we can simulate a shell session without actually maintaining one. This is a more reliable solution, but:
 

@@ -63,7 +63,7 @@ impl Instruction for CommandInstruction {
         if config.hidden {
             if context.execute {
                 // Execute command silently
-                execute_command(&context.shell, &self.command, true)?.consume()?;
+                execute_command(context, &self.command, true)?.consume()?;
             }
             return Ok(());
         }
@@ -99,7 +99,7 @@ impl Instruction for CommandInstruction {
             command.push_str(&self.command);
             if context.execute {
                 let mut prev = std::time::Instant::now();
-                let reader = execute_command(&context.shell, &command, true)?;
+                let reader = execute_command(context, &command, true)?;
                 let mut lock = std::io::stdout().lock();
                 for chunk in reader {
                     let chunk = chunk?;

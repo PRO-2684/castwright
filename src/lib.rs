@@ -47,7 +47,7 @@ pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
 use instruction::parse_instruction;
 use shell::execute_command;
-use std::io::{BufRead, Write};
+use std::{io::{BufRead, Write}, path::PathBuf};
 
 /// Front matter parsing state.
 #[derive(Debug, PartialEq, Clone, Copy)]
@@ -179,6 +179,8 @@ struct ExecutionContext {
     temporary: TemporaryConfiguration,
     /// The shell to use.
     shell: String,
+    /// Working directory. Must be an absolute path.
+    directory: PathBuf,
     /// Elapsed time in microseconds (µs).
     elapsed: u64,
 
@@ -200,6 +202,7 @@ impl ExecutionContext {
             persistent: Configuration::new(),
             temporary: TemporaryConfiguration::new(),
             shell: "bash".to_string(),
+            directory: PathBuf::from(".").canonicalize().expect("Failed to canonicalize current directory"),
             elapsed: 0,
             execute: false,
             preview: false,

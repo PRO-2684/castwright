@@ -11,11 +11,12 @@ idle: 1s
 @@continuation "\u001b[2m \\\u001b[0m"
 
 $ # Let's see a simple example
-$ cat tests/input/sleep.cwrt
+$ cd tests/input
+$ cat sleep.cwrt
 $ # Run the `.cwrt` script with `castwright` to get an asciicast
 @delay 50ms
 $ # CastWright will display a real-time preview, \
 > without typing delay to save your time
-$ castwright -i tests/input/sleep.cwrt -o /tmp/sleep.cast -x
+$ castwright -i sleep.cwrt -o /tmp/sleep.cast -x
 $ # And use asciinema to play that asciicast
 $ asciinema play /tmp/sleep.cast
