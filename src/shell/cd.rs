@@ -41,11 +41,23 @@ mod tests {
     use std::path::PathBuf;
 
     #[test]
-    fn cd() {
+    fn cd_relative() {
         let current = PathBuf::from(".").canonicalize().unwrap();
         let parent = current.parent().unwrap().to_path_buf();
 
         let cd = Cd::new("..");
+        let mut context = ExecutionContext::new();
+        cd.execute(&mut context).unwrap();
+
+        assert_eq!(context.directory, parent);
+    }
+
+    #[test]
+    fn cd_absolute() {
+        let current = PathBuf::from(".").canonicalize().unwrap();
+        let parent = current.parent().unwrap().to_path_buf();
+
+        let cd = Cd::new(parent.to_str().unwrap());
         let mut context = ExecutionContext::new();
         cd.execute(&mut context).unwrap();
 

@@ -81,8 +81,8 @@ impl Instruction for CommandInstruction {
             cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
         }
         context.preview(&self.command);
+        context.elapsed += delay;
         if self.continuation {
-            context.elapsed += delay;
             cast.output(context.elapsed, &config.line_split)?;
             context.preview(&config.line_split);
             context.elapsed += delay;
@@ -91,7 +91,6 @@ impl Instruction for CommandInstruction {
             context.command.push_str(&self.command);
             context.command.push(' ');
         } else {
-            context.elapsed += delay;
             cast.output(context.elapsed, "\r\n")?;
             context.preview("\r\n");
             // Take `context.command` out, replacing with an empty string

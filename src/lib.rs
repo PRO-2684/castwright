@@ -172,7 +172,7 @@ impl ParseContext {
 
 /// An execution context for the script.
 struct ExecutionContext {
-    // General
+    // State
     /// Persistent configuration.
     persistent: Configuration,
     /// Temporary configuration.
@@ -209,6 +209,7 @@ impl ExecutionContext {
             command: String::new(),
         }
     }
+
     /// Check if the temporary configuration has any values.
     fn has_temporary(&self) -> bool {
         !self.temporary.is_empty()
