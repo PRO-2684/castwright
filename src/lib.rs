@@ -45,6 +45,7 @@ mod util;
 
 pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
+use optfield::optfield;
 use instruction::parse_instruction;
 use shell::execute_command;
 use std::{io::{BufRead, Write}, path::PathBuf};
@@ -82,6 +83,12 @@ impl FrontMatterState {
 }
 
 /// Configuration for the script.
+#[optfield(TemporaryConfiguration,
+    doc = "Temporary configuration for the script.",
+    attrs = add(derive(Default)),
+    field_doc,
+    merge_fn = merge,
+)]
 #[derive(Clone, Debug, PartialEq)]
 struct Configuration {
     /// The shell prompt to use in the asciicast.
@@ -99,6 +106,12 @@ struct Configuration {
 impl Configuration {
     /// Create a new `Configuration` with default values.
     fn new() -> Self {
+        Self::default()
+    }
+}
+
+impl Default for Configuration {
+    fn default() -> Self {
         Self {
             prompt: "$ ".to_string(),
             secondary_prompt: "> ".to_string(),
@@ -109,30 +122,10 @@ impl Configuration {
     }
 }
 
-/// Temporary configuration for the script.
-struct TemporaryConfiguration {
-    /// The shell prompt to use in the asciicast.
-    prompt: Option<String>,
-    /// The secondary prompt to use in the asciicast (for continuation lines).
-    secondary_prompt: Option<String>,
-    /// The string to signify a line continuation in a multiline command.
-    line_continuation: Option<String>,
-    /// Whether the command should be executed silently.
-    hidden: Option<bool>,
-    /// Typing interval between characters in a command or print instruction.
-    interval: Option<u64>,
-}
-
 impl TemporaryConfiguration {
     /// Create a new `TemporaryConfiguration` with default values.
     fn new() -> Self {
-        Self {
-            prompt: None,
-            secondary_prompt: None,
-            line_continuation: None,
-            hidden: None,
-            interval: None,
-        }
+        Self::default()
     }
     /// Check if the temporary configuration is empty.
     fn is_empty(&self) -> bool {
@@ -217,41 +210,14 @@ impl ExecutionContext {
     /// Merge the temporary configuration and return a new `Configuration`.
     fn merge_temporary(&self) -> Configuration {
         let mut config = self.persistent.clone();
-        if let Some(prompt) = &self.temporary.prompt {
-            config.prompt = prompt.clone();
-        }
-        if let Some(secondary_prompt) = &self.temporary.secondary_prompt {
-            config.secondary_prompt = secondary_prompt.clone();
-        }
-        if let Some(line_continuation) = &self.temporary.line_continuation {
-            config.line_continuation = line_continuation.clone();
-        }
-        if let Some(hidden) = self.temporary.hidden {
-            config.hidden = hidden;
-        }
-        if let Some(interval) = self.temporary.interval {
-            config.interval = interval;
-        }
+        config.merge(self.temporary.clone());
         config
     }
     /// Consume the temporary configuration and return a new `Configuration`.
     fn consume_temporary(&mut self) -> Configuration {
         let mut config = self.persistent.clone();
-        if let Some(prompt) = self.temporary.prompt.take() {
-            config.prompt = prompt;
-        }
-        if let Some(secondary_prompt) = self.temporary.secondary_prompt.take() {
-            config.secondary_prompt = secondary_prompt;
-        }
-        if let Some(line_continuation) = self.temporary.line_continuation.take() {
-            config.line_continuation = line_continuation;
-        }
-        if let Some(hidden) = self.temporary.hidden.take() {
-            config.hidden = hidden;
-        }
-        if let Some(interval) = self.temporary.interval.take() {
-            config.interval = interval;
-        }
+        // Take out the temporary configuration, replacing with an empty one
+        config.merge(std::mem::take(&mut self.temporary));
         config
     }
 
@@ -313,7 +279,7 @@ impl ExecutionContext {
 /// # let mut writer = Vec::new();
 /// CastWright::new().execute(true).run(&mut reader, &mut writer).unwrap();
 /// ```
-#[derive(Debug)]
+#[derive(Debug, Default)]
 pub struct CastWright {
     /// Whether to execute and capture the output of shell commands.
     execute: bool,
@@ -324,10 +290,7 @@ pub struct CastWright {
 impl CastWright {
     /// Create a new `CastWright` instance.
     pub fn new() -> Self {
-        Self {
-            execute: false,
-            preview: false,
-        }
+        Self::default()
     }
     /// Set whether to execute and capture the output of shell commands.
     pub fn execute(&mut self, execute: bool) -> &mut Self {
@@ -368,12 +331,6 @@ impl CastWright {
         let instruction = parse_instruction(&line?, parse_context)?;
         instruction.execute(execution_context, cast)?;
         Ok(())
-    }
-}
-
-impl Default for CastWright {
-    fn default() -> Self {
-        Self::new()
     }
 }
 
