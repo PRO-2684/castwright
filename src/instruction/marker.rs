@@ -25,3 +25,27 @@ impl Instruction for MarkerInstruction {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::instruction::{Instruction, ParseContext};
+
+    #[test]
+    fn marker_instruction() {
+        let s = "I'm a marker";
+        let mut context = ParseContext::new();
+        let instruction = MarkerInstruction::parse(&s, &mut context).unwrap();
+        assert_eq!(instruction.0, s);
+
+        let mut context = ExecutionContext::new();
+        let mut writer = Vec::new();
+        let mut cast = AsciiCast::new(&mut writer);
+        instruction.execute(&mut context, &mut cast).unwrap();
+        assert_eq!(context.elapsed, 0);
+
+        let output = String::from_utf8_lossy(&writer);
+        let second_line = output.lines().nth(1).unwrap();
+        assert_eq!(second_line, r#"[0.000000,"m","I'm a marker"]"#);
+    }
+}

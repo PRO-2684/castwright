@@ -57,6 +57,7 @@ Internally, front matter delimiters and key-value pairs are also treated as inst
 | `#`    | [Comment](#comment) |
 | `!`    | [Marker](#marker) |
 | `%`    | [Print](#print) |
+| `~`    | [Wait](#wait) |
 
 ### Command
 
@@ -147,6 +148,22 @@ A print instruction takes a [LooseString](#loosestring) and prints it together w
 % This will be printed as it is
 % "  Printed with indent"
 ```
+
+### Wait
+
+A wait instruction introduces a delay to the asciicast for a specified [Duration](#duration). Example:
+
+```plaintext
+$ echo "First line"
+~ 1s
+$ echo "Second line"
+```
+
+Note that this instruction is not to be confused with the `sleep` shell command: the latter will pause the execution, while the former will only introduce a delay in the asciicast output.
+
+Also, this instruction is not to be confused with the `start-lag` and `end-lag` configuration instructions: the latter two can introduce a delay **inside a line**, while the "wait" instruction introduces a delay **between lines**.
+
+For example, if you use `start-lag` before a command instruction, the delay will be introduced between the prompt and the command. If you use `wait` before a command, the delay will be introduced between the previous line and the prompt.
 
 ## Argument Types
 

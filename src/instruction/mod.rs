@@ -6,6 +6,7 @@ mod empty;
 mod frontmatter;
 mod marker;
 mod print;
+mod wait;
 
 use super::{
     execute_command, util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, ParseContext,
@@ -16,6 +17,7 @@ pub(super) use empty::EmptyInstruction;
 pub(super) use frontmatter::FrontMatterInstruction;
 pub(super) use marker::MarkerInstruction;
 pub(super) use print::PrintInstruction;
+pub(super) use wait::WaitInstruction;
 
 /// Trait for instructions.
 pub(super) trait Instruction: std::fmt::Debug {
@@ -62,6 +64,7 @@ pub(super) fn parse_instruction(
         '!' => Ok(Box::new(MarkerInstruction::parse(&trimmed, context)?)),
         '#' => Ok(Box::new(EmptyInstruction::new())),
         '$' | '>' => Ok(Box::new(CommandInstruction::parse(&trimmed, context)?)),
+        '~' => Ok(Box::new(WaitInstruction::parse(&trimmed, context)?)),
         // _ => Err(ErrorType::UnknownInstruction),
         _ => Ok(Box::new(FrontMatterInstruction::parse(s, context)?)),
     }
@@ -182,7 +185,7 @@ mod tests {
 
     #[test]
     fn invalid_instruction() {
-        let unknown_instructions = ["invalid", "&", "~"];
+        let unknown_instructions = ["invalid", "&", "^"];
         let mut context = ParseContext::new();
         for line in unknown_instructions.iter() {
             assert!(matches!(

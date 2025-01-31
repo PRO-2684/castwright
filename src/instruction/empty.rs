@@ -3,7 +3,7 @@
 use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
 /// An empty instruction.
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct EmptyInstruction;
 
 impl Instruction for EmptyInstruction {
@@ -26,5 +26,24 @@ impl EmptyInstruction {
     /// Create a new `EmptyInstruction`.
     pub fn new() -> Self {
         Self
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn empty_instruction() {
+        let mut context = ParseContext::new();
+        let instruction = EmptyInstruction::parse("", &mut context).unwrap();
+        assert_eq!(instruction, EmptyInstruction);
+
+        let mut context = ExecutionContext::new();
+        let mut writer = Vec::new();
+        let mut cast = AsciiCast::new(&mut writer);
+        instruction.execute(&mut context, &mut cast).unwrap();
+        assert_eq!(context.has_temporary(), false);
+        assert_eq!(writer.len(), 0);
     }
 }

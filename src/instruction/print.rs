@@ -41,3 +41,42 @@ impl Instruction for PrintInstruction {
         Ok(())
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn print_instruction() {
+        let s = "Hello, world!";
+        let mut context = ParseContext::new();
+        let instruction = PrintInstruction::parse(s, &mut context).unwrap();
+        assert_eq!(instruction.0, s);
+
+        let mut context = ExecutionContext::new();
+        let mut writer = Vec::new();
+        let mut cast = AsciiCast::new(&mut writer);
+        instruction.execute(&mut context, &mut cast).unwrap();
+        assert_eq!(context.has_temporary(), false);
+
+        let output = String::from_utf8_lossy(&writer);
+        let lines_after = output.lines().skip(1).collect::<Vec<_>>();
+        let expected = vec![
+            r#"[0.100000,"o","H"]"#,
+            r#"[0.200000,"o","e"]"#,
+            r#"[0.300000,"o","l"]"#,
+            r#"[0.400000,"o","l"]"#,
+            r#"[0.500000,"o","o"]"#,
+            r#"[0.600000,"o",","]"#,
+            r#"[0.700000,"o"," "]"#,
+            r#"[0.800000,"o","w"]"#,
+            r#"[0.900000,"o","o"]"#,
+            r#"[1.000000,"o","r"]"#,
+            r#"[1.100000,"o","l"]"#,
+            r#"[1.200000,"o","d"]"#,
+            r#"[1.300000,"o","!"]"#,
+            r#"[1.400000,"o","\r\n"]"#,
+        ];
+        assert_eq!(lines_after, expected);
+    }
+}
