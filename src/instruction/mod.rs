@@ -67,6 +67,7 @@ pub(super) fn parse_instruction(
     }
 }
 
+#[cfg(test)]
 impl PartialEq for dyn Instruction {
     fn eq(&self, other: &Self) -> bool {
         // Compare the debug representations of the instructions.
