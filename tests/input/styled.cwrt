@@ -8,7 +8,7 @@ height: 24
 @@prompt "\u001b[36m$ \u001b[0m"
 # Dimmed cyan secondary prompt
 @@secondary "\u001b[2;36m> \u001b[0m"
-# Dimmed line split
+# Dimmed line continuation
 @@continuation "\u001b[2m \\\u001b[0m"
 
 $ echo "Multi-" \

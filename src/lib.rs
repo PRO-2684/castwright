@@ -88,8 +88,8 @@ struct Configuration {
     prompt: String,
     /// The secondary prompt to use in the asciicast (for continuation lines).
     secondary_prompt: String,
-    /// The string to signify a line split in a multiline command.
-    line_split: String,
+    /// The string to signify a line continuation in a multiline command.
+    line_continuation: String,
     /// Whether the command should be executed silently.
     hidden: bool,
     /// Typing interval between characters in a command or print instruction, in microseconds (µs).
@@ -102,7 +102,7 @@ impl Configuration {
         Self {
             prompt: "$ ".to_string(),
             secondary_prompt: "> ".to_string(),
-            line_split: " \\".to_string(),
+            line_continuation: " \\".to_string(),
             hidden: false,
             interval: 100_000,
         }
@@ -115,8 +115,8 @@ struct TemporaryConfiguration {
     prompt: Option<String>,
     /// The secondary prompt to use in the asciicast (for continuation lines).
     secondary_prompt: Option<String>,
-    /// The string to signify a line split in a multiline command.
-    line_split: Option<String>,
+    /// The string to signify a line continuation in a multiline command.
+    line_continuation: Option<String>,
     /// Whether the command should be executed silently.
     hidden: Option<bool>,
     /// Typing interval between characters in a command or print instruction.
@@ -129,7 +129,7 @@ impl TemporaryConfiguration {
         Self {
             prompt: None,
             secondary_prompt: None,
-            line_split: None,
+            line_continuation: None,
             hidden: None,
             interval: None,
         }
@@ -138,7 +138,7 @@ impl TemporaryConfiguration {
     fn is_empty(&self) -> bool {
         self.prompt.is_none()
             && self.secondary_prompt.is_none()
-            && self.line_split.is_none()
+            && self.line_continuation.is_none()
             && self.hidden.is_none()
             && self.interval.is_none()
     }
@@ -223,8 +223,8 @@ impl ExecutionContext {
         if let Some(secondary_prompt) = &self.temporary.secondary_prompt {
             config.secondary_prompt = secondary_prompt.clone();
         }
-        if let Some(line_split) = &self.temporary.line_split {
-            config.line_split = line_split.clone();
+        if let Some(line_continuation) = &self.temporary.line_continuation {
+            config.line_continuation = line_continuation.clone();
         }
         if let Some(hidden) = self.temporary.hidden {
             config.hidden = hidden;
@@ -243,8 +243,8 @@ impl ExecutionContext {
         if let Some(secondary_prompt) = self.temporary.secondary_prompt.take() {
             config.secondary_prompt = secondary_prompt;
         }
-        if let Some(line_split) = self.temporary.line_split.take() {
-            config.line_split = line_split;
+        if let Some(line_continuation) = self.temporary.line_continuation.take() {
+            config.line_continuation = line_continuation;
         }
         if let Some(hidden) = self.temporary.hidden.take() {
             config.hidden = hidden;
@@ -522,7 +522,7 @@ mod tests {
         let expected_config = Configuration {
             prompt: "$$ ".to_string(),
             secondary_prompt: ">> ".to_string(),
-            line_split: " \\".to_string(),
+            line_continuation: " \\".to_string(),
             hidden: false,
             interval: 100_000,
         };

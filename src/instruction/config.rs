@@ -10,7 +10,7 @@ enum ConfigInstructionType {
     Prompt(String),
     /// The secondary prompt to use in the asciicast (for continuation lines).
     SecondaryPrompt(String),
-    /// The string to signify a line split in a multiline command.
+    /// The string to signify a line continuation in a multiline command.
     LineContinuation(String),
     /// Whether the command should be executed silently.
     Hidden(bool),
@@ -94,7 +94,7 @@ impl Instruction for ConfigInstruction {
                 SecondaryPrompt(secondary_prompt) => {
                     config.secondary_prompt = secondary_prompt.clone()
                 }
-                LineContinuation(line_split) => config.line_split = line_split.clone(),
+                LineContinuation(line_continuation) => config.line_continuation = line_continuation.clone(),
                 Hidden(hidden) => config.hidden = *hidden,
                 Interval(interval) => config.interval = *interval,
             }
@@ -105,7 +105,7 @@ impl Instruction for ConfigInstruction {
                 SecondaryPrompt(secondary_prompt) => {
                     config.secondary_prompt = Some(secondary_prompt.clone())
                 }
-                LineContinuation(line_split) => config.line_split = Some(line_split.clone()),
+                LineContinuation(line_continuation) => config.line_continuation = Some(line_continuation.clone()),
                 Hidden(hidden) => config.hidden = Some(*hidden),
                 Interval(interval) => config.interval = Some(*interval),
             }
@@ -224,7 +224,7 @@ mod tests {
         let resolved = context.consume_temporary();
         assert_eq!(resolved.prompt, "~> ".to_string());
         assert_eq!(resolved.secondary_prompt, "| ".to_string());
-        assert_eq!(resolved.line_split, "\\".to_string());
+        assert_eq!(resolved.line_continuation, "\\".to_string());
         assert!(resolved.hidden);
     }
 }

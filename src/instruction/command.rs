@@ -83,8 +83,8 @@ impl Instruction for CommandInstruction {
         context.preview(&self.command);
         context.elapsed += interval;
         if self.continuation {
-            cast.output(context.elapsed, &config.line_split)?;
-            context.preview(&config.line_split);
+            cast.output(context.elapsed, &config.line_continuation)?;
+            context.preview(&config.line_continuation);
             context.elapsed += interval;
             cast.output(context.elapsed, "\r\n")?;
             context.preview("\r\n");

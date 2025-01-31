@@ -97,7 +97,7 @@ A configuration instruction configures the behavior of the output or other instr
 - `continuation`/`line-continuation`: Set the string to signify that the command continues on the next line.
     - **Parameter**: A [LooseString](#loosestring).
     - **Default**: `@@continuation " \\"`
-    - Note: For a dimmed line split, try setting `@@continuation "\u001b[2m \\\u001b[0m"`
+    - Note: For a dimmed line continuation, try setting `@@continuation "\u001b[2m \\\u001b[0m"`
 - `hidden`: Set whether the command should be executed silently.
     - **Parameter**: A [Boolean](#boolean), defaulting to `true` if omitted.
     - **Default**: `@@hidden false`
