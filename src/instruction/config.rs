@@ -84,7 +84,7 @@ impl Instruction for ConfigInstruction {
                 let delay = iter.next().ok_or(ErrorType::MalformedInstruction)?;
                 Ok(ConfigInstructionType::EndLag(util::parse_duration(delay)?.as_micros() as u64))
             }
-            _ => Err(ErrorType::MalformedInstruction),
+            _ => Err(ErrorType::UnknownConfig),
         }?;
         Ok(Self {
             instruction_type,
@@ -191,10 +191,6 @@ mod tests {
     fn malformed_config_instruction() {
         let mut context = ParseContext::new();
         let malformed_instructions = [
-            "invalid",
-            "@width",
-            "@width -1",
-            "@width what",
             "hidden what",
             "interval",
             "interval 2",
@@ -202,10 +198,11 @@ mod tests {
             "start-lag 1",
         ];
         for line in malformed_instructions.iter() {
+            let parsed = ConfigInstruction::parse(line, &mut context).unwrap_err();
             assert!(matches!(
-                ConfigInstruction::parse(line, &mut context).unwrap_err(),
+                parsed,
                 ErrorType::MalformedInstruction,
-            ));
+            ), "Expected MalformedInstruction, got {parsed:?} at line `{line}`");
         }
     }
 
@@ -213,6 +210,7 @@ mod tests {
     fn unknown_config_instruction() {
         let mut context = ParseContext::new();
         let unknown_instructions = [
+            "invalid",
             "width 123",
             "@height 456",
             "title CastWright demo",
@@ -221,10 +219,11 @@ mod tests {
             "idle 1s",
         ];
         for line in unknown_instructions.iter() {
+            let parsed = ConfigInstruction::parse(line, &mut context).unwrap_err();
             assert!(matches!(
-                ConfigInstruction::parse(line, &mut context).unwrap_err(),
-                ErrorType::MalformedInstruction,
-            ));
+                parsed,
+                ErrorType::UnknownConfig,
+            ), "Expected UnknownConfig, got {parsed:?} at line `{line}`");
         }
     }
 

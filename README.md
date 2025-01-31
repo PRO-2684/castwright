@@ -22,9 +22,8 @@ Have you re-recorded the same session over and over again, either to hit the rig
 - **Fast**: CastWright is designed to be fast, with running time close to actually executing the given shell commands.
 - **Efficient**: CastWright guarantees constant memory usage, by leveraging streaming I/O.
 - **Preview**: Preview your asciicast automatically, saving you the time for executing `&& asciinema play name.cast` and the configured delays.
-- **Intuitive**: CastWright scripts are very intuitive and similar to an interactive shell, making it easy to understand, write, and maintain.
+- **Intuitive**: CastWright scripts are very intuitive and similar to an interactive shell, with friendly error messages, making it easy to understand, write, and maintain.
 - **Customization**: CastWright scripts provide various instructions for customizing the produced asciicast, like typing speed or title.
-- **Reusability**: CastWright scripts can be reused across different environments, making it easy to share and collaborate.
 
 ## 🚀 Installation
 

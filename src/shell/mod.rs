@@ -5,7 +5,7 @@ mod cd;
 use super::{ErrorType, ExecutionContext};
 use cd::Cd;
 use duct::{cmd, ReaderHandle};
-use std::io::Read;
+use std::io::{Read, ErrorKind};
 
 /// Execute a command using given shell, returning its output as an iterator, with `\n` replaced by `\r\n`.
 pub fn execute_command(
@@ -87,7 +87,11 @@ impl Iterator for ReaderIterator {
             }
             Err(e) => {
                 self.error = true;
-                Some(Err(ErrorType::Io(e)))
+                if e.kind() == ErrorKind::Other {
+                    Some(Err(ErrorType::Subprocess(e.to_string())))
+                } else {
+                    Some(Err(ErrorType::Io(e)))
+                }
             }
         }
     }

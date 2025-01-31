@@ -422,31 +422,6 @@ mod tests {
     }
 
     #[test]
-    fn script_malformed_instruction() {
-        let malformed_scripts = [
-            // Config instruction
-            "#abc\n@",                  // Expected character after @
-            "#abc\n@@",                 // Expected character after @@
-            "#abc\n@@wid",              // Unrecognized configuration instruction
-            "@@prompt $\n@@height abc", // Malformed integer
-            "@@prompt $\n@idle 1",      // Malformed duration - no suffix
-            "@@prompt $\n@idle 1min",   // Malformed duration - invalid suffix
-            "@@prompt $\n@interval",    // Malformed duration - no value
-            "@@prompt $\n@hidden what", // Malformed boolean
-        ];
-        for text in malformed_scripts.iter() {
-            let text = text.trim();
-            let mut reader = BufReader::new(text.as_bytes());
-            assert_eq!(
-                CastWright::new()
-                    .run(&mut reader, &mut std::io::sink())
-                    .unwrap_err(),
-                ErrorType::MalformedInstruction.with_line(2)
-            );
-        }
-    }
-
-    #[test]
     fn script_expected_continuation() {
         let text = r#"
             $echo "Hello, World!" \

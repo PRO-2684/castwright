@@ -23,6 +23,7 @@ impl Instruction for CommandInstruction {
             '$' => true,
             '>' => false,
             _ => return Err(ErrorType::UnknownInstruction),
+            // _ => unreachable!("Should be handled by frontmatter.rs"),
         };
         let continuation = s.ends_with('\\');
         if start && context.expect_continuation {

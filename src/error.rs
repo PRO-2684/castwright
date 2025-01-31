@@ -12,6 +12,9 @@ pub enum ErrorType {
     /// A `serde_json` error occurred while parsing.
     #[error("JSON error: \"{0}\"")]
     Json(serde_json::Error),
+    /// Subprocess does not exit with expected status code.
+    #[error("Shell {0}")]
+    Subprocess(String),
 
     // Front matter errors
     /// Expected key-value pair, but got instruction.
@@ -31,12 +34,20 @@ pub enum ErrorType {
     /// The instruction is not in the expected format.
     #[error("Malformed instruction")]
     MalformedInstruction,
+
+    // Instruction type specific errors
     /// Expected a continuation line, but did not get one.
     #[error("Expected continuation")]
     ExpectedContinuation,
     /// Did not expect a continuation line, but got one.
     #[error("Unexpected continuation")]
     UnexpectedContinuation,
+    /// The configuration instruction is not recognized.
+    #[error("Unknown configuration")]
+    UnknownConfig,
+    /// The front matter instruction is not recognized.
+    #[error("Unknown front matter")]
+    UnknownFrontMatter,
 
     // Asciicast errors
     /// The header has already been written.
@@ -85,6 +96,8 @@ impl PartialEq for ErrorType {
                 | (Self::MalformedInstruction, Self::MalformedInstruction)
                 | (Self::ExpectedContinuation, Self::ExpectedContinuation)
                 | (Self::UnexpectedContinuation, Self::UnexpectedContinuation)
+                | (Self::UnknownConfig, Self::UnknownConfig)
+                | (Self::UnknownFrontMatter, Self::UnknownFrontMatter)
                 | (Self::HeaderAlreadyWritten, Self::HeaderAlreadyWritten)
         )
     }

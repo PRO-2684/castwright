@@ -67,7 +67,7 @@ impl Instruction for FrontMatterInstruction {
                     let idle = util::parse_duration(value)?;
                     Ok(FrontMatterInstruction::Idle(idle))
                 }
-                _ => Err(ErrorType::MalformedInstruction),
+                _ => Err(ErrorType::UnknownFrontMatter),
             }
         } else {
             // We are not expecting any key-value pairs, and this instruction does not match any other instruction.
@@ -170,6 +170,67 @@ mod tests {
                 &FrontMatterInstruction::parse(line, &mut parse_context).unwrap(),
                 expected
             );
+        }
+    }
+
+    #[test]
+    fn malformed_front_matter_instruction() {
+        let mut parse_context = ParseContext::new();
+        parse_context.front_matter_state.next().unwrap();
+        let instructions = [
+            "width:",
+            "width: -1",
+            "width: what",
+            "height:",
+            "height: 0",
+            "idle:",
+            "idle: 1",
+        ];
+        for line in instructions.iter() {
+            let parsed = FrontMatterInstruction::parse(line, &mut parse_context).unwrap_err();
+            assert!(matches!(
+                parsed,
+                ErrorType::MalformedInstruction,
+            ), "Expected MalformedInstruction, got {parsed:?} at line `{line}`");
+        }
+    }
+
+    #[test]
+    fn expected_key_value_pair() {
+        let mut parse_context = ParseContext::new();
+        parse_context.front_matter_state.next().unwrap();
+        let instructions = [
+            "width",
+            "height",
+            "title",
+            "shell",
+            "quit",
+            "idle",
+            "unknown",
+        ];
+        for line in instructions.iter() {
+            let parsed = FrontMatterInstruction::parse(line, &mut parse_context).unwrap_err();
+            assert!(matches!(
+                parsed,
+                ErrorType::ExpectedKeyValuePair,
+            ), "Expected ExpectedKeyValuePair, got {parsed:?} at line `{line}`");
+        }
+    }
+
+    #[test]
+    fn unknown_front_matter_instruction() {
+        let mut parse_context = ParseContext::new();
+        parse_context.front_matter_state.next().unwrap();
+        let instructions = [
+            "unknown: 123",
+            ": 456",
+        ];
+        for line in instructions.iter() {
+            let parsed = FrontMatterInstruction::parse(line, &mut parse_context).unwrap_err();
+            assert!(matches!(
+                parsed,
+                ErrorType::UnknownFrontMatter,
+            ), "Expected UnknownFrontMatter, got {parsed:?} at line `{line}`");
         }
     }
 }
