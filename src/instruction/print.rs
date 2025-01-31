@@ -27,13 +27,13 @@ impl Instruction for PrintInstruction {
         } else {
             &context.persistent
         };
-        let delay = config.delay;
+        let interval = config.interval;
         for character in self.0.chars() {
-            context.elapsed += delay;
+            context.elapsed += interval;
             cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
         }
         context.preview(&self.0);
-        context.elapsed += delay;
+        context.elapsed += interval;
         cast.output(context.elapsed, "\r\n")?;
         context.preview("\r\n");
         Ok(())

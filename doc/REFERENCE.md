@@ -101,9 +101,9 @@ A configuration instruction configures the behavior of the output or other instr
 - `hidden`: Set whether the command should be executed silently.
     - **Parameter**: A [Boolean](#boolean), defaulting to `true` if omitted.
     - **Default**: `@@hidden false`
-- `delay`: Set the typing delay between characters in a command.
+- `interval`: Set the typing interval between characters in a command.
     - **Parameter**: An [Duration](#duration).
-    - **Default**: `@@delay 100ms`
+    - **Default**: `@@interval 100ms`
 
 #### Persistent
 

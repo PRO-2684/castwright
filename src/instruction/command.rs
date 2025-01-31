@@ -72,20 +72,20 @@ impl Instruction for CommandInstruction {
         } else {
             &config.secondary_prompt
         };
-        let delay = config.delay;
+        let interval = config.interval;
         cast.output(context.elapsed, prompt)?;
         context.preview(prompt);
         for character in self.command.chars() {
-            context.elapsed += delay;
+            context.elapsed += interval;
             // https://stackoverflow.com/a/67898224/16468609
             cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
         }
         context.preview(&self.command);
-        context.elapsed += delay;
+        context.elapsed += interval;
         if self.continuation {
             cast.output(context.elapsed, &config.line_split)?;
             context.preview(&config.line_split);
-            context.elapsed += delay;
+            context.elapsed += interval;
             cast.output(context.elapsed, "\r\n")?;
             context.preview("\r\n");
             context.command.push_str(&self.command);

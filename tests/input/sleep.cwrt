@@ -4,7 +4,7 @@ width: 80
 height: 24
 ---
 
-@@delay 50ms
+@@interval 50ms
 
 % --- sleep.cwrt start ---
 

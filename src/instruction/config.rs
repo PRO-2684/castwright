@@ -14,8 +14,8 @@ enum ConfigInstructionType {
     LineContinuation(String),
     /// Whether the command should be executed silently.
     Hidden(bool),
-    /// Typing delay between characters in a command or print instruction, in microseconds (µs).
-    Delay(u64),
+    /// Typing interval between characters in a command or print instruction, in microseconds (µs).
+    Interval(u64),
 }
 
 /// A configuration instruction.
@@ -66,10 +66,10 @@ impl Instruction for ConfigInstruction {
                     Ok(ConfigInstructionType::Hidden(true)) // Default to true
                 }
             }
-            "delay" => {
-                let delay = iter.next().ok_or(ErrorType::MalformedInstruction)?;
-                Ok(ConfigInstructionType::Delay(
-                    util::parse_duration(delay)?.as_micros() as u64,
+            "interval" => {
+                let interval = iter.next().ok_or(ErrorType::MalformedInstruction)?;
+                Ok(ConfigInstructionType::Interval(
+                    util::parse_duration(interval)?.as_micros() as u64,
                 ))
             }
             _ => Err(ErrorType::MalformedInstruction),
@@ -96,7 +96,7 @@ impl Instruction for ConfigInstruction {
                 }
                 LineContinuation(line_split) => config.line_split = line_split.clone(),
                 Hidden(hidden) => config.hidden = *hidden,
-                Delay(delay) => config.delay = *delay,
+                Interval(interval) => config.interval = *interval,
             }
         } else {
             let config = &mut context.temporary;
@@ -107,7 +107,7 @@ impl Instruction for ConfigInstruction {
                 }
                 LineContinuation(line_split) => config.line_split = Some(line_split.clone()),
                 Hidden(hidden) => config.hidden = Some(*hidden),
-                Delay(delay) => config.delay = Some(*delay),
+                Interval(interval) => config.interval = Some(*interval),
             }
         }
         Ok(())
@@ -132,7 +132,7 @@ mod tests {
             ("@line-continuation \\", LineContinuation("\\".to_string())),
             ("@hidden true", Hidden(true)),
             ("@hidden false", Hidden(false)),
-            ("@delay 2ms", Delay(2_000)),
+            ("@interval 2ms", Interval(2_000)),
         ];
         for (line, expected) in instructions.iter() {
             assert_eq!(
@@ -152,7 +152,7 @@ mod tests {
             ("secondary \"> \"", false),
             ("continuation \\", false),
             ("hidden true", false),
-            ("delay 2ms", false),
+            ("interval 2ms", false),
         ];
         for (line, expected) in instructions.iter() {
             assert_eq!(
@@ -173,8 +173,8 @@ mod tests {
             "@width -1",
             "@width what",
             "hidden what",
-            "delay",
-            "delay 2",
+            "interval",
+            "interval 2",
         ];
         for line in malformed_instructions.iter() {
             assert!(matches!(

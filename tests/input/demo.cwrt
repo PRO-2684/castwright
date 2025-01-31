@@ -5,7 +5,7 @@ height: 24
 idle: 1s
 ---
 
-@@delay 80ms
+@@interval 80ms
 @@prompt "\u001b[36m$ \u001b[0m"
 @@secondary "\u001b[2;36m> \u001b[0m"
 @@continuation "\u001b[2m \\\u001b[0m"
@@ -14,9 +14,9 @@ $ # Let's see a simple example
 $ cd tests/input
 $ cat sleep.cwrt
 $ # Run the `.cwrt` script with `castwright` to get an asciicast
-@delay 50ms
+@interval 50ms
 $ # CastWright will display a real-time preview, \
-> without typing delay to save your time
+> without typing interval to save your time
 $ castwright -i sleep.cwrt -o /tmp/sleep.cast -x
 $ # And use asciinema to play that asciicast
 $ asciinema play /tmp/sleep.cast

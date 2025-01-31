@@ -85,8 +85,8 @@ mod tests {
         let mut context = ParseContext::new();
         let instructions: [(&str, Box<dyn Instruction>); 10] = [
             (
-                " @delay 2ms",
-                Box::new(ConfigInstruction::parse("delay 2ms", &mut context).unwrap()),
+                " @interval 2ms",
+                Box::new(ConfigInstruction::parse("interval 2ms", &mut context).unwrap()),
             ),
             (
                 " %print",
@@ -108,8 +108,8 @@ mod tests {
                 ),
             ),
             (
-                " @ delay 2ms",
-                Box::new(ConfigInstruction::parse("delay 2ms", &mut context).unwrap()),
+                " @ interval 2ms",
+                Box::new(ConfigInstruction::parse("interval 2ms", &mut context).unwrap()),
             ),
             (
                 "% print",
@@ -141,8 +141,8 @@ mod tests {
         let mut context = ParseContext::new();
         let instructions: [(&str, Box<dyn Instruction>); 5] = [
             (
-                "@delay 2ms",
-                Box::new(ConfigInstruction::parse("delay 2ms", &mut context).unwrap()),
+                "@interval 2ms",
+                Box::new(ConfigInstruction::parse("interval 2ms", &mut context).unwrap()),
             ),
             (
                 "%print",

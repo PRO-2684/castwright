@@ -92,8 +92,8 @@ struct Configuration {
     line_split: String,
     /// Whether the command should be executed silently.
     hidden: bool,
-    /// Typing delay between characters in a command or print instruction, in microseconds (µs).
-    delay: u64,
+    /// Typing interval between characters in a command or print instruction, in microseconds (µs).
+    interval: u64,
 }
 
 impl Configuration {
@@ -104,7 +104,7 @@ impl Configuration {
             secondary_prompt: "> ".to_string(),
             line_split: " \\".to_string(),
             hidden: false,
-            delay: 100_000,
+            interval: 100_000,
         }
     }
 }
@@ -119,8 +119,8 @@ struct TemporaryConfiguration {
     line_split: Option<String>,
     /// Whether the command should be executed silently.
     hidden: Option<bool>,
-    /// Typing delay between characters in a command or print instruction.
-    delay: Option<u64>,
+    /// Typing interval between characters in a command or print instruction.
+    interval: Option<u64>,
 }
 
 impl TemporaryConfiguration {
@@ -131,7 +131,7 @@ impl TemporaryConfiguration {
             secondary_prompt: None,
             line_split: None,
             hidden: None,
-            delay: None,
+            interval: None,
         }
     }
     /// Check if the temporary configuration is empty.
@@ -140,7 +140,7 @@ impl TemporaryConfiguration {
             && self.secondary_prompt.is_none()
             && self.line_split.is_none()
             && self.hidden.is_none()
-            && self.delay.is_none()
+            && self.interval.is_none()
     }
 }
 
@@ -229,8 +229,8 @@ impl ExecutionContext {
         if let Some(hidden) = self.temporary.hidden {
             config.hidden = hidden;
         }
-        if let Some(delay) = self.temporary.delay {
-            config.delay = delay;
+        if let Some(interval) = self.temporary.interval {
+            config.interval = interval;
         }
         config
     }
@@ -249,8 +249,8 @@ impl ExecutionContext {
         if let Some(hidden) = self.temporary.hidden.take() {
             config.hidden = hidden;
         }
-        if let Some(delay) = self.temporary.delay.take() {
-            config.delay = delay;
+        if let Some(interval) = self.temporary.interval.take() {
+            config.interval = interval;
         }
         config
     }
@@ -467,7 +467,7 @@ mod tests {
             "@@prompt $\n@@height abc", // Malformed integer
             "@@prompt $\n@idle 1",      // Malformed duration - no suffix
             "@@prompt $\n@idle 1min",   // Malformed duration - invalid suffix
-            "@@prompt $\n@delay",       // Malformed duration - no value
+            "@@prompt $\n@interval",       // Malformed duration - no value
             "@@prompt $\n@hidden what", // Malformed boolean
         ];
         for text in malformed_scripts.iter() {
@@ -524,7 +524,7 @@ mod tests {
             secondary_prompt: ">> ".to_string(),
             line_split: " \\".to_string(),
             hidden: false,
-            delay: 100_000,
+            interval: 100_000,
         };
         let calculated_config = context.consume_temporary();
         assert_eq!(calculated_config, expected_config);

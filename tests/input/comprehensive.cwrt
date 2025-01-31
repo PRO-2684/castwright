@@ -14,8 +14,8 @@ idle: 1s
 ---
 
 # Persistent configuration (`@@`)
-# Delay between each character
-@@delay 100ms
+# Interval between each character
+@@interval 100ms
 # ...
 
 # Temporary configuration (`@`): Configuration for this command only
