@@ -6,4 +6,10 @@ height: 24
 
 @@delay 50ms
 
-$ echo hello; sleep 1; echo world 1>&2
+% --- sleep.cwrt start ---
+
+$ echo hello  \
+> && sleep 1 \
+> && echo world
+
+% --- sleep.cwrt end ---

@@ -56,6 +56,13 @@ Another solution is to modify a shell written in Rust and integrate it into Cast
 2. It makes CastWright bloated. We don't want to include a shell in CastWright. We want to keep it simple and lightweight.
 3. It does not work with other shells and can incur learning costs for users.
 
+#### Implement Common Builtin Shell Commands
+
+Another solution is to implement common builtin shell commands, like `cd`. This way, we can simulate a shell session without actually maintaining one. This is a more reliable solution, but:
+
+1. It is not universal. Different shells have different commands, although most of them are similar.
+2. Which commands to implement should be decided.
+
 ### Contributing
 
 [`src/shell.rs`](../src/shell.rs) contains the implementation of executing shell commands. You may want to start there and define a new structure like `ShellSession` if you are interested in contributing a solution to this issue.

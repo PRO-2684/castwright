@@ -1,54 +1,21 @@
-# Comments start with `#`, which won't have any effect on the outcome
-
-# Metadata
 ---
-# Sets configuration for all FOLLOWING commands
-# Set the terminal width, default is current terminal width
+title: CastWright Demo
 width: 80
-# Set the terminal height, default is current terminal height
 height: 24
-# Title of the asciicast (no point setting this using temporary configuration)
-title: CastWright Script Demo
-# Terminal idle timeout
 idle: 1s
 ---
 
-# Persistent configuration (`@@`)
-# Delay between each character
-@@delay 100ms
-# ...
+@@delay 80ms
+@@prompt "\u001b[36m$ \u001b[0m"
+@@secondary "\u001b[2;36m> \u001b[0m"
+@@continuation "\u001b[2m \\\u001b[0m"
 
-# Temporary configuration (`@`): Configuration for this command only
-@hidden
-# The following command will be executed but not printed
-
-# Shell command (`$`, an extra space is recommended)
-$ echo "Hello, World!"
-# No output
-
-# This command will be printed and executed
-$ echo "Hello, World again!"
-# Output:
-# $ echo "Hello, World again!"
-# Hello, World again!
-
-# To print some content as it is, prefix with `%`
-% This will be printed as it is
-# Output:
-# This will be printed as it is
-# To include whitespace characters or escape sequences, use `"` to wrap your string:
-% "  Printed with indent"
-
-# Marker (`!`)
-! Multiline
-
-# Start a multiline command with a regular command
-# Use `>` as prefix to continue
-$ echo "Multi-" \
-> "line" \
-> "command"
-# Output:
-# $ echo "Multi-" \
-# > "line" \
-# > "command"
-# Multi- line command
+$ # Let's see a simple example
+$ cat tests/input/sleep.cwrt
+$ # Run the `.cwrt` script with `castwright` to get an asciicast
+@delay 50ms
+$ # CastWright will display a real-time preview, \
+> without typing delay to save your time
+$ castwright -i tests/input/sleep.cwrt -o /tmp/sleep.cast -x
+$ # And use asciinema to play that asciicast
+$ asciinema play /tmp/sleep.cast
