@@ -1,6 +1,7 @@
 //! Module for parsing command instructions.
 
 use super::{execute_command, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
+use std::io::Write;
 
 /// A command instruction.
 #[derive(Debug, PartialEq)]
@@ -99,13 +100,20 @@ impl Instruction for CommandInstruction {
             if context.execute {
                 let mut prev = std::time::Instant::now();
                 let reader = execute_command(&context.shell, &command, true)?;
+                let mut lock = std::io::stdout().lock();
                 for chunk in reader {
                     let chunk = chunk?;
                     let now = std::time::Instant::now();
                     context.elapsed += now.duration_since(prev).as_micros() as u64;
                     prev = now;
                     cast.output(context.elapsed, &chunk)?;
-                    context.preview(&chunk);
+                    // context.preview(&chunk);
+                    // 1. Ensure that the output is flushed in real-time
+                    // 2. Use lock to improve performance in case there are many chunks
+                    if context.preview {
+                        print!("{}", chunk);
+                        lock.flush()?;
+                    }
                 }
             }
         }
