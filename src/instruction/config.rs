@@ -78,11 +78,15 @@ impl Instruction for ConfigInstruction {
             }
             "start-lag" => {
                 let delay = iter.next().ok_or(ErrorType::MalformedInstruction)?;
-                Ok(ConfigInstructionType::StartLag(util::parse_duration(delay)?.as_micros() as u64))
+                Ok(ConfigInstructionType::StartLag(
+                    util::parse_duration(delay)?.as_micros() as u64,
+                ))
             }
             "end-lag" => {
                 let delay = iter.next().ok_or(ErrorType::MalformedInstruction)?;
-                Ok(ConfigInstructionType::EndLag(util::parse_duration(delay)?.as_micros() as u64))
+                Ok(ConfigInstructionType::EndLag(
+                    util::parse_duration(delay)?.as_micros() as u64,
+                ))
             }
             _ => Err(ErrorType::UnknownConfig),
         }?;
@@ -199,10 +203,10 @@ mod tests {
         ];
         for line in malformed_instructions.iter() {
             let parsed = ConfigInstruction::parse(line, &mut context).unwrap_err();
-            assert!(matches!(
-                parsed,
-                ErrorType::MalformedInstruction,
-            ), "Expected MalformedInstruction, got {parsed:?} at line `{line}`");
+            assert!(
+                matches!(parsed, ErrorType::MalformedInstruction,),
+                "Expected MalformedInstruction, got {parsed:?} at line `{line}`"
+            );
         }
     }
 
@@ -220,10 +224,10 @@ mod tests {
         ];
         for line in unknown_instructions.iter() {
             let parsed = ConfigInstruction::parse(line, &mut context).unwrap_err();
-            assert!(matches!(
-                parsed,
-                ErrorType::UnknownConfig,
-            ), "Expected UnknownConfig, got {parsed:?} at line `{line}`");
+            assert!(
+                matches!(parsed, ErrorType::UnknownConfig,),
+                "Expected UnknownConfig, got {parsed:?} at line `{line}`"
+            );
         }
     }
 

@@ -188,10 +188,10 @@ mod tests {
         ];
         for line in instructions.iter() {
             let parsed = FrontMatterInstruction::parse(line, &mut parse_context).unwrap_err();
-            assert!(matches!(
-                parsed,
-                ErrorType::MalformedInstruction,
-            ), "Expected MalformedInstruction, got {parsed:?} at line `{line}`");
+            assert!(
+                matches!(parsed, ErrorType::MalformedInstruction,),
+                "Expected MalformedInstruction, got {parsed:?} at line `{line}`"
+            );
         }
     }
 
@@ -200,20 +200,14 @@ mod tests {
         let mut parse_context = ParseContext::new();
         parse_context.front_matter_state.next().unwrap();
         let instructions = [
-            "width",
-            "height",
-            "title",
-            "shell",
-            "quit",
-            "idle",
-            "unknown",
+            "width", "height", "title", "shell", "quit", "idle", "unknown",
         ];
         for line in instructions.iter() {
             let parsed = FrontMatterInstruction::parse(line, &mut parse_context).unwrap_err();
-            assert!(matches!(
-                parsed,
-                ErrorType::ExpectedKeyValuePair,
-            ), "Expected ExpectedKeyValuePair, got {parsed:?} at line `{line}`");
+            assert!(
+                matches!(parsed, ErrorType::ExpectedKeyValuePair,),
+                "Expected ExpectedKeyValuePair, got {parsed:?} at line `{line}`"
+            );
         }
     }
 
@@ -221,16 +215,13 @@ mod tests {
     fn unknown_front_matter_instruction() {
         let mut parse_context = ParseContext::new();
         parse_context.front_matter_state.next().unwrap();
-        let instructions = [
-            "unknown: 123",
-            ": 456",
-        ];
+        let instructions = ["unknown: 123", ": 456"];
         for line in instructions.iter() {
             let parsed = FrontMatterInstruction::parse(line, &mut parse_context).unwrap_err();
-            assert!(matches!(
-                parsed,
-                ErrorType::UnknownFrontMatter,
-            ), "Expected UnknownFrontMatter, got {parsed:?} at line `{line}`");
+            assert!(
+                matches!(parsed, ErrorType::UnknownFrontMatter,),
+                "Expected UnknownFrontMatter, got {parsed:?} at line `{line}`"
+            );
         }
     }
 }
