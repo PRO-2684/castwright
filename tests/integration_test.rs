@@ -1,8 +1,12 @@
 use castwright::{CastWright, Error, ErrorType};
-use std::{fs::File, io::Read};
+use std::{fs::File, io::{Read, BufReader}};
 
 const INPUT_DIR: &str = "tests/input/";
 const OUTPUT_DIR: &str = "tests/output/";
+const SUCCESS_DIR: &str = "tests/success/";
+const FAILURE_DIR: &str = "tests/failure/";
+
+// Input-Output tests, without execution
 
 /// A test case, contains the name of the test, the input file and the expected output file.
 struct TestCase {
@@ -29,10 +33,10 @@ fn test_cases() -> impl Iterator<Item = TestCase> {
 }
 
 #[test]
-fn test() -> Result<(), Error> {
+fn input_output_tests() -> Result<(), Error> {
     let castwright = CastWright::new();
     for mut case in test_cases() {
-        let mut reader = std::io::BufReader::new(case.input);
+        let mut reader = BufReader::new(case.input);
         let mut writer = Vec::new();
         castwright.run(&mut reader, &mut writer)?;
 
@@ -56,4 +60,34 @@ fn test() -> Result<(), Error> {
         }
     }
     Ok(())
+}
+
+// Success or failure tests, with execution
+
+/// Read all files in a directory, return a iterator of `BufReader<File>`.
+fn test_files(dir: &str) -> impl Iterator<Item = (String, BufReader<File>)> {
+    let dir = std::fs::read_dir(dir).unwrap();
+    dir.map(|entry| {
+        let entry = entry.unwrap();
+        let file = File::open(entry.path()).unwrap();
+        (entry.file_name().into_string().unwrap(), BufReader::new(file))
+    })
+}
+
+#[test]
+fn success_tests() {
+    let mut writer = std::io::sink(); // Discard output
+    for (name, mut reader) in test_files(SUCCESS_DIR) {
+        let castwright = CastWright::new().execute(true);
+        castwright.run(&mut reader, &mut writer).expect(&format!("Test case `{}` should succeed", name));
+    }
+}
+
+#[test]
+fn failure_tests() {
+    let mut writer = std::io::sink(); // Discard output
+    for (name, mut reader) in test_files(FAILURE_DIR) {
+        let castwright = CastWright::new().execute(true);
+        castwright.run(&mut reader, &mut writer).expect_err(&format!("Test case `{}` should fail", name));
+    }
 }

@@ -1,0 +1,4 @@
+@@prompt "\u001b[36m$ \u001b[0m"
+@@interval 50ms
+
+$ unrecognized

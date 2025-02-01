@@ -1,0 +1,45 @@
+@@prompt "\u001b[36m$ \u001b[0m"
+@@secondary "\u001b[2;36m> \u001b[0m"
+@@continuation "\u001b[2m \\\u001b[0m"
+@@interval 50ms
+
+# Successful shell commands
+
+@expect
+$ echo "1"
+
+@expect success
+$ echo "1"
+
+@expect any
+$ echo "1"
+
+@hidden
+@expect
+$ echo "1"
+
+@hidden
+@expect success
+$ echo "1"
+
+@hidden
+@expect any
+$ echo "1"
+
+# Failed shell commands
+
+@@prompt "\u001b[31m$ \u001b[0m"
+
+@expect failure
+$ unrecognized
+
+@expect any
+$ unrecognized
+
+@hidden
+@expect failure
+$ unrecognized
+
+@hidden
+@expect any
+$ unrecognized
