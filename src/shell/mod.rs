@@ -11,17 +11,13 @@ use std::io::{ErrorKind, Read};
 pub fn execute_command(
     context: &mut ExecutionContext,
     command: &str,
-    check: bool,
 ) -> Result<ReaderIterator, ErrorType> {
     // Check if the command is a built-in command
     if execute_built_in_command(context, command)? {
         return Ok(ReaderIterator::new());
     }
     // Spawn the command
-    let mut command = cmd!(&context.shell, "-c", command).dir(&context.directory);
-    if !check {
-        command = command.unchecked(); // Don't check for status code (TODO: Config for this)
-    }
+    let command = cmd!(&context.shell, "-c", command).dir(&context.directory);
     let reader = command.stderr_to_stdout().reader()?;
     let iter = ReaderIterator::from_handle(reader);
 
@@ -55,13 +51,6 @@ impl ReaderIterator {
             error: false,
         }
     }
-    /// Read until EOF, discarding the output.
-    pub fn consume(&mut self) -> Result<(), ErrorType> {
-        for output in self {
-            output?;
-        }
-        Ok(())
-    }
 }
 
 impl Iterator for ReaderIterator {
@@ -87,7 +76,7 @@ impl Iterator for ReaderIterator {
             }
             Err(e) => {
                 self.error = true;
-                if e.kind() == ErrorKind::Other {
+                if matches!(e.kind(), ErrorKind::Other) {
                     Some(Err(ErrorType::Subprocess(e.to_string())))
                 } else {
                     Some(Err(ErrorType::Io(e)))
@@ -147,7 +136,7 @@ mod tests {
     fn echo_stdout() {
         let command = "echo hello";
         let mut context = ExecutionContext::new();
-        let reader = execute_command(&mut context, command, true).unwrap();
+        let reader = execute_command(&mut context, command).unwrap();
         let mut output = String::new();
         for chunk in reader {
             output.push_str(&chunk.unwrap());
@@ -159,7 +148,7 @@ mod tests {
     fn echo_stderr() {
         let command = "echo hello 1>&2";
         let mut context = ExecutionContext::new();
-        let reader = execute_command(&mut context, command, true).unwrap();
+        let reader = execute_command(&mut context, command).unwrap();
         let mut output = String::new();
         for chunk in reader {
             output.push_str(&chunk.unwrap());
@@ -171,7 +160,7 @@ mod tests {
     fn echo_both() {
         let command = "echo hello; echo world 1>&2";
         let mut context = ExecutionContext::new();
-        let reader = execute_command(&mut context, command, true).unwrap();
+        let reader = execute_command(&mut context, command).unwrap();
         let expected = "hello\r\nworld\r\n";
         let mut actual = String::new();
         for chunk in reader {
@@ -185,7 +174,7 @@ mod tests {
     fn echo_with_delay() {
         let command = "echo hello; sleep 1; echo world 1>&2";
         let mut context = ExecutionContext::new();
-        let reader = execute_command(&mut context, command, true).unwrap();
+        let reader = execute_command(&mut context, command).unwrap();
         let expected = vec!["hello\r\n", "world\r\n"];
         let mut actual = Vec::new();
 

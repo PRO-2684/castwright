@@ -9,7 +9,7 @@ mod print;
 mod wait;
 
 use super::{
-    execute_command, util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, ParseContext,
+    execute_command, util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, ParseContext
 };
 pub(super) use command::CommandInstruction;
 pub(super) use config::ConfigInstruction;

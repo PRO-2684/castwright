@@ -64,3 +64,11 @@ $ echo "Multi-" \
 # > "line" \
 # > "command"
 # Multi- line command
+
+# This command is expected to fail
+@expect failure
+@prompt "\u001b[31m$ \u001b[0m"
+$ unrecognized
+
+# This command is expected to succeed (default)
+$ echo "End"

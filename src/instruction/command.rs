@@ -64,7 +64,15 @@ impl Instruction for CommandInstruction {
         if config.hidden {
             if context.execute {
                 // Execute command silently
-                execute_command(context, &self.command, true)?.consume()?;
+                let expect = config.expect.clone();
+                let reader = execute_command(context, &self.command)?;
+                let result = || -> Result<(), ErrorType> {
+                    for chunk in reader {
+                        let _ = chunk?;
+                    }
+                    Ok(())
+                }();
+                handle_error(result, expect)?;
             }
             return Ok(());
         }
@@ -102,32 +110,81 @@ impl Instruction for CommandInstruction {
             let mut command = std::mem::take(&mut context.command);
             command.push_str(&self.command);
             if context.execute {
+                let expect = config.expect.clone();
                 let mut prev = std::time::Instant::now();
-                let reader = execute_command(context, &command, true)?;
+                let reader = execute_command(context, &command)?;
                 let mut lock = std::io::stdout().lock();
-                for chunk in reader {
-                    let chunk = chunk?;
-                    let now = std::time::Instant::now();
-                    context.elapsed += now.duration_since(prev).as_micros() as u64;
-                    prev = now;
-                    cast.output(context.elapsed, &chunk)?;
-                    // context.preview(&chunk);
-                    // 1. Ensure that the output is flushed in real-time
-                    // 2. Use lock to improve performance in case there are many chunks
-                    if context.preview {
-                        print!("{}", chunk);
-                        lock.flush()?;
-                    }
-                }
+                let result = || -> Result<(), ErrorType> {
+                    for chunk in reader {
+                        let chunk = chunk?;
+                        let now = std::time::Instant::now();
+                        context.elapsed += now.duration_since(prev).as_micros() as u64;
+                        prev = now;
+                        cast.output(context.elapsed, &chunk)?;
+                        // context.preview(&chunk);
+                        // 1. Ensure that the output is flushed in real-time
+                        // 2. Use lock to improve performance in case there are many chunks
+                        if context.preview {
+                            print!("{}", chunk);
+                            lock.flush()?;
+                        }
+                    };
+                    Ok(())
+                }();
+                handle_error(result, expect)?;
             }
         }
         Ok(())
     }
 }
 
+/// Handle the result of executing a command (see if it fulfills the expectation).
+fn handle_error(result: Result<(), ErrorType>, expect: Option<bool>) -> Result<(), ErrorType> {
+    // If the `result` is not an `ErrorType::Subprocess`, always return it directly.
+    if let Err(e) = &result {
+        if !matches!(e, ErrorType::Subprocess(_)) {
+            return result;
+        }
+    }
+    // If the `expect` is `None`, always return `Ok`.
+    let Some(expect) = expect else {
+        // return Ok(result.unwrap_or_default());
+        return Ok(());
+    };
+    match result {
+        Ok(()) => {
+            // If the `result` is `Ok`:
+            if expect {
+                // If the `expect` is `true`, return `Ok`.
+                Ok(())
+            } else {
+                // If the `expect` is `false`, return `Err`.
+                Err(ErrorType::Subprocess("command expected failure, but succeeded".to_string()))
+            }
+        },
+        Err(e) => {
+            // If the `result` is `Err`:
+            if expect {
+                // If the `expect` is `true`, return `Err`.
+                Err(e)
+            } else {
+                // If the `expect` is `false`, return `Ok`.
+                // Ok("".to_string())
+                Ok(())
+            }
+        },
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io;
+
+    /// Create an `io::Error` for testing.
+    fn io_error() -> Result<(), ErrorType> {
+        Err(ErrorType::Io(io::Error::new(io::ErrorKind::Other, "error")))
+    }
 
     #[test]
     fn command_instruction() {
@@ -146,6 +203,31 @@ mod tests {
             assert_eq!(instruction.command, *command);
             assert_eq!(instruction.start, *start_output);
             assert_eq!(instruction.continuation, *continuation);
+        }
+    }
+
+    #[test]
+    fn error_handling() {
+        let should_succeed: [(Result<(), ErrorType>, Option<_>); 4] = [
+            (Ok(()), None),
+            (Err(ErrorType::Subprocess("error".to_string())), None),
+            (Ok(()), Some(true)),
+            (Err(ErrorType::Subprocess("error".to_string())), Some(false)),
+        ];
+        for (result, expect) in should_succeed.into_iter() {
+            let desc = format!("handle_error({:?}, {:?})", result, expect);
+            assert!(handle_error(result, expect).is_ok(), "{desc}");
+        }
+        let should_fail: [(Result<(), ErrorType>, Option<_>); 5] = [
+            (Ok(()), Some(false)),
+            (Err(ErrorType::Subprocess("error".to_string())), Some(true)),
+            (io_error(), None),
+            (io_error(), Some(true)),
+            (io_error(), Some(false)),
+        ];
+        for (result, expect) in should_fail.into_iter() {
+            let desc = format!("handle_error({:?}, {:?})", result, expect);
+            assert!(handle_error(result, expect).is_err(), "{desc}");
         }
     }
 }

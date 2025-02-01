@@ -87,13 +87,15 @@ impl FrontMatterState {
 
 /// Configuration for the script.
 #[optfield(TemporaryConfiguration,
+    rewrap,
+    field_doc,
     doc = "Temporary configuration for the script.",
     attrs = add(derive(Default)),
-    field_doc,
     merge_fn = merge,
 )]
 #[derive(Clone, Debug, PartialEq)]
 struct Configuration {
+    // Remember to update `is_empty` when adding new fields
     /// The shell prompt to use in the asciicast.
     prompt: String,
     /// The secondary prompt to use in the asciicast (for continuation lines).
@@ -102,6 +104,8 @@ struct Configuration {
     line_continuation: String,
     /// Whether the command should be executed silently.
     hidden: bool,
+    /// Expected exit status of the command. `true` for success, `false` for failure, `None` for any.
+    expect: Option<bool>,
     /// Typing interval between characters in a command or print instruction, in microseconds (µs).
     interval: u64,
     /// The start lag in microseconds (µs). i.e. Additional delay after displaying the prompt, before printing the command for command instructions, or before printing the content for print instructions.
@@ -124,6 +128,7 @@ impl Default for Configuration {
             secondary_prompt: "> ".to_string(),
             line_continuation: " \\".to_string(),
             hidden: false,
+            expect: Some(true),
             interval: 100_000,
             start_lag: 0,
             end_lag: 0,
@@ -142,7 +147,10 @@ impl TemporaryConfiguration {
             && self.secondary_prompt.is_none()
             && self.line_continuation.is_none()
             && self.hidden.is_none()
+            && self.expect.is_none()
             && self.interval.is_none()
+            && self.start_lag.is_none()
+            && self.end_lag.is_none()
     }
 }
 
@@ -458,11 +466,13 @@ mod tests {
         let mut context = ExecutionContext::new();
         context.temporary.prompt = Some("$$ ".to_string());
         context.temporary.secondary_prompt = Some(">> ".to_string());
+        context.temporary.expect = Some(None);
         let expected_config = Configuration {
             prompt: "$$ ".to_string(),
             secondary_prompt: ">> ".to_string(),
             line_continuation: " \\".to_string(),
             hidden: false,
+            expect: None,
             interval: 100_000,
             start_lag: 0,
             end_lag: 0,

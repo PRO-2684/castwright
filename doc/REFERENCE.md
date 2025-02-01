@@ -85,7 +85,7 @@ $ echo "Multi-" \
 
 ### Configuration
 
-A configuration instruction configures the behavior of the output or other instructions. It can be classified based on its scope as either [**persistent**](#persistent) or [**temporary**](#temporary). Below is a list of valid keywords for configuration instructions.
+A configuration instruction configures the behavior of [command](#command) and [print](#print) instructions (Continuation of a command is considered the same instruction). It can be classified based on its scope as either [**persistent**](#persistent) or [**temporary**](#temporary). Below is a list of valid keywords for configuration instructions.
 
 - `prompt`: Set the shell prompt to use in the asciicast output.
     - **Parameter**: A [LooseString](#loosestring).
@@ -102,6 +102,9 @@ A configuration instruction configures the behavior of the output or other instr
 - `hidden`: Set whether the command should be executed silently.
     - **Parameter**: A [Boolean](#boolean), defaulting to `true` if omitted.
     - **Default**: `@@hidden false`
+- `expect`: Set the expected exit status of the command. Does nothing to print instructions.
+    - **Parameter**: `success`, `failure`, or `any`. If omitted, defaults to `success`.
+    - **Default**: `@@expect success`
 - `interval`: Set the typing interval between characters in a command.
     - **Parameter**: An [Duration](#duration).
     - **Default**: `@@interval 100ms`
@@ -118,7 +121,7 @@ A persistent config instruction starts with two `@`, and affects all subsequent 
 
 #### Temporary
 
-A temporary config instruction starts with only one `@`, and affects only the next [print](#print) or [command](#command) instruction. Note that continuation of a command is considered the same instruction. It is useful for changing the behavior of a single instruction without affecting the rest of the script.
+A temporary config instruction starts with only one `@`, and affects only the next matched instruction. It is useful for changing the behavior of a single instruction without affecting the rest of the script.
 
 ### Empty
 

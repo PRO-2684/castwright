@@ -14,6 +14,8 @@ enum ConfigInstructionType {
     LineContinuation(String),
     /// Whether the command should be executed silently.
     Hidden(bool),
+    /// Expected exit status of the command. `true` for success, `false` for failure, `None` for any.
+    Expect(Option<bool>),
     /// Typing interval between characters in a command or print instruction, in microseconds (µs).
     Interval(u64),
     /// The start lag in microseconds (µs). i.e. Additional delay after displaying the prompt, before printing the command for command instructions, or before printing the content for print instructions.
@@ -70,6 +72,16 @@ impl Instruction for ConfigInstruction {
                     Ok(ConfigInstructionType::Hidden(true)) // Default to true
                 }
             }
+            "expect" => {
+                let expect = iter.next();
+                let word = expect.unwrap_or("success");
+                match word {
+                    "success" => Ok(ConfigInstructionType::Expect(Some(true))),
+                    "failure" => Ok(ConfigInstructionType::Expect(Some(false))),
+                    "any" => Ok(ConfigInstructionType::Expect(None)),
+                    _ => Err(ErrorType::MalformedInstruction),
+                }
+            }
             "interval" => {
                 let interval = iter.next().ok_or(ErrorType::MalformedInstruction)?;
                 Ok(ConfigInstructionType::Interval(
@@ -114,6 +126,7 @@ impl Instruction for ConfigInstruction {
                     config.line_continuation = line_continuation.clone()
                 }
                 Hidden(hidden) => config.hidden = *hidden,
+                Expect(expect) => config.expect = *expect,
                 Interval(interval) => config.interval = *interval,
                 StartLag(delay) => config.start_lag = *delay,
                 EndLag(delay) => config.end_lag = *delay,
@@ -129,6 +142,7 @@ impl Instruction for ConfigInstruction {
                     config.line_continuation = Some(line_continuation.clone())
                 }
                 Hidden(hidden) => config.hidden = Some(*hidden),
+                Expect(expect) => config.expect = Some(*expect),
                 Interval(interval) => config.interval = Some(*interval),
                 StartLag(delay) => config.start_lag = Some(*delay),
                 EndLag(delay) => config.end_lag = Some(*delay),
@@ -154,8 +168,13 @@ mod tests {
             ),
             ("@continuation \\", LineContinuation("\\".to_string())),
             ("@line-continuation \\", LineContinuation("\\".to_string())),
+            ("@hidden", Hidden(true)),
             ("@hidden true", Hidden(true)),
             ("@hidden false", Hidden(false)),
+            ("@expect", Expect(Some(true))),
+            ("@expect success", Expect(Some(true))),
+            ("@expect failure", Expect(Some(false))),
+            ("@expect any", Expect(None)),
             ("@interval 2ms", Interval(2_000)),
             ("@start-lag 1s", StartLag(1_000_000)),
             ("@end-lag 1s", EndLag(1_000_000)),
