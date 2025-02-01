@@ -333,6 +333,9 @@ impl CastWright {
         if parse_context.front_matter_state == FrontMatterState::Start {
             return Err(ErrorType::ExpectedClosingDelimiter.with_line(line_cnt + 1));
         }
+        if parse_context.expect_continuation {
+            return Err(ErrorType::ExpectedContinuation.with_line(line_cnt + 1));
+        }
         Ok(())
     }
     /// Interpret and run a line of a CastWright script.
@@ -430,10 +433,25 @@ mod tests {
     }
 
     #[test]
-    fn script_expected_continuation() {
+    fn script_expected_continuation_1() {
         let text = r#"
             $echo "Hello, World!" \
             @hidden true
+        "#;
+        let text = text.trim();
+        let mut reader = BufReader::new(text.as_bytes());
+        assert_eq!(
+            CastWright::new()
+                .run(&mut reader, &mut std::io::sink())
+                .unwrap_err(),
+            ErrorType::ExpectedContinuation.with_line(2)
+        );
+    }
+
+    #[test]
+    fn script_expected_continuation_2() {
+        let text = r#"
+            $echo "Hello, World!" \
         "#;
         let text = text.trim();
         let mut reader = BufReader::new(text.as_bytes());

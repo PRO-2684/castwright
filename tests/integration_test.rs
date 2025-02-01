@@ -6,7 +6,7 @@ const OUTPUT_DIR: &str = "tests/output/";
 const SUCCESS_DIR: &str = "tests/success/";
 const FAILURE_DIR: &str = "tests/failure/";
 
-// Input-Output tests, without execution
+// Input-Output tests, without execution.
 
 /// A test case, contains the name of the test, the input file and the expected output file.
 struct TestCase {
@@ -62,9 +62,10 @@ fn input_output_tests() -> Result<(), Error> {
     Ok(())
 }
 
-// Success or failure tests, with execution
+// Success or failure tests, with execution. Linux only.
 
 /// Read all files in a directory, return a iterator of `BufReader<File>`.
+#[cfg(target_os = "linux")]
 fn test_files(dir: &str) -> impl Iterator<Item = (String, BufReader<File>)> {
     let dir = std::fs::read_dir(dir).unwrap();
     dir.map(|entry| {
@@ -74,6 +75,7 @@ fn test_files(dir: &str) -> impl Iterator<Item = (String, BufReader<File>)> {
     })
 }
 
+#[cfg(target_os = "linux")]
 #[test]
 fn success_tests() {
     let mut writer = std::io::sink(); // Discard output
@@ -83,6 +85,7 @@ fn success_tests() {
     }
 }
 
+#[cfg(target_os = "linux")]
 #[test]
 fn failure_tests() {
     let mut writer = std::io::sink(); // Discard output
