@@ -64,7 +64,7 @@ impl Instruction for CommandInstruction {
         if config.hidden {
             if context.execute {
                 // Execute command silently
-                let expect = config.expect.clone();
+                let expect = config.expect;
                 let reader = execute_command(context, &self.command)?;
                 let result = || -> Result<(), ErrorType> {
                     for chunk in reader {
@@ -110,7 +110,7 @@ impl Instruction for CommandInstruction {
             let mut command = std::mem::take(&mut context.command);
             command.push_str(&self.command);
             if context.execute {
-                let expect = config.expect.clone();
+                let expect = config.expect;
                 let mut prev = std::time::Instant::now();
                 let reader = execute_command(context, &command)?;
                 let mut lock = std::io::stdout().lock();
@@ -128,7 +128,7 @@ impl Instruction for CommandInstruction {
                             print!("{}", chunk);
                             lock.flush()?;
                         }
-                    };
+                    }
                     Ok(())
                 }();
                 handle_error(result, expect)?;
@@ -159,9 +159,11 @@ fn handle_error(result: Result<(), ErrorType>, expect: Option<bool>) -> Result<(
                 Ok(())
             } else {
                 // If the `expect` is `false`, return `Err`.
-                Err(ErrorType::Subprocess("command expected failure, but succeeded".to_string()))
+                Err(ErrorType::Subprocess(
+                    "command expected failure, but succeeded".to_string(),
+                ))
             }
-        },
+        }
         Err(e) => {
             // If the `result` is `Err`:
             if expect {
@@ -172,7 +174,7 @@ fn handle_error(result: Result<(), ErrorType>, expect: Option<bool>) -> Result<(
                 // Ok("".to_string())
                 Ok(())
             }
-        },
+        }
     }
 }
 
