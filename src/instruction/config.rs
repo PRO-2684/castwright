@@ -269,7 +269,7 @@ mod tests {
                 .execute(&mut context, &mut cast)
                 .unwrap();
         }
-        let resolved = context.consume_temporary();
+        let resolved = context.persistent.combine(context.temporary.get(true));
         assert_eq!(resolved.prompt, "~> ".to_string());
         assert_eq!(resolved.secondary_prompt, "| ".to_string());
         assert_eq!(resolved.line_continuation, "\\".to_string());

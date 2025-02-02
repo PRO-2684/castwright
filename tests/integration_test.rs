@@ -1,5 +1,8 @@
 use castwright::{CastWright, Error, ErrorType};
-use std::{fs::File, io::{Read, BufReader}};
+use std::{
+    fs::File,
+    io::{BufReader, Read},
+};
 
 const INPUT_DIR: &str = "tests/input/";
 const OUTPUT_DIR: &str = "tests/output/";
@@ -71,7 +74,10 @@ fn test_files(dir: &str) -> impl Iterator<Item = (String, BufReader<File>)> {
     dir.map(|entry| {
         let entry = entry.unwrap();
         let file = File::open(entry.path()).unwrap();
-        (entry.file_name().into_string().unwrap(), BufReader::new(file))
+        (
+            entry.file_name().into_string().unwrap(),
+            BufReader::new(file),
+        )
     })
 }
 
@@ -81,7 +87,9 @@ fn success_tests() {
     let mut writer = std::io::sink(); // Discard output
     for (name, mut reader) in test_files(SUCCESS_DIR) {
         let castwright = CastWright::new().execute(true);
-        castwright.run(&mut reader, &mut writer).expect(&format!("Test case `{}` should succeed", name));
+        castwright
+            .run(&mut reader, &mut writer)
+            .expect(&format!("Test case `{}` should succeed", name));
     }
 }
 
@@ -91,6 +99,8 @@ fn failure_tests() {
     let mut writer = std::io::sink(); // Discard output
     for (name, mut reader) in test_files(FAILURE_DIR) {
         let castwright = CastWright::new().execute(true);
-        castwright.run(&mut reader, &mut writer).expect_err(&format!("Test case `{}` should fail", name));
+        castwright
+            .run(&mut reader, &mut writer)
+            .expect_err(&format!("Test case `{}` should fail", name));
     }
 }

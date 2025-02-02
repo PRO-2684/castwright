@@ -43,7 +43,7 @@ mod tests {
         let mut writer = Vec::new();
         let mut cast = AsciiCast::new(&mut writer);
         instruction.execute(&mut context, &mut cast).unwrap();
-        assert_eq!(context.has_temporary(), false);
+        assert_eq!(context.temporary.is_empty(), true);
         assert_eq!(writer.len(), 0);
     }
 }

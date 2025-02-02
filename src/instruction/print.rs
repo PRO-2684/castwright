@@ -22,11 +22,7 @@ impl Instruction for PrintInstruction {
         context: &mut ExecutionContext,
         cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
-        let config = if context.has_temporary() {
-            &context.consume_temporary()
-        } else {
-            &context.persistent
-        };
+        let config = context.persistent.combine(context.temporary.get(true));
         context.elapsed += config.start_lag;
         let interval = config.interval;
         for character in self.0.chars() {
@@ -57,7 +53,7 @@ mod tests {
         let mut writer = Vec::new();
         let mut cast = AsciiCast::new(&mut writer);
         instruction.execute(&mut context, &mut cast).unwrap();
-        assert_eq!(context.has_temporary(), false);
+        assert_eq!(context.temporary.is_empty(), true);
 
         let output = String::from_utf8_lossy(&writer);
         let lines_after = output.lines().skip(1).collect::<Vec<_>>();

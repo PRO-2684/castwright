@@ -49,6 +49,7 @@ use instruction::parse_instruction;
 use optfield::optfield;
 use shell::execute_command;
 use std::{
+    borrow::Cow,
     io::{BufRead, Write},
     path::PathBuf,
 };
@@ -91,11 +92,11 @@ impl FrontMatterState {
     field_doc,
     doc = "Temporary configuration for the script.",
     attrs = add(derive(Default)),
-    merge_fn = merge,
+    merge_fn = merge, // Merge function, only used in `Configuration::combine`
 )]
 #[derive(Clone, Debug, PartialEq)]
 struct Configuration {
-    // Remember to update `is_empty` when adding new fields
+    // Remember to update [`TemporaryConfiguration::is_empty`] when adding new fields
     /// The shell prompt to use in the asciicast.
     prompt: String,
     /// The secondary prompt to use in the asciicast (for continuation lines).
@@ -118,6 +119,18 @@ impl Configuration {
     /// Create a new `Configuration` with default values.
     fn new() -> Self {
         Self::default()
+    }
+    /// Combine with a temporary configuration.
+    fn combine(&self, temporary: TemporaryConfiguration) -> Cow<Configuration> {
+        if !temporary.is_empty() {
+            // Temporary configuration exists - clone and merge persistent configuration
+            let mut config = self.clone();
+            config.merge(temporary);
+            Cow::Owned(config)
+        } else {
+            // No temporary configuration - use a borrowed reference to the persistent configuration
+            Cow::Borrowed(self)
+        }
     }
 }
 
@@ -151,6 +164,14 @@ impl TemporaryConfiguration {
             && self.interval.is_none()
             && self.start_lag.is_none()
             && self.end_lag.is_none()
+    }
+    /// Take or clone self, depending on the `consume` parameter.
+    fn get(&mut self, consume: bool) -> Self {
+        if consume {
+            std::mem::take(self)
+        } else {
+            self.clone()
+        }
     }
 }
 
@@ -220,24 +241,6 @@ impl ExecutionContext {
             preview: false,
             command: String::new(),
         }
-    }
-
-    /// Check if the temporary configuration has any values.
-    fn has_temporary(&self) -> bool {
-        !self.temporary.is_empty()
-    }
-    /// Merge the temporary configuration and return a new `Configuration`.
-    fn merge_temporary(&self) -> Configuration {
-        let mut config = self.persistent.clone();
-        config.merge(self.temporary.clone());
-        config
-    }
-    /// Consume the temporary configuration and return a new `Configuration`.
-    fn consume_temporary(&mut self) -> Configuration {
-        let mut config = self.persistent.clone();
-        // Take out the temporary configuration, replacing with an empty one
-        config.merge(std::mem::take(&mut self.temporary));
-        config
     }
 
     /// Print given string if preview is enabled.
@@ -495,7 +498,10 @@ mod tests {
             start_lag: 0,
             end_lag: 0,
         };
-        let calculated_config = context.consume_temporary();
+        let calculated_config = context
+            .persistent
+            .combine(context.temporary.get(true))
+            .into_owned();
         assert_eq!(calculated_config, expected_config);
         assert!(context.temporary.is_empty());
     }

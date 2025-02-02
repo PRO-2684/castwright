@@ -49,18 +49,8 @@ impl Instruction for CommandInstruction {
         context: &mut ExecutionContext,
         cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
-        let config = if context.has_temporary() {
-            if self.continuation {
-                // The temporary context is needed for the continuation commands
-                &context.merge_temporary()
-            } else {
-                // The temporary context is consumed for the ending command
-                &context.consume_temporary()
-            }
-        } else {
-            // No temporary context
-            &context.persistent
-        };
+        let temp = context.temporary.get(!self.continuation);
+        let config = context.persistent.combine(temp);
         if config.hidden {
             if context.execute {
                 // Execute command silently
