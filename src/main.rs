@@ -1,5 +1,5 @@
 use argh::FromArgs;
-use castwright::{CastWright, Error, ErrorType};
+use castwright::{CastWright, Error, ErrorType, VERSION};
 use disperror::DispError;
 use std::{
     fs::File,
@@ -20,6 +20,9 @@ struct Args {
     /// execute and capture the output of shell commands
     #[argh(switch, short = 'x')]
     execute: bool,
+    /// show version information and exit
+    #[argh(switch, short = 'v')]
+    version: bool,
 }
 
 /// Create or open a file at the given path.
@@ -33,8 +36,32 @@ fn file(path: &str, create: bool) -> Result<File, Error> {
     file.map_err(|e| ErrorType::Io(e).with_line(0))
 }
 
+/// Display a link in the terminal.
+fn link(text: &str, url: &str) {
+    print!("\x1b]8;;{}\x07{}\x1b]8;;\x07", url, text);
+}
+
+/// Show version information.
+fn version() {
+    let github_base = "https://github.com/PRO-2684/castwright";
+    println!("🎥 CastWright v{}", VERSION);
+    link("GitHub", github_base);
+    print!(" | ");
+    link("Releases", &format!("{github_base}/releases"));
+    print!(" | ");
+    link("Docs.rs", "https://docs.rs/castwright");
+    print!(" | ");
+    link("Crates.io", "https://crates.io/crates/castwright");
+    println!();
+}
+
 fn main() -> Result<(), DispError<Error>> {
     let args: Args = argh::from_env();
+
+    if args.version {
+        version();
+        return Ok(());
+    }
 
     let reader: &mut dyn Read = match &args.input {
         Some(path) => &mut file(path, false)?,

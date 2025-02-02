@@ -54,6 +54,9 @@ use std::{
     path::PathBuf,
 };
 
+/// The version of the CastWright library.
+pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+
 /// Front matter parsing state.
 #[derive(Debug, PartialEq, Clone, Copy)]
 enum FrontMatterState {
@@ -359,6 +362,13 @@ impl CastWright {
 mod tests {
     use super::*;
     use std::io::BufReader;
+
+    #[test]
+    fn version_correct() {
+        // Assert that `VERSION` exists in `Cargo.toml`
+        let content = std::fs::read_to_string("Cargo.toml").unwrap();
+        assert!(content.contains(&format!("version = \"{}\"", VERSION)));
+    }
 
     #[test]
     fn expected_key_value_pair() {
