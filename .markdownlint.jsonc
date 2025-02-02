@@ -1,6 +1,7 @@
 {
-    "MD007": { "indent": 4 },
-    "MD013": false,
-    "MD014": false,
-    "MD038": false
+    "ul-indent": { "indent": 4 },
+    "line-length": false,
+    "commands-show-output": false,
+    "no-space-in-code": false,
+    "no-inline-html": false
 }

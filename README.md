@@ -17,6 +17,12 @@
 
 Have you re-recorded the same session over and over again, either to hit the right speed or to avoid mistakes? Ever wanted to automate the process of recording terminal sessions, like shell scripts automate the process of running commands? Well, CastWright is here to help.
 
+<details><summary>Click to see CastWright Demo</summary>
+
+[![CastWright Demo](https://asciinema.org/a/bS90tAnk6raVFqqGInpm7cJ4t.svg)](https://asciinema.org/a/bS90tAnk6raVFqqGInpm7cJ4t)
+
+</details>
+
 ## 🪄 Features
 
 - **Fast**: CastWright is designed to be fast, with running time close to actually executing the given shell commands.
