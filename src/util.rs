@@ -10,15 +10,21 @@ pub fn parse_duration(s: &str) -> Result<Duration, ErrorType> {
     let split_at = s
         .chars()
         .position(|c| !c.is_ascii_digit())
-        .ok_or(ErrorType::MalformedInstruction)?;
+        .unwrap_or_else(|| s.len());
     let (num, suffix) = s.split_at(split_at);
-    // Parse the number
-    let num = num.parse()?;
+    // Parse the number, error if empty
+    let num = if num.is_empty() {
+        Err(ErrorType::MalformedInstruction)?
+    } else {
+        num.parse()?
+    };
     // Parse the suffix
     match suffix {
         "s" => Ok(Duration::from_secs(num)),
         "ms" => Ok(Duration::from_millis(num)),
         "us" => Ok(Duration::from_micros(num)),
+        // We can omit the suffix if the number is 0
+        "" if num == 0 => Ok(Duration::from_secs(0)),
         _ => Err(ErrorType::MalformedInstruction),
     }
 }
@@ -47,9 +53,17 @@ mod tests {
             ("1s", Duration::from_secs(1)),
             ("2ms", Duration::from_millis(2)),
             ("3us", Duration::from_micros(3)),
+            ("0", Duration::from_secs(0)),
         ];
         for (input, expected) in durations.iter() {
             assert_eq!(parse_duration(input).unwrap(), *expected);
+        }
+        let bad_durations = ["1", "1x", "s", ""];
+        for input in bad_durations.iter() {
+            assert!(matches!(
+                parse_duration(input).unwrap_err(),
+                ErrorType::MalformedInstruction
+            ));
         }
     }
 

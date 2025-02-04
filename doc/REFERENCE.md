@@ -182,7 +182,7 @@ An integer argument is a sequence of digits. It can be positive or negative.
 
 ### Duration
 
-A duration argument is a sequence of digits followed by a unit. The unit can be one of `s` (seconds), `ms` (milliseconds) or `us` (microseconds).
+A duration argument is a sequence of digits followed by a unit. The unit can be one of `s` (seconds), `ms` (milliseconds) or `us` (microseconds). If `0` is provided, the unit can be omitted.
 
 ### String
 
