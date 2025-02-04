@@ -12,13 +12,19 @@ idle: 1s
 @@secondary "\u001b[2;36m> \u001b[0m"
 @@continuation "\u001b[2m \\\u001b[0m"
 
-$ # Let's see a simple example
+@hidden
 $ cd tests/input
+
+$ # Let's see a simple example
 $ cat sleep.cwrt
+
+@interval 50ms
 $ # Run the `.cwrt` script with `castwright` to get an asciicast
+
 @interval 50ms
 $ # CastWright will display a real-time preview, \
 > without typing interval to save your time
 $ castwright -i sleep.cwrt -o /tmp/sleep.cast -x
+
 $ # And use asciinema to play that asciicast
 $ asciinema play /tmp/sleep.cast

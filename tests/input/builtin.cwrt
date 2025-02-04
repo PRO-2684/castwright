@@ -4,7 +4,12 @@ height: 24
 title: CastWright Builtin Commands
 ---
 
+@@prompt "\u001b[1;34m~/castwright\u001b[0m$ "
 $ cd tests/input
+
+@@prompt "\u001b[1;34m~/castwright/tests/input\u001b[0m$ "
 $ ls
 $ cd ../output
+
+@@prompt "\u001b[1;34m~/castwright/tests/output\u001b[0m$ "
 $ ls

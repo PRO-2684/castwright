@@ -5,7 +5,6 @@ use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseCont
 /// A configuration instruction type.
 #[derive(Debug, PartialEq)]
 enum ConfigInstructionType {
-    // Configuration that applies to other instructions (directive)
     /// The shell prompt to use in the asciicast.
     Prompt(String),
     /// The secondary prompt to use in the asciicast (for continuation lines).

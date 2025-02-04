@@ -285,11 +285,14 @@ impl ExecutionContext {
 /// let mut reader = BufReader::new(text.as_bytes());
 /// let mut writer = Vec::new();
 /// // CastWright
-/// let castwright = CastWright::new().execute(true); // Instantiation & configuration
+/// let castwright = CastWright::new() // Instantiation & configuration
+///     .execute(true)
+///     .preview(true);
 /// castwright.run(&mut reader, &mut writer).unwrap(); // Running
+/// let asciicast = String::from_utf8_lossy(&writer); // Output
 /// ```
 ///
-/// If you prefer one-liners:
+/// If you prefer to use the default configuration:
 ///
 /// ```rust
 /// # use castwright::CastWright;
@@ -300,7 +303,8 @@ impl ExecutionContext {
 /// # let text = text.trim();
 /// # let mut reader = BufReader::new(text.as_bytes());
 /// # let mut writer = Vec::new();
-/// CastWright::new().execute(true).run(&mut reader, &mut writer).unwrap();
+/// CastWright::new().run(&mut reader, &mut writer).unwrap();
+/// let asciicast = String::from_utf8_lossy(&writer);
 /// ```
 #[derive(Debug, Default)]
 pub struct CastWright {
@@ -337,12 +341,12 @@ impl CastWright {
             line_cnt += 1;
         }
         if parse_context.front_matter_state == FrontMatterState::Start {
-            return Err(ErrorType::ExpectedClosingDelimiter.with_line(line_cnt + 1));
+            Err(ErrorType::ExpectedClosingDelimiter.with_line(line_cnt + 1))
+        } else if parse_context.expect_continuation {
+            Err(ErrorType::ExpectedContinuation.with_line(line_cnt + 1))
+        } else {
+            Ok(())
         }
-        if parse_context.expect_continuation {
-            return Err(ErrorType::ExpectedContinuation.with_line(line_cnt + 1));
-        }
-        Ok(())
     }
     /// Interpret and run a line of a CastWright script.
     fn run_line(
