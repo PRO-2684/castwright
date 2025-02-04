@@ -194,11 +194,7 @@ mod tests {
         assert_eq!(actual, expected);
 
         let duration = second.unwrap().duration_since(first.unwrap());
-        assert!(
-            duration >= Duration::from_secs(1),
-            "Duration: {:?}",
-            duration
-        );
+        assert!(duration >= Duration::from_secs(1), "Duration: {duration:?}",);
     }
 
     #[test]

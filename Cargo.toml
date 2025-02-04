@@ -8,6 +8,7 @@ license = "AGPL-3.0-or-later"
 readme = "README.md"
 description = "🎥 Scripted terminal recording."
 keywords = ["automation", "terminal", "asciinema", "recording", "asciicast"]
+rust-version = "1.79.0"
 
 [dependencies]
 argh = "0.1.13"

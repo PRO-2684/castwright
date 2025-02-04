@@ -53,7 +53,7 @@ mod tests {
         let mut writer = Vec::new();
         let mut cast = AsciiCast::new(&mut writer);
         instruction.execute(&mut context, &mut cast).unwrap();
-        assert_eq!(context.temporary.is_empty(), true);
+        assert!(context.temporary.is_empty());
 
         let output = String::from_utf8_lossy(&writer);
         let lines_after = output.lines().skip(1).collect::<Vec<_>>();

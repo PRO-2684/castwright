@@ -75,7 +75,7 @@ impl PartialEq for dyn Instruction {
     fn eq(&self, other: &Self) -> bool {
         // Compare the debug representations of the instructions.
         // This is a rather crude way to compare instructions, but is acceptable since it is only used in tests.
-        format!("{:?}", self) == format!("{:?}", other)
+        format!("{self:?}") == format!("{other:?}")
     }
 }
 
@@ -188,17 +188,19 @@ mod tests {
         let unknown_instructions = ["invalid", "&", "^"];
         let mut context = ParseContext::new();
         for line in unknown_instructions.iter() {
-            assert!(matches!(
-                parse_instruction(line, &mut context).unwrap_err(),
-                ErrorType::UnknownInstruction,
-            ));
+            let err = parse_instruction(line, &mut context).unwrap_err();
+            assert!(
+                matches!(err, ErrorType::UnknownInstruction,),
+                "Expected UnknownInstruction, got {err:?}"
+            );
         }
         let malformed_instructions = ["@", "@@"];
         for line in malformed_instructions.iter() {
-            assert!(matches!(
-                parse_instruction(line, &mut context).unwrap_err(),
-                ErrorType::MalformedInstruction,
-            ));
+            let err = parse_instruction(line, &mut context).unwrap_err();
+            assert!(
+                matches!(err, ErrorType::MalformedInstruction,),
+                "Expected MalformedInstruction, got {err:?}"
+            );
         }
     }
 }

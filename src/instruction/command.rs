@@ -207,7 +207,7 @@ mod tests {
             (Err(ErrorType::Subprocess("error".to_string())), Some(false)),
         ];
         for (result, expect) in should_succeed.into_iter() {
-            let desc = format!("handle_error({:?}, {:?})", result, expect);
+            let desc = format!("handle_error({result:?}, {expect:?})");
             assert!(handle_error(result, expect).is_ok(), "{desc}");
         }
         let should_fail: [(Result<(), ErrorType>, Option<_>); 5] = [
@@ -218,7 +218,7 @@ mod tests {
             (io_error(), Some(false)),
         ];
         for (result, expect) in should_fail.into_iter() {
-            let desc = format!("handle_error({:?}, {:?})", result, expect);
+            let desc = format!("handle_error({result:?}, {expect:?})");
             assert!(handle_error(result, expect).is_err(), "{desc}");
         }
     }

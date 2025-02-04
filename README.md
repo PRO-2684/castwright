@@ -4,6 +4,7 @@
 [![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/PRO-2684/castwright/release.yml?logo=githubactions)](https://github.com/PRO-2684/castwright/blob/main/.github/workflows/release.yml)
 [![GitHub Release](https://img.shields.io/github/v/release/PRO-2684/castwright?logo=githubactions)](https://github.com/PRO-2684/castwright/releases)
 [![GitHub Downloads (all assets, all releases)](https://img.shields.io/github/downloads/PRO-2684/castwright/total?logo=github)](https://github.com/PRO-2684/castwright/releases)
+[![MSRV](https://img.shields.io/badge/dynamic/toml?url=https%3A%2F%2Fgithub.com%2FPRO-2684%2Fcastwright%2Fraw%2Frefs%2Fheads%2Fmain%2FCargo.toml&query=%24.package.rust-version&logo=rust&label=msrv)](https://crates.io/crates/castwright)
 [![Crates.io Version](https://img.shields.io/crates/v/castwright?logo=rust)](https://crates.io/crates/castwright)
 [![Crates.io Total Downloads](https://img.shields.io/crates/d/castwright?logo=rust)](https://crates.io/crates/castwright)
 [![docs.rs](https://img.shields.io/docsrs/castwright?logo=rust)](https://docs.rs/castwright)

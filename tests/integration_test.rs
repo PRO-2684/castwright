@@ -89,7 +89,7 @@ fn success_tests() {
         let castwright = CastWright::new().execute(true);
         castwright
             .run(&mut reader, &mut writer)
-            .expect(&format!("Test case `{}` should succeed", name));
+            .expect(&format!("Test case `{name}` should succeed"));
     }
 }
 
@@ -101,6 +101,6 @@ fn failure_tests() {
         let castwright = CastWright::new().execute(true);
         castwright
             .run(&mut reader, &mut writer)
-            .expect_err(&format!("Test case `{}` should fail", name));
+            .expect_err(&format!("Test case `{name}` should fail"));
     }
 }

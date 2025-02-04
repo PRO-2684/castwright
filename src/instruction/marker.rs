@@ -35,7 +35,7 @@ mod tests {
     fn marker_instruction() {
         let s = "I'm a marker";
         let mut context = ParseContext::new();
-        let instruction = MarkerInstruction::parse(&s, &mut context).unwrap();
+        let instruction = MarkerInstruction::parse(s, &mut context).unwrap();
         assert_eq!(instruction.0, s);
 
         let mut context = ExecutionContext::new();

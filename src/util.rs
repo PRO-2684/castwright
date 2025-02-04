@@ -10,7 +10,7 @@ pub fn parse_duration(s: &str) -> Result<Duration, ErrorType> {
     let split_at = s
         .chars()
         .position(|c| !c.is_ascii_digit())
-        .unwrap_or_else(|| s.len());
+        .unwrap_or(s.len());
     let (num, suffix) = s.split_at(split_at);
     // Parse the number, error if empty
     let num = if num.is_empty() {
@@ -60,10 +60,11 @@ mod tests {
         }
         let bad_durations = ["1", "1x", "s", ""];
         for input in bad_durations.iter() {
-            assert!(matches!(
-                parse_duration(input).unwrap_err(),
-                ErrorType::MalformedInstruction
-            ));
+            let err = parse_duration(input).unwrap_err();
+            assert!(
+                matches!(err, ErrorType::MalformedInstruction),
+                "Expected MalformedInstruction, got {err:?}"
+            );
         }
     }
 
@@ -83,10 +84,11 @@ mod tests {
     fn loose_string_error() {
         let strings = ["\"hello\" world\"", "\"hello\" world\" again\""];
         for input in strings.iter() {
-            assert!(matches!(
-                parse_loose_string(input).unwrap_err(),
-                ErrorType::Json(_)
-            ));
+            let err = parse_loose_string(input).unwrap_err();
+            assert!(
+                matches!(err, ErrorType::Json(_)),
+                "Expected Json error, got {err:?}"
+            );
         }
     }
 }
