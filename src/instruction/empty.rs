@@ -32,6 +32,7 @@ impl EmptyInstruction {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::io::BufRead;
 
     #[test]
     fn empty_instruction() {
@@ -41,9 +42,12 @@ mod tests {
 
         let mut context = ExecutionContext::new();
         let mut writer = Vec::new();
-        let mut cast = AsciiCast::new(&mut writer);
-        instruction.execute(&mut context, &mut cast).unwrap();
+        instruction
+            .execute(&mut context, &mut AsciiCast::new(&mut writer))
+            .unwrap();
+
         assert!(context.temporary.is_empty());
-        assert_eq!(writer.len(), 0);
+        let lines = writer.lines().collect::<Result<Vec<_>, _>>().unwrap();
+        assert_eq!(lines.len(), 1); // Only the header
     }
 }

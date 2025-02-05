@@ -3,7 +3,7 @@ use castwright::{CastWright, Error, ErrorType, VERSION};
 use disperror::DispError;
 use std::{
     fs::File,
-    io::{Read, Write},
+    io::{BufRead, BufReader, Write},
     path::Path,
 };
 
@@ -63,11 +63,10 @@ fn main() -> Result<(), DispError<Error>> {
         return Ok(());
     }
 
-    let reader: &mut dyn Read = match &args.input {
-        Some(path) => &mut file(path, false)?,
+    let mut reader: &mut dyn BufRead = match &args.input {
+        Some(path) => &mut BufReader::new(file(path, false)?),
         None => &mut std::io::stdin().lock(),
     };
-    let mut reader = std::io::BufReader::new(reader);
 
     let mut writer: &mut dyn Write = match &args.output {
         Some(path) => &mut file(path, true)?,

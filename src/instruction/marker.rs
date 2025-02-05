@@ -40,10 +40,11 @@ mod tests {
 
         let mut context = ExecutionContext::new();
         let mut writer = Vec::new();
-        let mut cast = AsciiCast::new(&mut writer);
-        instruction.execute(&mut context, &mut cast).unwrap();
-        assert_eq!(context.elapsed, 0);
+        instruction
+            .execute(&mut context, &mut AsciiCast::new(&mut writer))
+            .unwrap();
 
+        assert_eq!(context.elapsed, 0);
         let output = String::from_utf8_lossy(&writer);
         let second_line = output.lines().nth(1).unwrap();
         assert_eq!(second_line, r#"[0.000000,"m","I'm a marker"]"#);

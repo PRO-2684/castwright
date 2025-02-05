@@ -27,7 +27,7 @@ use std::{collections::HashMap, io::Write};
 /// - [`title`](AsciiCast::title): Set the title of the asciicast.
 /// - [`capture`](AsciiCast::capture): Set the captured environment variables.
 ///
-/// After you've finished, write the header to the asciicast using the [`write_header`](AsciiCast::write_header) method explicitly. If you don't, the header will be written implicitly when you write the first event. Note that the header can only be written once, either explicitly or implicitly.
+/// After you've finished, you can write the header to the asciicast using the [`write_header`](AsciiCast::write_header) method explicitly. If you don't, the header will be written implicitly when you write the first event, or when the asciicast is dropped. Note that the header can only be written once, either explicitly or implicitly, or a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error will be returned.
 ///
 /// ### Events
 ///
@@ -40,7 +40,72 @@ use std::{collections::HashMap, io::Write};
 ///
 /// ## Output
 ///
-/// The asciicast will be streamed to the writer you provided, every time you add an event or write the header. You can finish writing the asciicast using the [`finish`](AsciiCast::finish) method, which consumes the asciicast and flushes the writer.
+/// The asciicast will be streamed to the writer you provided, every time you add an event or write the header. When it is dropped, it will call [`finish`](AsciiCast::finish), which tries to:
+///
+/// - Write the header if it hasn't been written yet
+/// - Flush the writer
+///
+/// Since it is not possible to return an error when dropping the asciicast, the error will be printed to `stderr` if it occurs. If you want to handle the error, you should call [`finish`](AsciiCast::finish) explicitly and handle the error yourself.
+///
+/// Due to the reason that `Drop` borrows `self` as mutable, you can't access the writer before the asciicast goes out of scope. Consider the following example:
+///
+/// ```rust compile_fail
+/// use castwright::AsciiCast;
+/// let mut writer = Vec::new();
+///
+/// let mut asciicast = AsciiCast::new(&mut writer);
+/// asciicast.output(0, "Hello, world!").unwrap();
+///
+/// let content = String::from_utf8_lossy(&writer); // error[E0502]: cannot borrow `writer` as immutable because it is also borrowed as mutable
+/// let second_line = content.lines().nth(1).unwrap();
+/// assert_eq!(second_line, r#"[0.000000,"o","Hello, world!"]"#);
+/// ```
+///
+/// There are several workarounds to this problem:
+///
+/// ### Workaround 1 - No `let` binding (one-liner)
+///
+/// ```rust
+/// # use castwright::AsciiCast;
+/// # let mut writer = Vec::new();
+/// // ...
+/// AsciiCast::new(&mut writer).output(0, "Hello, world!").unwrap();
+/// // ...
+/// # let content = String::from_utf8_lossy(&writer);
+/// # let second_line = content.lines().nth(1).unwrap();
+/// # assert_eq!(second_line, r#"[0.000000,"o","Hello, world!"]"#);
+/// ```
+///
+/// ### Workaround 2 - Scoping
+///
+/// ```rust
+/// # use castwright::AsciiCast;
+/// # let mut writer = Vec::new();
+/// // ...
+/// {
+///     let mut asciicast = AsciiCast::new(&mut writer);
+///     asciicast.output(0, "Hello, world!").unwrap();
+/// } // <- `asciicast` goes out of scope and is dropped here
+/// // ...
+/// # let content = String::from_utf8_lossy(&writer);
+/// # let second_line = content.lines().nth(1).unwrap();
+/// # assert_eq!(second_line, r#"[0.000000,"o","Hello, world!"]"#);
+/// ```
+///
+/// ### Workaround 3 - Explicitly drop
+///
+/// ```rust
+/// # use castwright::AsciiCast;
+/// # let mut writer = Vec::new();
+/// // ...
+/// let mut asciicast = AsciiCast::new(&mut writer);
+/// asciicast.output(0, "Hello, world!").unwrap();
+/// drop(asciicast); // <- Explicitly drop `asciicast`
+/// // ...
+/// # let content = String::from_utf8_lossy(&writer);
+/// # let second_line = content.lines().nth(1).unwrap();
+/// # assert_eq!(second_line, r#"[0.000000,"o","Hello, world!"]"#);
+/// ```
 pub struct AsciiCast<'a> {
     header: Header,
     writer: &'a mut dyn Write,
@@ -155,11 +220,22 @@ impl<'a> AsciiCast<'a> {
     }
 
     // Finish
-    /// Finish writing the asciicast, consuming self.
-    pub fn finish(mut self) -> Result<(), ErrorType> {
+    /// Finish writing the asciicast. To be specific:
+    ///
+    /// - Writes the header if it hasn't been written yet
+    /// - Flushes the writer
+    pub fn finish(&mut self) -> Result<(), ErrorType> {
         self.try_write_header()?;
         self.writer.flush()?;
         Ok(())
+    }
+}
+
+impl Drop for AsciiCast<'_> {
+    fn drop(&mut self) {
+        if let Err(err) = self.finish() {
+            eprintln!("Error while calling `finish` on AsciiCast: {}", err);
+        }
     }
 }
 
@@ -170,8 +246,8 @@ mod tests {
     #[test]
     fn explicit_write_header() -> Result<(), ErrorType> {
         let mut writer = Vec::new();
-        let mut asciicast = AsciiCast::new(&mut writer);
-        asciicast
+
+        AsciiCast::new(&mut writer)
             .width(80)?
             .height(24)?
             .timestamp(1_000_000)?
@@ -183,6 +259,7 @@ mod tests {
             .input(100, "echo Hello, world!")?
             .marker(200, "marker")?
             .resize(300, 80, 25)?;
+
         let expected = r#"{"version":2,"width":80,"height":24,"timestamp":1000000,"idle_time_limit":2.5,"title":"Test"}
 [0.000000,"o","Hello, world!"]
 [0.000100,"i","echo Hello, world!"]
@@ -196,8 +273,8 @@ mod tests {
     #[test]
     fn implicit_write_header() -> Result<(), ErrorType> {
         let mut writer = Vec::new();
-        let mut asciicast = AsciiCast::new(&mut writer);
-        asciicast
+
+        AsciiCast::new(&mut writer)
             .width(80)?
             .height(24)?
             .timestamp(1_000_000)?
@@ -208,6 +285,7 @@ mod tests {
             .input(100, "echo Hello, world!")?
             .marker(200, "marker")?
             .resize(300, 80, 25)?;
+
         let expected = r#"{"version":2,"width":80,"height":24,"timestamp":1000000,"idle_time_limit":2.5,"title":"Test"}
 [0.000000,"o","Hello, world!"]
 [0.000100,"i","echo Hello, world!"]
