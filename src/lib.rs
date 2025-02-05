@@ -111,11 +111,11 @@ struct Configuration {
     /// Expected exit status of the command. `true` for success, `false` for failure, `None` for any.
     expect: Option<bool>,
     /// Typing interval between characters in a command or print instruction, in microseconds (µs).
-    interval: u64,
+    interval: u128,
     /// The start lag in microseconds (µs). i.e. Additional delay after displaying the prompt, before printing the command for command instructions, or before printing the content for print instructions.
-    start_lag: u64,
+    start_lag: u128,
     /// The end lag in microseconds (µs). i.e. Additional delay after printing the command for command instructions, or after printing the content for print instructions.
-    end_lag: u64,
+    end_lag: u128,
 }
 
 impl Configuration {
@@ -216,7 +216,7 @@ struct ExecutionContext {
     /// Working directory. Must be an absolute path.
     directory: PathBuf,
     /// Elapsed time in microseconds (µs).
-    elapsed: u64,
+    elapsed: u128,
 
     // Configuration
     /// Whether to actually execute the commands.

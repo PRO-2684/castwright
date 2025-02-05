@@ -3,11 +3,11 @@
 use serde::Serialize;
 
 /// The event of an asciicast v2 file.
-// From https://github.com/asciinema/asciinema/blob/f0f908872ca0364128b546bcc8af918d2fc47566/src/asciicast/v2.rs#L38-L45
+// Adapted from https://github.com/asciinema/asciinema/blob/f0f908872ca0364128b546bcc8af918d2fc47566/src/asciicast/v2.rs#L38-L45
 #[derive(Debug)]
 pub(super) struct Event<'a> {
     /// Indicates when the event happened, represented as the number of milliseconds since the beginning of the recording session.
-    time: u64,
+    time: u128,
     /// Type of the event.
     code: EventCode,
     /// Event specific data, described separately for each event code.
@@ -32,7 +32,7 @@ impl Serialize for Event<'_> {
 
 impl<'a> Event<'a> {
     /// Create a new output event.
-    pub fn output(time: u64, data: &'a str) -> Self {
+    pub fn output(time: u128, data: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Output,
@@ -40,7 +40,7 @@ impl<'a> Event<'a> {
         }
     }
     /// Create a new input event.
-    pub fn input(time: u64, data: &'a str) -> Self {
+    pub fn input(time: u128, data: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Input,
@@ -48,7 +48,7 @@ impl<'a> Event<'a> {
         }
     }
     /// Create a new marker event.
-    pub fn marker(time: u64, name: &'a str) -> Self {
+    pub fn marker(time: u128, name: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Marker,
@@ -56,7 +56,7 @@ impl<'a> Event<'a> {
         }
     }
     /// Create a new resize event.
-    pub fn resize(time: u64, dim: &'a str) -> Self {
+    pub fn resize(time: u128, dim: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Resize,

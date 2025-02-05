@@ -16,11 +16,11 @@ enum ConfigInstructionType {
     /// Expected exit status of the command. `true` for success, `false` for failure, `None` for any.
     Expect(Option<bool>),
     /// Typing interval between characters in a command or print instruction, in microseconds (µs).
-    Interval(u64),
+    Interval(u128),
     /// The start lag in microseconds (µs). i.e. Additional delay after displaying the prompt, before printing the command for command instructions, or before printing the content for print instructions.
-    StartLag(u64),
+    StartLag(u128),
     /// The end lag in microseconds (µs). i.e. Additional delay after printing the command for command instructions, or after printing the content for print instructions.
-    EndLag(u64),
+    EndLag(u128),
 }
 
 /// A configuration instruction.
@@ -84,19 +84,19 @@ impl Instruction for ConfigInstruction {
             "interval" => {
                 let interval = iter.next().ok_or(ErrorType::MalformedInstruction)?;
                 Ok(ConfigInstructionType::Interval(
-                    util::parse_duration(interval)?.as_micros() as u64,
+                    util::parse_duration(interval)?.as_micros(),
                 ))
             }
             "start-lag" => {
                 let delay = iter.next().ok_or(ErrorType::MalformedInstruction)?;
                 Ok(ConfigInstructionType::StartLag(
-                    util::parse_duration(delay)?.as_micros() as u64,
+                    util::parse_duration(delay)?.as_micros(),
                 ))
             }
             "end-lag" => {
                 let delay = iter.next().ok_or(ErrorType::MalformedInstruction)?;
                 Ok(ConfigInstructionType::EndLag(
-                    util::parse_duration(delay)?.as_micros() as u64,
+                    util::parse_duration(delay)?.as_micros(),
                 ))
             }
             _ => Err(ErrorType::UnknownConfig),

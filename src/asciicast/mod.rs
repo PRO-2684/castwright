@@ -180,25 +180,25 @@ impl<'a> AsciiCast<'a> {
 
     // Events
     /// Write an output event to the asciicast.
-    pub fn output(&mut self, time: u64, data: &str) -> Result<&mut Self, ErrorType> {
+    pub fn output(&mut self, time: u128, data: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
         self.write_event(&Event::output(time, data))?;
         Ok(self)
     }
     /// Write an input event to the asciicast.
-    pub fn input(&mut self, time: u64, data: &str) -> Result<&mut Self, ErrorType> {
+    pub fn input(&mut self, time: u128, data: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
         self.write_event(&Event::input(time, data))?;
         Ok(self)
     }
     /// Write a marker event to the asciicast.
-    pub fn marker(&mut self, time: u64, name: &str) -> Result<&mut Self, ErrorType> {
+    pub fn marker(&mut self, time: u128, name: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
         self.write_event(&Event::marker(time, name))?;
         Ok(self)
     }
     /// Write a resize event to the asciicast.
-    pub fn resize(&mut self, time: u64, columns: u16, rows: u16) -> Result<&mut Self, ErrorType> {
+    pub fn resize(&mut self, time: u128, columns: u16, rows: u16) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
         self.write_event(&Event::resize(time, &format!("{}x{}", columns, rows)))?;
         Ok(self)

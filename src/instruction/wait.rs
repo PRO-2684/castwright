@@ -4,7 +4,7 @@ use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseCont
 
 /// A wait instruction.
 #[derive(Debug, PartialEq)]
-pub struct WaitInstruction(u64);
+pub struct WaitInstruction(u128);
 
 impl Instruction for WaitInstruction {
     /// Parse a line into an `WaitInstruction`.
@@ -14,7 +14,7 @@ impl Instruction for WaitInstruction {
             return Err(ErrorType::ExpectedContinuation);
         }
         let time = util::parse_duration(s)?;
-        Ok(Self(time.as_micros() as u64))
+        Ok(Self(time.as_micros()))
     }
     /// Execute the instruction
     fn execute(

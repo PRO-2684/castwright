@@ -108,7 +108,7 @@ impl Instruction for CommandInstruction {
                     for chunk in reader {
                         let chunk = chunk?;
                         let now = std::time::Instant::now();
-                        context.elapsed += now.duration_since(prev).as_micros() as u64;
+                        context.elapsed += now.duration_since(prev).as_micros();
                         prev = now;
                         cast.output(context.elapsed, &chunk)?;
                         // context.preview(&chunk);
