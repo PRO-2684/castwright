@@ -2,6 +2,7 @@
 
 use crate::util::get_terminal_size;
 use serde::Serialize;
+use serde::ser::SerializeStruct;
 
 /// The header of an asciicast v2 file.
 // From: https://github.com/asciinema/asciinema/blob/f0f908872ca0364128b546bcc8af918d2fc47566/src/asciicast/v2.rs##L9-L20))
@@ -30,13 +31,24 @@ pub(super) struct Header {
     // theme: Option<V2Theme>,
 }
 
+fn serialize_or_skip<S, T>(state: &mut S, key: &'static str, value: &Option<T>) -> Result<(), S::Error>
+where
+    S: SerializeStruct,
+    T: Serialize,
+{
+    if let Some(value) = value {
+        state.serialize_field(key, value)?;
+    } else {
+        state.skip_field(key)?;
+    }
+    Ok(())
+}
+
 impl Serialize for Header {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        use serde::ser::SerializeStruct;
-
         // Count length of fields
         let mut len = 3;
         if self.timestamp.is_some() {
@@ -49,26 +61,15 @@ impl Serialize for Header {
             len += 1;
         }
 
-        // Skip `None` fields
         let mut state = serializer.serialize_struct("Header", len)?;
         state.serialize_field("version", &self.version)?;
         state.serialize_field("width", &self.width)?;
         state.serialize_field("height", &self.height)?;
-        if let Some(timestamp) = self.timestamp {
-            state.serialize_field("timestamp", &timestamp)?;
-        } else {
-            state.skip_field("timestamp")?;
-        };
-        if let Some(idle_time_limit) = self.idle_time_limit {
-            state.serialize_field("idle_time_limit", &idle_time_limit)?;
-        } else {
-            state.skip_field("idle_time_limit")?;
-        };
-        if let Some(title) = &self.title {
-            state.serialize_field("title", title)?;
-        } else {
-            state.skip_field("title")?;
-        };
+
+        // Skip `None` fields
+        serialize_or_skip(&mut state, "timestamp", &self.timestamp)?;
+        serialize_or_skip(&mut state, "idle_time_limit", &self.idle_time_limit)?;
+        serialize_or_skip(&mut state, "title", &self.title)?;
         state.end()
     }
 }
