@@ -1,7 +1,7 @@
 //! Utility functions for parsing.
 
 use super::ErrorType;
-use std::{time::Duration, collections::HashMap};
+use std::{collections::HashMap, time::Duration};
 use terminal_size::{terminal_size, Height, Width};
 
 /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
@@ -42,11 +42,8 @@ pub fn get_terminal_size() -> (u16, u16) {
         .map(|(Width(w), Height(h))| (w, h))
         .unwrap_or((80, 24))
 }
-/// Captures given environment variables. Returns `None` if the map is empty.
-pub fn capture_env_vars(env_vars: Vec<String>) -> Option<HashMap<String, String>> {
-    if env_vars.is_empty() {
-        return None;
-    }
+/// Captures given environment variables.
+pub fn capture_env_vars(env_vars: Vec<String>) -> HashMap<String, String> {
     let mut env_map = HashMap::new();
     for env_var in env_vars {
         // Get `env_var` from the environment, skipping if it doesn't exist or errors
@@ -54,11 +51,7 @@ pub fn capture_env_vars(env_vars: Vec<String>) -> Option<HashMap<String, String>
             env_map.insert(env_var, value);
         }
     }
-    if env_map.is_empty() {
-        None
-    } else {
-        Some(env_map)
-    }
+    env_map
 }
 
 #[cfg(test)]

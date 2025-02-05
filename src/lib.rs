@@ -99,7 +99,7 @@ impl FrontMatterState {
 )]
 #[derive(Clone, Debug, PartialEq)]
 struct Configuration {
-    // Remember to update [`TemporaryConfiguration::is_empty`] when adding new fields
+    // NOTE: Remember to update [`TemporaryConfiguration::is_empty`] when adding new fields
     /// The shell prompt to use in the asciicast.
     prompt: String,
     /// The secondary prompt to use in the asciicast (for continuation lines).

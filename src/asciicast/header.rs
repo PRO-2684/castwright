@@ -1,9 +1,9 @@
 //! Module for serializing an [asciicast v2 header](https://docs.asciinema.org/manual/asciicast/v2/#header).
 
-use crate::util::{get_terminal_size, capture_env_vars};
-use std::collections::HashMap;
-use serde::Serialize;
+use crate::util::{capture_env_vars, get_terminal_size};
 use serde::ser::SerializeStruct;
+use serde::Serialize;
+use std::collections::HashMap;
 
 /// The header of an asciicast v2 file.
 // From: https://github.com/asciinema/asciinema/blob/f0f908872ca0364128b546bcc8af918d2fc47566/src/asciicast/v2.rs##L9-L20))
@@ -32,7 +32,11 @@ pub(super) struct Header {
     // theme: Option<V2Theme>,
 }
 
-fn serialize_or_skip<S, T>(state: &mut S, key: &'static str, value: &Option<T>) -> Result<(), S::Error>
+fn serialize_or_skip<S, T>(
+    state: &mut S,
+    key: &'static str,
+    value: &Option<T>,
+) -> Result<(), S::Error>
 where
     S: SerializeStruct,
     T: Serialize,
@@ -91,7 +95,10 @@ impl Header {
             timestamp: None,
             idle_time_limit: None,
             title: None,
-            env: capture_env_vars(vec!["SHELL".to_string(), "TERM".to_string()]),
+            env: Some(capture_env_vars(vec![
+                "SHELL".to_string(),
+                "TERM".to_string(),
+            ])),
         }
     }
 }

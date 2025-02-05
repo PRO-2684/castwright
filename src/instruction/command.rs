@@ -138,7 +138,6 @@ fn handle_error(result: Result<(), ErrorType>, expect: Option<bool>) -> Result<(
     }
     // If the `expect` is `None`, always return `Ok`.
     let Some(expect) = expect else {
-        // return Ok(result.unwrap_or_default());
         return Ok(());
     };
     match result {
@@ -161,7 +160,6 @@ fn handle_error(result: Result<(), ErrorType>, expect: Option<bool>) -> Result<(
                 Err(e)
             } else {
                 // If the `expect` is `false`, return `Ok`.
-                // Ok("".to_string())
                 Ok(())
             }
         }

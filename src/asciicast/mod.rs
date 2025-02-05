@@ -3,11 +3,10 @@
 mod event;
 mod header;
 use super::ErrorType;
-use crate::util::capture_env_vars;
 use event::Event;
 use header::Header;
 use serde_json::ser::to_writer;
-use std::io::Write;
+use std::{collections::HashMap, io::Write};
 
 /// An asciicast v2 file.
 ///
@@ -90,9 +89,13 @@ impl<'a> AsciiCast<'a> {
         Ok(self)
     }
     /// Set the captured environment variables.
-    pub fn capture(&mut self, env_vars: Vec<String>) -> Result<&mut Self, ErrorType> {
+    pub fn capture(&mut self, env_vars: HashMap<String, String>) -> Result<&mut Self, ErrorType> {
         self.assert_header_not_written()?;
-        self.header.env = capture_env_vars(env_vars);
+        if env_vars.is_empty() {
+            self.header.env = None;
+        } else {
+            self.header.env = Some(env_vars);
+        }
         Ok(self)
     }
     /// Write the header to the writer.
@@ -174,7 +177,7 @@ mod tests {
             .timestamp(1_000_000)?
             .idle_time_limit(2.5)?
             .title("Test".to_string())?
-            .capture(vec![])?
+            .capture(HashMap::new())?
             .write_header()?
             .output(0, "Hello, world!")?
             .input(100, "echo Hello, world!")?
@@ -200,7 +203,7 @@ mod tests {
             .timestamp(1_000_000)?
             .idle_time_limit(2.5)?
             .title("Test".to_string())?
-            .capture(vec![])?
+            .capture(HashMap::new())?
             .output(0, "Hello, world!")?
             .input(100, "echo Hello, world!")?
             .marker(200, "marker")?

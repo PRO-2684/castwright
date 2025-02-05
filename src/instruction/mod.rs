@@ -65,7 +65,6 @@ pub(super) fn parse_instruction(
         '#' => Ok(Box::new(EmptyInstruction::new())),
         '$' | '>' => Ok(Box::new(CommandInstruction::parse(&trimmed, context)?)),
         '~' => Ok(Box::new(WaitInstruction::parse(&trimmed, context)?)),
-        // _ => Err(ErrorType::UnknownInstruction),
         _ => Ok(Box::new(FrontMatterInstruction::parse(s, context)?)),
     }
 }

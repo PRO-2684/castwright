@@ -3,8 +3,8 @@
 use super::{
     util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, Instruction, ParseContext,
 };
-use std::time::Duration;
 use serde_json::de::from_str;
+use std::time::Duration;
 
 /// A front matter instruction.
 #[derive(Debug, PartialEq)]
@@ -105,7 +105,7 @@ impl Instruction for FrontMatterInstruction {
                 cast.idle_time_limit(idle.as_secs_f64())?;
             }
             FrontMatterInstruction::Capture(env_vars) => {
-                cast.capture(env_vars.clone())?;
+                cast.capture(util::capture_env_vars(env_vars.clone()))?;
             }
             _ => {}
         }
@@ -144,22 +144,10 @@ mod tests {
             ("---", Delimiter),
             ("width: 80", Width(80)),
             ("height: 24", Height(24)),
-            (
-                "title: Hello, world!",
-                Title("Hello, world!".to_string()),
-            ),
-            (
-                "shell: /bin/bash",
-                Shell("/bin/bash".to_string()),
-            ),
-            (
-                "quit: exit",
-                Quit("exit".to_string()),
-            ),
-            (
-                "idle: 1s",
-                Idle(Duration::from_secs(1)),
-            ),
+            ("title: Hello, world!", Title("Hello, world!".to_string())),
+            ("shell: /bin/bash", Shell("/bin/bash".to_string())),
+            ("quit: exit", Quit("exit".to_string())),
+            ("idle: 1s", Idle(Duration::from_secs(1))),
             (
                 "capture: [\"SHELL\", \"TERM\"]",
                 Capture(vec!["SHELL".to_string(), "TERM".to_string()]),
