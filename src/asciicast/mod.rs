@@ -26,6 +26,7 @@ use std::io::Write;
 /// - [`timestamp`](AsciiCast::timestamp): Set the unix timestamp of the beginning of the recording session.
 /// - [`idle_time_limit`](AsciiCast::idle_time_limit): Set the idle time limit.
 /// - [`title`](AsciiCast::title): Set the title of the asciicast.
+/// - [`capture`](AsciiCast::capture): Set the captured environment variables.
 ///
 /// After you've finished, write the header to the asciicast using the [`write_header`](AsciiCast::write_header) method explicitly. If you don't, the header will be written implicitly when you write the first event. Note that the header can only be written once, either explicitly or implicitly.
 ///
@@ -40,7 +41,7 @@ use std::io::Write;
 ///
 /// ## Output
 ///
-/// The asciicast will be streamed to the writer you provided, every time you add an event or write the header.
+/// The asciicast will be streamed to the writer you provided, every time you add an event or write the header. You can finish writing the asciicast using the [`finish`](AsciiCast::finish) method, which consumes the asciicast and flushes the writer.
 pub struct AsciiCast<'a> {
     header: Header,
     writer: &'a mut dyn Write,
@@ -147,6 +148,14 @@ impl<'a> AsciiCast<'a> {
     fn write_event(&mut self, event: &Event) -> Result<(), ErrorType> {
         event.write(&mut self.writer)?;
         writeln!(&mut self.writer)?;
+        Ok(())
+    }
+
+    // Finish
+    /// Finish writing the asciicast, consuming self.
+    pub fn finish(mut self) -> Result<(), ErrorType> {
+        self.try_write_header()?;
+        self.writer.flush()?;
         Ok(())
     }
 }

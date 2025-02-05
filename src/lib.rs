@@ -340,6 +340,7 @@ impl CastWright {
                 .map_err(|e| e.with_line(line_number + 1))?;
             line_cnt += 1;
         }
+        cast.finish().map_err(|e| e.with_line(line_cnt))?; // Finish writing the asciicast
         if parse_context.front_matter_state == FrontMatterState::Start {
             Err(ErrorType::ExpectedClosingDelimiter.with_line(line_cnt + 1))
         } else if parse_context.expect_continuation {
