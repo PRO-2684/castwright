@@ -56,6 +56,9 @@ $ echo "Hello, World again!"
 # Wait (`~`)
 ~ 500ms
 
+# Empty marker
+!
+
 # Start a multiline command with a regular command
 # Use `>` as prefix to continue
 $ echo "Multi-" \

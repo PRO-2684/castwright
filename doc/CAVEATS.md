@@ -9,7 +9,7 @@ This section lists known issues and caveats of CastWright.
 > [!NOTE]
 > CastWright implements some builtin shell commands to help you work around this limitation. See [REFERENCE.md](./REFERENCE.md#command) for more information.
 
-Each command in a CastWright script is executed in a separate shell session. This means that changes to the environment, like changing the working directory or setting environment variables, are not preserved between commands. This may not be ideal for some use cases.
+Each command in a CastWright script is executed in a separate shell session. This means that changes to the environment, like setting environment variables, are not preserved between commands. This may not be ideal for some use cases.
 
 ### Workaround
 

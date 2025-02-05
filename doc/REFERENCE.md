@@ -46,7 +46,9 @@ The following keys are supported in the front matter:
 - `capture`: Set captured environment variables for the asciicast.
     - **Type**: A list of [String](#string).
     - **Default**: `["SHELL", "TERM"]`. (As [specified by asciinema](https://docs.asciinema.org/manual/asciicast/v2/#env))
-    - Note: If you don't want to capture any environment variables, you can provide an empty list `[]`. If the environment variable is not set or not valid unicode, it will be ignored.
+    - Notes:
+        - If you don't want to capture any environment variables, you can provide an empty list `[]`.
+        - If the environment variable is not set or not valid unicode, it will be ignored.
 
 Internally, front matter delimiters and key-value pairs are also treated as instructions.
 
