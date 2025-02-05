@@ -15,6 +15,9 @@ pub enum ErrorType {
     /// Subprocess does not exit with expected status code.
     #[error("Shell {0}")]
     Subprocess(String),
+    /// System time error.
+    #[error("System time error: \"{0}\"")]
+    SystemTime(std::time::SystemTimeError),
 
     // Front matter errors
     /// Expected key-value pair, but got instruction.
@@ -74,6 +77,12 @@ impl From<serde_json::Error> for ErrorType {
     }
 }
 
+impl From<std::time::SystemTimeError> for ErrorType {
+    fn from(error: std::time::SystemTimeError) -> Self {
+        Self::SystemTime(error)
+    }
+}
+
 impl From<std::num::ParseIntError> for ErrorType {
     fn from(_: std::num::ParseIntError) -> Self {
         Self::MalformedInstruction
@@ -86,6 +95,8 @@ impl PartialEq for ErrorType {
             (self, other),
             (Self::Io(_), Self::Io(_))
                 | (Self::Json(_), Self::Json(_))
+                | (Self::Subprocess(_), Self::Subprocess(_))
+                | (Self::SystemTime(_), Self::SystemTime(_))
                 | (Self::ExpectedKeyValuePair, Self::ExpectedKeyValuePair)
                 | (
                     Self::ExpectedClosingDelimiter,

@@ -53,7 +53,7 @@ Pre-built binaries are available at [Releases](https://github.com/PRO-2684/castw
 ### Command Line Interface
 
 ```shell
-Usage: castwright [-i <input>] [-o <output>] [-x]
+Usage: castwright [-i <input>] [-o <output>] [-x] [-t] [-v]
 
 🎥 Scripted terminal recording.
 
@@ -63,6 +63,8 @@ Options:
   -o, --output      the path to the output file (asciicast `.cast`), or stdout
                     if not provided; If provided, preview mode will be enabled
   -x, --execute     execute and capture the output of shell commands
+  -t, --timestamp   include timestamp information in the output
+  -v, --version     show version information and exit
   -h, --help        display usage information
 ```
 

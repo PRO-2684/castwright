@@ -11,15 +11,23 @@ use std::{
 #[derive(FromArgs)]
 #[argh(help_triggers("-h", "--help"))]
 struct Args {
+    // Input and output
     /// the path to the input file (CastWright script `.cwrt`), or stdin if not provided
     #[argh(option, short = 'i')]
     input: Option<String>,
     /// the path to the output file (asciicast `.cast`), or stdout if not provided; If provided, preview mode will be enabled
     #[argh(option, short = 'o')]
     output: Option<String>,
+
+    // Options
     /// execute and capture the output of shell commands
     #[argh(switch, short = 'x')]
     execute: bool,
+    /// include timestamp information in the output
+    #[argh(switch, short = 't')]
+    timestamp: bool,
+
+    // Help
     /// show version information and exit
     #[argh(switch, short = 'v')]
     version: bool,
@@ -75,6 +83,7 @@ fn main() -> Result<(), DispError<Error>> {
 
     CastWright::new()
         .execute(args.execute)
+        .timestamp(args.timestamp)
         .preview(args.output.is_some())
         .run(&mut reader, &mut writer)?;
 

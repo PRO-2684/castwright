@@ -265,6 +265,7 @@ impl ExecutionContext {
 /// You can then configure the instance using the following methods:
 ///
 /// - [`execute`](`CastWright::execute`): Set whether to execute and capture the output of shell commands.
+/// - [`timestamp`](`CastWright::timestamp`): Set whether to include timestamp information in the output.
 /// - [`preview`](`CastWright::preview`): Set whether to preview the asciicast.
 ///
 /// ## Running
@@ -310,6 +311,8 @@ impl ExecutionContext {
 pub struct CastWright {
     /// Whether to execute and capture the output of shell commands.
     execute: bool,
+    /// Whether to include timestamp information in the output.
+    timestamp: bool,
     /// Whether to preview the asciicast.
     preview: bool,
 }
@@ -323,6 +326,10 @@ impl CastWright {
     pub fn execute(self, execute: bool) -> Self {
         Self { execute, ..self }
     }
+    /// Set whether to include timestamp information in the output.
+    pub fn timestamp(self, timestamp: bool) -> Self {
+        Self { timestamp, ..self }
+    }
     /// Set whether to preview the asciicast.
     pub fn preview(self, preview: bool) -> Self {
         Self { preview, ..self }
@@ -335,12 +342,20 @@ impl CastWright {
         let mut line_cnt = 0;
         execution_context.execute = self.execute;
         execution_context.preview = self.preview;
+
+        if self.timestamp {
+            let timestamp = util::timestamp().map_err(|e| e.with_line(0))?;
+            cast.timestamp(timestamp).map_err(|e| e.with_line(0))?;
+        }
+
         for (line_number, line) in reader.lines().enumerate() {
             self.run_line(line, &mut parse_context, &mut execution_context, &mut cast)
                 .map_err(|e| e.with_line(line_number + 1))?;
             line_cnt += 1;
         }
+
         cast.finish().map_err(|e| e.with_line(line_cnt))?; // Finish writing the asciicast
+
         if parse_context.front_matter_state == FrontMatterState::Start {
             Err(ErrorType::ExpectedClosingDelimiter.with_line(line_cnt + 1))
         } else if parse_context.expect_continuation {

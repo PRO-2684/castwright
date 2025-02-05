@@ -86,7 +86,7 @@ fn test_files(dir: &str) -> impl Iterator<Item = (String, BufReader<File>)> {
 fn success_tests() {
     let mut writer = std::io::sink(); // Discard output
     for (name, mut reader) in test_files(SUCCESS_DIR) {
-        let castwright = CastWright::new().execute(true);
+        let castwright = CastWright::new().execute(true).timestamp(true);
         castwright
             .run(&mut reader, &mut writer)
             .expect(&format!("Test case `{name}` should succeed"));
@@ -98,7 +98,7 @@ fn success_tests() {
 fn failure_tests() {
     let mut writer = std::io::sink(); // Discard output
     for (name, mut reader) in test_files(FAILURE_DIR) {
-        let castwright = CastWright::new().execute(true);
+        let castwright = CastWright::new().execute(true).timestamp(true);
         castwright
             .run(&mut reader, &mut writer)
             .expect_err(&format!("Test case `{name}` should fail"));

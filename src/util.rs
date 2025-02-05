@@ -1,7 +1,10 @@
 //! Utility functions for parsing.
 
 use super::ErrorType;
-use std::{collections::HashMap, time::Duration};
+use std::{
+    collections::HashMap,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 use terminal_size::{terminal_size, Height, Width};
 
 /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
@@ -52,6 +55,13 @@ pub fn capture_env_vars(env_vars: Vec<String>) -> HashMap<String, String> {
         }
     }
     env_map
+}
+/// Get current timestamp in seconds. Returns `None` if the system clock is before the Unix epoch.
+pub fn timestamp() -> Result<u64, ErrorType> {
+    let timestamp = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|d| d.as_secs())?;
+    Ok(timestamp)
 }
 
 #[cfg(test)]
