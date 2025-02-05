@@ -1,6 +1,7 @@
 //! Module for serializing an [asciicast v2 header](https://docs.asciinema.org/manual/asciicast/v2/#header).
 
-use crate::util::get_terminal_size;
+use crate::util::{get_terminal_size, capture_env_vars};
+use std::collections::HashMap;
 use serde::Serialize;
 use serde::ser::SerializeStruct;
 
@@ -20,13 +21,13 @@ pub(super) struct Header {
     pub idle_time_limit: Option<f64>,
     /// Title of the asciicast.
     pub title: Option<String>,
+    /// Map of captured environment variables.
+    pub env: Option<HashMap<String, String>>,
     // Not implemented fields:
     // Duration of the whole recording in seconds (when it's known upfront).
     // duration: Option<u64>,
     // Command that was recorded.
     // command: Option<String>,
-    // Map of captured environment variables.
-    // env: Option<HashMap<String, String>>,
     // Color theme of the recorded terminal.
     // theme: Option<V2Theme>,
 }
@@ -60,6 +61,9 @@ impl Serialize for Header {
         if self.title.is_some() {
             len += 1;
         }
+        if self.env.is_some() {
+            len += 1;
+        }
 
         let mut state = serializer.serialize_struct("Header", len)?;
         state.serialize_field("version", &self.version)?;
@@ -70,12 +74,14 @@ impl Serialize for Header {
         serialize_or_skip(&mut state, "timestamp", &self.timestamp)?;
         serialize_or_skip(&mut state, "idle_time_limit", &self.idle_time_limit)?;
         serialize_or_skip(&mut state, "title", &self.title)?;
+        serialize_or_skip(&mut state, "env", &self.env)?;
+
         state.end()
     }
 }
 
 impl Header {
-    /// Create a new header with the given width and height.
+    /// Create a new header with default width and height.
     pub fn new() -> Self {
         let (width, height) = get_terminal_size();
         Header {
@@ -85,6 +91,7 @@ impl Header {
             timestamp: None,
             idle_time_limit: None,
             title: None,
+            env: capture_env_vars(vec!["SHELL".to_string(), "TERM".to_string()]),
         }
     }
 }
@@ -102,6 +109,7 @@ mod tests {
             timestamp: None,
             idle_time_limit: Some(2.0),
             title: Some("My asciicast".to_string()),
+            env: None,
         };
         let expected =
             r#"{"version":2,"width":80,"height":24,"idle_time_limit":2.0,"title":"My asciicast"}"#;

@@ -3,6 +3,7 @@ title: CastWright Demo
 width: 80
 height: 24
 idle: 1s
+capture: []
 ---
 
 @@interval 80ms

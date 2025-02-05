@@ -2,6 +2,7 @@
 title: CastWright Script with Sleep
 width: 80
 height: 24
+capture: []
 ---
 
 % --- sleep.cwrt start ---

@@ -35,14 +35,17 @@ The following keys are supported in the front matter:
     - **Default**: None.
 - `shell`: Set the shell to be used for executing commands.
     - **Type**: [LooseString](#loosestring), which represents the shell executable.
-    - **Default**: `bash`
+    - **Default**: `bash`.
     - Provided shell must accept `-c` flag for executing commands.
 - `quit`: Set the quit command to be used for exiting the shell. (Not implemented yet)
     - **Type**: [LooseString](#loosestring), which represents the quit command.
-    - **Default**: `exit`
+    - **Default**: `exit`.
 - `idle`: Set the idle time limit for the asciicast.
     - **Type**: [Duration](#duration).
     - **Default**: None.
+- `capture`: Set captured environment variables for the asciicast.
+    - **Type**: A list of [String](#string).
+    - **Default**: `["SHELL", "TERM"]`. (As [specified by asciinema](https://docs.asciinema.org/manual/asciicast/v2/#env))
 
 Internally, front matter delimiters and key-value pairs are also treated as instructions.
 

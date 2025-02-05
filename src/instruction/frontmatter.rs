@@ -4,6 +4,7 @@ use super::{
     util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, Instruction, ParseContext,
 };
 use std::time::Duration;
+use serde_json::de::from_str;
 
 /// A front matter instruction.
 #[derive(Debug, PartialEq)]
@@ -22,6 +23,8 @@ pub enum FrontMatterInstruction {
     Quit(String),
     /// Idle time limit.
     Idle(Duration),
+    // Captured environment variables.
+    Capture(Vec<String>),
 }
 
 impl Instruction for FrontMatterInstruction {
@@ -67,6 +70,10 @@ impl Instruction for FrontMatterInstruction {
                     let idle = util::parse_duration(value)?;
                     Ok(FrontMatterInstruction::Idle(idle))
                 }
+                "capture" => {
+                    let env_vars: Vec<String> = from_str(value)?;
+                    Ok(FrontMatterInstruction::Capture(env_vars))
+                }
                 _ => Err(ErrorType::UnknownFrontMatter),
             }
         } else {
@@ -96,6 +103,9 @@ impl Instruction for FrontMatterInstruction {
             // FrontMatterInstruction::Quit(quit) => { cast.quit(quit.clone())?; },
             FrontMatterInstruction::Idle(idle) => {
                 cast.idle_time_limit(idle.as_secs_f64())?;
+            }
+            FrontMatterInstruction::Capture(env_vars) => {
+                cast.capture(env_vars.clone())?;
             }
             _ => {}
         }
@@ -128,26 +138,31 @@ mod tests {
 
     #[test]
     fn front_matter_instruction() {
+        use FrontMatterInstruction::*;
         let mut parse_context = ParseContext::new();
         let instructions = [
-            ("---", FrontMatterInstruction::Delimiter),
-            ("width: 80", FrontMatterInstruction::Width(80)),
-            ("height: 24", FrontMatterInstruction::Height(24)),
+            ("---", Delimiter),
+            ("width: 80", Width(80)),
+            ("height: 24", Height(24)),
             (
                 "title: Hello, world!",
-                FrontMatterInstruction::Title("Hello, world!".to_string()),
+                Title("Hello, world!".to_string()),
             ),
             (
                 "shell: /bin/bash",
-                FrontMatterInstruction::Shell("/bin/bash".to_string()),
+                Shell("/bin/bash".to_string()),
             ),
             (
                 "quit: exit",
-                FrontMatterInstruction::Quit("exit".to_string()),
+                Quit("exit".to_string()),
             ),
             (
                 "idle: 1s",
-                FrontMatterInstruction::Idle(Duration::from_secs(1)),
+                Idle(Duration::from_secs(1)),
+            ),
+            (
+                "capture: [\"SHELL\", \"TERM\"]",
+                Capture(vec!["SHELL".to_string(), "TERM".to_string()]),
             ),
         ];
         for (line, expected) in instructions.iter() {
@@ -185,6 +200,7 @@ mod tests {
             "height: 0",
             "idle:",
             "idle: 1",
+            "idle: 1.0",
         ];
         for line in instructions.iter() {
             let parsed = FrontMatterInstruction::parse(line, &mut parse_context).unwrap_err();
@@ -207,6 +223,25 @@ mod tests {
             assert!(
                 matches!(parsed, ErrorType::ExpectedKeyValuePair,),
                 "Expected ExpectedKeyValuePair, got {parsed:?} at line `{line}`"
+            );
+        }
+    }
+
+    #[test]
+    fn json_error() {
+        let mut parse_context = ParseContext::new();
+        parse_context.front_matter_state.next().unwrap();
+        let instructions = [
+            "capture:",
+            "capture: [",
+            "capture: [\"SHELL\", \"TERM",
+            "capture: [\"SHELL\", \"TERM\", \"",
+        ];
+        for line in instructions.iter() {
+            let parsed = FrontMatterInstruction::parse(line, &mut parse_context).unwrap_err();
+            assert!(
+                matches!(parsed, ErrorType::Json(_)),
+                "Expected Json, got {parsed:?} at line `{line}`"
             );
         }
     }

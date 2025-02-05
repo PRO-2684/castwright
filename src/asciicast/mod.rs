@@ -3,6 +3,7 @@
 mod event;
 mod header;
 use super::ErrorType;
+use crate::util::capture_env_vars;
 use event::Event;
 use header::Header;
 use serde_json::ser::to_writer;
@@ -87,6 +88,12 @@ impl<'a> AsciiCast<'a> {
         self.header.title = Some(title);
         Ok(self)
     }
+    /// Set the captured environment variables.
+    pub fn capture(&mut self, env_vars: Vec<String>) -> Result<&mut Self, ErrorType> {
+        self.assert_header_not_written()?;
+        self.header.env = capture_env_vars(env_vars);
+        Ok(self)
+    }
     /// Write the header to the writer.
     pub fn write_header(&mut self) -> Result<&mut Self, ErrorType> {
         self.assert_header_not_written()?;
@@ -158,6 +165,7 @@ mod tests {
             .timestamp(1_000_000)?
             .idle_time_limit(2.5)?
             .title("Test".to_string())?
+            .capture(vec![])?
             .write_header()?
             .output(0, "Hello, world!")?
             .input(100, "echo Hello, world!")?
@@ -183,6 +191,7 @@ mod tests {
             .timestamp(1_000_000)?
             .idle_time_limit(2.5)?
             .title("Test".to_string())?
+            .capture(vec![])?
             .output(0, "Hello, world!")?
             .input(100, "echo Hello, world!")?
             .marker(200, "marker")?
