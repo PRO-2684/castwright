@@ -107,83 +107,74 @@ use std::{collections::HashMap, io::Write};
 /// # assert_eq!(second_line, r#"[0.000000,"o","Hello, world!"]"#);
 /// ```
 pub struct AsciiCast<'a> {
-    header: Header,
+    header: Option<Header>,
     writer: &'a mut dyn Write,
-    header_written: bool,
 }
 
 impl<'a> AsciiCast<'a> {
     /// Create a new asciicast.
     pub fn new(writer: &'a mut dyn Write) -> Self {
         Self {
-            header: Header::new(),
+            header: Some(Header::new()),
             writer,
-            header_written: false,
         }
     }
 
     // Header
     /// Set the initial terminal width.
     pub fn width(&mut self, width: u16) -> Result<&mut Self, ErrorType> {
-        self.assert_header_not_written()?;
-        self.header.width = width;
+        self.get_header_mut()?.width = width;
         Ok(self)
     }
     /// Set the initial terminal height.
     pub fn height(&mut self, height: u16) -> Result<&mut Self, ErrorType> {
-        self.assert_header_not_written()?;
-        self.header.height = height;
+        self.get_header_mut()?.height = height;
         Ok(self)
     }
     /// Set the unix timestamp of the beginning of the recording session.
     pub fn timestamp(&mut self, timestamp: u64) -> Result<&mut Self, ErrorType> {
-        self.assert_header_not_written()?;
-        self.header.timestamp = Some(timestamp);
+        self.get_header_mut()?.timestamp = Some(timestamp);
         Ok(self)
     }
     /// Set the idle time limit.
     pub fn idle_time_limit(&mut self, idle_time_limit: f64) -> Result<&mut Self, ErrorType> {
-        self.assert_header_not_written()?;
-        self.header.idle_time_limit = Some(idle_time_limit);
+        self.get_header_mut()?.idle_time_limit = Some(idle_time_limit);
         Ok(self)
     }
     /// Set the title of the asciicast.
     pub fn title(&mut self, title: String) -> Result<&mut Self, ErrorType> {
-        self.assert_header_not_written()?;
-        self.header.title = Some(title);
+        self.get_header_mut()?.title = Some(title);
         Ok(self)
     }
     /// Set the captured environment variables.
     pub fn capture(&mut self, env_vars: HashMap<String, String>) -> Result<&mut Self, ErrorType> {
-        self.assert_header_not_written()?;
-        if env_vars.is_empty() {
-            self.header.env = None;
+        self.get_header_mut()?.env = if env_vars.is_empty() {
+            None
         } else {
-            self.header.env = Some(env_vars);
-        }
+            Some(env_vars)
+        };
         Ok(self)
     }
     /// Write the header to the writer.
     pub fn write_header(&mut self) -> Result<&mut Self, ErrorType> {
-        self.assert_header_not_written()?;
-        to_writer(&mut self.writer, &self.header)?;
+        let header = self.header.take().ok_or(ErrorType::HeaderAlreadyWritten)?;
+        to_writer(&mut self.writer, &header)?;
         writeln!(&mut self.writer)?;
-        self.header_written = true;
         Ok(self)
     }
     /// Try to write the header to the writer. Does nothing if the header has already been written.
     fn try_write_header(&mut self) -> Result<(), ErrorType> {
-        if !self.header_written {
+        if self.header.is_some() {
             self.write_header()?;
         }
         Ok(())
     }
-    /// Errors if the header has already been written.
-    fn assert_header_not_written(&self) -> Result<(), ErrorType> {
-        if self.header_written {
-            Err(ErrorType::HeaderAlreadyWritten)
+    /// Get a mutable reference to the header, errors if the header has already been written.
+    fn get_header_mut(&mut self) -> Result<&mut Header, ErrorType> {
+        if let Some(header) = &mut self.header {
+            Ok(header)
         } else {
-            Ok(())
+            Err(ErrorType::HeaderAlreadyWritten)
         }
     }
 
