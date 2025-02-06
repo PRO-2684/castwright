@@ -20,7 +20,9 @@ Have you re-recorded the same session over and over again, either to hit the rig
 
 <details><summary>Click to see CastWright Demo</summary>
 
-[![CastWright Demo](https://asciinema.org/a/bS90tAnk6raVFqqGInpm7cJ4t.svg)](https://asciinema.org/a/bS90tAnk6raVFqqGInpm7cJ4t)
+> Source: [demo.cwrt](./tests/input/demo.cwrt)
+
+[![CastWright Demo (v0.0.4)](https://asciinema.org/a/MTEYUxXGrB2FoxI4iDqZvtSNj.svg)](https://asciinema.org/a/MTEYUxXGrB2FoxI4iDqZvtSNj)
 
 </details>
 
