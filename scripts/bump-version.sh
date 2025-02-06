@@ -15,10 +15,10 @@ sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
 git add Cargo.toml
 cargo generate-lockfile
 git add Cargo.lock
-git commit -m "Bump version to v$VERSION"
+git commit -S -m "Bump version to v$VERSION"
 
 # Tag
-git tag -a "v$VERSION" -m "Version v$VERSION"
+git tag -s "v$VERSION" -m "Version v$VERSION"
 
 # Display
 # echo "Bump version to v$VERSION"
