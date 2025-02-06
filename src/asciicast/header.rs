@@ -1,4 +1,4 @@
-//! Module for serializing an [asciicast v2 header](https://docs.asciinema.org/manual/asciicast/v2/#header).
+//! Module for modeling and serializing an [asciicast v2 header](https://docs.asciinema.org/manual/asciicast/v2/#header).
 
 use crate::util::{capture_env_vars, get_terminal_size};
 use serde::ser::SerializeStruct;
@@ -15,7 +15,7 @@ pub(super) struct Header {
     pub width: u16,
     /// Initial terminal height, i.e number of rows.
     pub height: u16,
-    /// Unix timestamp of the beginning of the recording session.
+    /// Unix timestamp of the beginning of the recording session in seconds.
     pub timestamp: Option<u64>,
     /// Idle time limit.
     pub idle_time_limit: Option<f64>,

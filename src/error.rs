@@ -1,23 +1,26 @@
 //! Error types for the `castwright` crate.
 
+use serde_json::Error as JsonError;
+use std::io::Error as IoError;
+use std::{num::ParseIntError, time::SystemTimeError};
 use thiserror::Error as ThisError;
 
-/// Possible types of errors that can occur while parsing a single line of a `.cwrt` file. An enum variant represents a specific type of error, and can be converted to an [`Error`] with the [`with_line`](`ErrorType::with_line`) method. (See the [`Error`] struct for an example)
+/// Possible types of errors that can occur while parsing or executing a single line of a CastWright script. Each variant represents a specific type of error, and can be converted to an [`Error`] with the [`with_line`](`ErrorType::with_line`) method. (See the [`Error`] struct for examples)
 #[derive(ThisError, Debug)]
 pub enum ErrorType {
     // Foreign errors
     /// An io error occurred while reading the file.
     #[error("IO error: \"{0}\"")]
-    Io(std::io::Error),
+    Io(IoError),
     /// A `serde_json` error occurred while parsing.
     #[error("JSON error: \"{0}\"")]
-    Json(serde_json::Error),
+    Json(JsonError),
     /// Subprocess does not exit with expected status code.
     #[error("Shell {0}")]
     Subprocess(String),
     /// System time error.
     #[error("System time error: \"{0}\"")]
-    SystemTime(std::time::SystemTimeError),
+    SystemTime(SystemTimeError),
 
     // Front matter errors
     /// Expected key-value pair, but got instruction.
@@ -65,26 +68,26 @@ impl ErrorType {
     }
 }
 
-impl From<std::io::Error> for ErrorType {
-    fn from(error: std::io::Error) -> Self {
+impl From<IoError> for ErrorType {
+    fn from(error: IoError) -> Self {
         Self::Io(error)
     }
 }
 
-impl From<serde_json::Error> for ErrorType {
-    fn from(error: serde_json::Error) -> Self {
+impl From<JsonError> for ErrorType {
+    fn from(error: JsonError) -> Self {
         Self::Json(error)
     }
 }
 
-impl From<std::time::SystemTimeError> for ErrorType {
-    fn from(error: std::time::SystemTimeError) -> Self {
+impl From<SystemTimeError> for ErrorType {
+    fn from(error: SystemTimeError) -> Self {
         Self::SystemTime(error)
     }
 }
 
-impl From<std::num::ParseIntError> for ErrorType {
-    fn from(_: std::num::ParseIntError) -> Self {
+impl From<ParseIntError> for ErrorType {
+    fn from(_: ParseIntError) -> Self {
         Self::MalformedInstruction
     }
 }

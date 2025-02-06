@@ -1,4 +1,4 @@
-//! Module for parsing config instructions.
+//! Module for config instructions.
 
 use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
@@ -31,7 +31,7 @@ pub struct ConfigInstruction {
 }
 
 impl Instruction for ConfigInstruction {
-    /// Parse a line into a `ConfigInstruction`.
+    /// Parse a trimmed line into a `ConfigInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         context.front_matter_state.end()?;
         if context.expect_continuation {

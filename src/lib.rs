@@ -1,5 +1,3 @@
-//! # CastWright
-//!
 //! 🎥 Scripted terminal recording.
 //!
 //! ## Note

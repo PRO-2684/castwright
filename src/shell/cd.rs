@@ -1,4 +1,4 @@
-//! Module for imitating the `cd` shell command.
+//! Module for the built-in `cd` command.
 
 use super::{BuiltInCommand, ErrorType, ExecutionContext};
 

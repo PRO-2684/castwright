@@ -1,4 +1,4 @@
-//! Module for serializing to [asciicast v2 format](https://docs.asciinema.org/manual/asciicast/v2/).
+//! Module for modeling and streaming [asciicast v2](https://docs.asciinema.org/manual/asciicast/v2/) content.
 
 mod event;
 mod header;
@@ -8,35 +8,33 @@ use header::Header;
 use serde_json::ser::to_writer;
 use std::{collections::HashMap, io::Write};
 
-/// An asciicast v2 file.
+/// An asciicast v2 instance, streaming content to a writer.
 ///
-/// ## Creation
+/// ## Instantiation
 ///
-/// Can be created using the [`AsciiCast::new`] method, which accepts a writer and returns an empty asciicast without any events. To modify header and write events to an asciicast, you can call respective methods (see "Header" and "Events" section).
+/// Can be instantiated using the [`AsciiCast::new`] method, which accepts a mutable reference to a writer and returns an asciicast instance. The instance streams content to the writer as methods are called. See ["Header"](#header) and ["Events"](#events) section for more information.
 ///
-/// ## Modification
-///
-/// ### Header
+/// ## Header
 ///
 /// You can modify the header of the asciicast using the following methods:
 ///
 /// - [`width`](AsciiCast::width): Set the initial terminal width.
 /// - [`height`](AsciiCast::height): Set the initial terminal height.
-/// - [`timestamp`](AsciiCast::timestamp): Set the unix timestamp of the beginning of the recording session.
+/// - [`timestamp`](AsciiCast::timestamp): Set the unix timestamp of the beginning of the recording session in seconds.
 /// - [`idle_time_limit`](AsciiCast::idle_time_limit): Set the idle time limit.
 /// - [`title`](AsciiCast::title): Set the title of the asciicast.
 /// - [`capture`](AsciiCast::capture): Set the captured environment variables.
 ///
-/// After you've finished, you can write the header to the asciicast using the [`write_header`](AsciiCast::write_header) method explicitly. If you don't, the header will be written implicitly when you write the first event, or when the asciicast is dropped. Note that the header can only be written once, either explicitly or implicitly, or a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error will be returned.
+/// After you've finished, you can write the header using the [`write_header`](AsciiCast::write_header) method explicitly. If you don't, the header will be written implicitly when you write the first event, or when the asciicast instance is dropped. Note that the header can only be written once, either explicitly or implicitly, or a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error will be returned.
 ///
-/// ### Events
+/// ## Events
 ///
-/// You can add events to the asciicast using the following methods:
+/// You can add events using the following methods:
 ///
-/// - [`output`](AsciiCast::output): Add an output event to the asciicast.
-/// - [`input`](AsciiCast::input): Add an input event to the asciicast.
-/// - [`marker`](AsciiCast::marker): Add a marker event to the asciicast.
-/// - [`resize`](AsciiCast::resize): Add a resize event to the asciicast.
+/// - [`output`](AsciiCast::output): Write an output event.
+/// - [`input`](AsciiCast::input): Write an input event.
+/// - [`marker`](AsciiCast::marker): Write a marker event.
+/// - [`resize`](AsciiCast::resize): Write a resize event.
 ///
 /// ## Output
 ///
@@ -45,9 +43,9 @@ use std::{collections::HashMap, io::Write};
 /// - Write the header if it hasn't been written yet
 /// - Flush the writer
 ///
-/// Since it is not possible to return an error when dropping the asciicast, the error will be printed to `stderr` if it occurs. If you want to handle the error, you should call [`finish`](AsciiCast::finish) explicitly and handle the error yourself.
+/// Since it is not possible to return an error when dropping the asciicast instance, the error will be printed to `stderr` if it occurs. If you want to handle the error, you should call [`finish`](AsciiCast::finish) explicitly and handle the error yourself.
 ///
-/// Due to the reason that `Drop` borrows `self` as mutable, you can't access the writer before the asciicast goes out of scope. Consider the following example:
+/// Due to the reason that `Drop` borrows `self` as mutable, you can't access the writer before the asciicast instance goes out of scope. Consider the following example:
 ///
 /// ```rust compile_fail
 /// use castwright::AsciiCast;
@@ -121,32 +119,32 @@ impl<'a> AsciiCast<'a> {
     }
 
     // Header
-    /// Set the initial terminal width.
+    /// Set the [initial terminal width](https://docs.asciinema.org/manual/asciicast/v2/#width).
     pub fn width(&mut self, width: u16) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.width = width;
         Ok(self)
     }
-    /// Set the initial terminal height.
+    /// Set the [initial terminal height](https://docs.asciinema.org/manual/asciicast/v2/#height).
     pub fn height(&mut self, height: u16) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.height = height;
         Ok(self)
     }
-    /// Set the unix timestamp of the beginning of the recording session.
+    /// Set the [unix timestamp of the beginning of the recording session](https://docs.asciinema.org/manual/asciicast/v2/#timestamp) in seconds.
     pub fn timestamp(&mut self, timestamp: u64) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.timestamp = Some(timestamp);
         Ok(self)
     }
-    /// Set the idle time limit.
+    /// Set the [idle time limit](https://docs.asciinema.org/manual/asciicast/v2/#idle_time_limit).
     pub fn idle_time_limit(&mut self, idle_time_limit: f64) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.idle_time_limit = Some(idle_time_limit);
         Ok(self)
     }
-    /// Set the title of the asciicast.
+    /// Set the [title of the asciicast](https://docs.asciinema.org/manual/asciicast/v2/#title).
     pub fn title(&mut self, title: String) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.title = Some(title);
         Ok(self)
     }
-    /// Set the captured environment variables.
+    /// Set the [captured environment variables](https://docs.asciinema.org/manual/asciicast/v2/#env).
     pub fn capture(&mut self, env_vars: HashMap<String, String>) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.env = if env_vars.is_empty() {
             None
@@ -179,32 +177,32 @@ impl<'a> AsciiCast<'a> {
     }
 
     // Events
-    /// Write an output event to the asciicast.
+    /// Write an [output event](https://docs.asciinema.org/manual/asciicast/v2/#o-output-data-written-to-a-terminal).
     pub fn output(&mut self, time: u128, data: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
-        self.write_event(&Event::output(time, data))?;
+        self.event(&Event::output(time, data))?;
         Ok(self)
     }
-    /// Write an input event to the asciicast.
+    /// Write an [input event](https://docs.asciinema.org/manual/asciicast/v2/#i-input-data-read-from-a-terminal).
     pub fn input(&mut self, time: u128, data: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
-        self.write_event(&Event::input(time, data))?;
+        self.event(&Event::input(time, data))?;
         Ok(self)
     }
-    /// Write a marker event to the asciicast.
+    /// Write a [marker event](https://docs.asciinema.org/manual/asciicast/v2/#m-marker).
     pub fn marker(&mut self, time: u128, name: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
-        self.write_event(&Event::marker(time, name))?;
+        self.event(&Event::marker(time, name))?;
         Ok(self)
     }
-    /// Write a resize event to the asciicast.
+    /// Write a [resize event](https://docs.asciinema.org/manual/asciicast/v2/#r-resize).
     pub fn resize(&mut self, time: u128, columns: u16, rows: u16) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
-        self.write_event(&Event::resize(time, &format!("{}x{}", columns, rows)))?;
+        self.event(&Event::resize(time, &format!("{}x{}", columns, rows)))?;
         Ok(self)
     }
     /// Write an event to the writer.
-    fn write_event(&mut self, event: &Event) -> Result<(), ErrorType> {
+    fn event(&mut self, event: &Event) -> Result<(), ErrorType> {
         event.write(&mut self.writer)?;
         writeln!(&mut self.writer)?;
         Ok(())

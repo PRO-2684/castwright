@@ -1,4 +1,4 @@
-//! Module for parsing front matter instructions.
+//! Module for front matter instructions.
 
 use super::{
     util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, Instruction, ParseContext,

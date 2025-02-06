@@ -1,4 +1,4 @@
-//! Module for parsing marker instructions.
+//! Module for marker instructions.
 
 use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
@@ -7,7 +7,7 @@ use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 pub struct MarkerInstruction(String);
 
 impl Instruction for MarkerInstruction {
-    /// Parse a line into an `MarkerInstruction`.
+    /// Parse a trimmed line into an `MarkerInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         context.front_matter_state.end()?;
         if context.expect_continuation {

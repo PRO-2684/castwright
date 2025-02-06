@@ -1,4 +1,4 @@
-//! Module for parsing wait instructions.
+//! Module for wait instructions.
 
 use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
@@ -7,7 +7,7 @@ use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseCont
 pub struct WaitInstruction(u128);
 
 impl Instruction for WaitInstruction {
-    /// Parse a line into an `WaitInstruction`.
+    /// Parse a trimmed line into an `WaitInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         context.front_matter_state.end()?;
         if context.expect_continuation {

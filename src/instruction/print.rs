@@ -1,4 +1,4 @@
-//! Module for parsing print instructions.
+//! Module for print instructions.
 
 use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
@@ -7,7 +7,7 @@ use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseCont
 pub struct PrintInstruction(String);
 
 impl Instruction for PrintInstruction {
-    /// Parse a line into an `PrintInstruction`.
+    /// Parse a trimmed line into an `PrintInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         context.front_matter_state.end()?;
         if context.expect_continuation {

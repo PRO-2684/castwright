@@ -1,4 +1,4 @@
-//! Module for parsing empty instructions.
+//! Module for empty instructions.
 
 use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 

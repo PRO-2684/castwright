@@ -24,7 +24,7 @@ pub fn execute_command(
     Ok(iter)
 }
 
-/// Iterator over `ReaderHandle`. Replace `\n` with `\r\n`.
+/// Iterator over `ReaderHandle`, replacing `\n` with `\r\n`.
 pub struct ReaderIterator {
     /// Buffer for reading output.
     buffer: [u8; 1024],

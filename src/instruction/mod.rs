@@ -1,4 +1,4 @@
-//! Module for parsing instructions.
+//! Module for parsing and executing instructions.
 
 mod command;
 mod config;
@@ -81,7 +81,6 @@ impl PartialEq for dyn Instruction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::ErrorType;
 
     #[test]
     fn instruction_with_space() {
