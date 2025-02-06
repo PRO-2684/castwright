@@ -30,8 +30,6 @@ pub struct ReaderIterator {
     buffer: [u8; 1024],
     /// Inner reader handle.
     reader: Option<ReaderHandle>,
-    /// Error flag.
-    error: bool,
 }
 
 impl ReaderIterator {
@@ -40,7 +38,6 @@ impl ReaderIterator {
         Self {
             reader: None,
             buffer: [0; 1024],
-            error: false,
         }
     }
     /// Create a new `ReaderIterator` from a `ReaderHandle`.
@@ -48,7 +45,6 @@ impl ReaderIterator {
         Self {
             reader: Some(reader),
             buffer: [0; 1024],
-            error: false,
         }
     }
 }
@@ -57,12 +53,8 @@ impl Iterator for ReaderIterator {
     type Item = Result<String, ErrorType>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.error {
-            // An error occurred
-            return None;
-        }
         let Some(reader) = &mut self.reader else {
-            // No reader
+            // No reader, or the reader has been discarded
             return None;
         };
         match reader.read(&mut self.buffer) {
@@ -71,11 +63,13 @@ impl Iterator for ReaderIterator {
                 let raw = String::from_utf8_lossy(&self.buffer[..n]).to_string();
                 // Replace `\n` with `\r\n`
                 let output = replace_newline(&raw);
-                // FIXME: Edge case: if the previous chunk ends with `\r`, and the next chunk starts with `\n`, the `\n` will be replaced by `\r\n`.
+
                 Some(Ok(output))
             }
             Err(e) => {
-                self.error = true;
+                // Discard the reader
+                self.reader.take();
+
                 if matches!(e.kind(), ErrorKind::Other) {
                     Some(Err(ErrorType::Subprocess(e.to_string())))
                 } else {
