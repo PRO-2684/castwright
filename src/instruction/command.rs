@@ -51,6 +51,7 @@ impl Instruction for CommandInstruction {
     ) -> Result<(), ErrorType> {
         let temp = context.temporary.get(!self.continuation);
         let config = context.persistent.combine(temp);
+
         if config.hidden {
             if context.execute {
                 // Execute command silently
@@ -58,7 +59,8 @@ impl Instruction for CommandInstruction {
                 let reader = execute_command(context, &self.command)?;
                 let result = || -> Result<(), ErrorType> {
                     for chunk in reader {
-                        let _ = chunk?;
+                        // Discard the output
+                        chunk?;
                     }
                     Ok(())
                 }();
@@ -66,6 +68,7 @@ impl Instruction for CommandInstruction {
             }
             return Ok(());
         }
+
         let prompt = if self.start {
             &config.prompt
         } else {
@@ -75,20 +78,28 @@ impl Instruction for CommandInstruction {
         cast.output(context.elapsed, prompt)?;
         context.preview(prompt);
         context.elapsed += config.start_lag;
-        for character in self.command.chars() {
-            context.elapsed += interval;
-            // https://stackoverflow.com/a/67898224/16468609
-            cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
+
+        if interval > 0 {
+            for character in self.command.chars() {
+                context.elapsed += interval;
+                // https://stackoverflow.com/a/67898224/16468609
+                cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
+            }
+        } else {
+            cast.output(context.elapsed, &self.command)?;
         }
         context.preview(&self.command);
+
         if self.continuation {
             context.elapsed += interval;
             cast.output(context.elapsed, &config.line_continuation)?;
             context.preview(&config.line_continuation);
+
             context.elapsed += interval;
             context.elapsed += config.end_lag;
             cast.output(context.elapsed, "\r\n")?;
             context.preview("\r\n");
+
             context.command.push_str(&self.command);
             context.command.push(' ');
         } else {
@@ -96,20 +107,24 @@ impl Instruction for CommandInstruction {
             context.elapsed += config.end_lag;
             cast.output(context.elapsed, "\r\n")?;
             context.preview("\r\n");
+
             // Take `context.command` out, replacing with an empty string
             let mut command = std::mem::take(&mut context.command);
             command.push_str(&self.command);
+
             if context.execute {
                 let expect = config.expect;
                 let mut prev = std::time::Instant::now();
                 let reader = execute_command(context, &command)?;
                 let mut lock = std::io::stdout().lock();
+
                 let result = || -> Result<(), ErrorType> {
                     for chunk in reader {
                         let chunk = chunk?;
                         let now = std::time::Instant::now();
                         context.elapsed += now.duration_since(prev).as_micros();
                         prev = now;
+
                         cast.output(context.elapsed, &chunk)?;
                         // context.preview(&chunk);
                         // 1. Ensure that the output is flushed in real-time
@@ -121,9 +136,11 @@ impl Instruction for CommandInstruction {
                     }
                     Ok(())
                 }();
+
                 handle_error(result, expect)?;
             }
         }
+
         Ok(())
     }
 }

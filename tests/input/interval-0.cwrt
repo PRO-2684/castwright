@@ -1,0 +1,11 @@
+---
+width: 80
+height: 24
+title: CastWright @@interval 0
+capture: []
+---
+
+@@interval 0
+
+$ echo 123
+% Instant

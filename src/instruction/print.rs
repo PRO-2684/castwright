@@ -23,17 +23,24 @@ impl Instruction for PrintInstruction {
         cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
         let config = context.persistent.combine(context.temporary.get(true));
-        context.elapsed += config.start_lag;
         let interval = config.interval;
-        for character in self.0.chars() {
-            context.elapsed += interval;
-            cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
+        context.elapsed += config.start_lag;
+
+        if interval > 0 {
+            for character in self.0.chars() {
+                context.elapsed += interval;
+                cast.output(context.elapsed, character.encode_utf8(&mut [0u8; 4]))?;
+            }
+        } else {
+            cast.output(context.elapsed, &self.0)?;
         }
         context.preview(&self.0);
+
         context.elapsed += interval;
         context.elapsed += config.end_lag;
         cast.output(context.elapsed, "\r\n")?;
         context.preview("\r\n");
+
         Ok(())
     }
 }
