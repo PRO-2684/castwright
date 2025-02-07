@@ -41,7 +41,7 @@ pub(super) trait Instruction: std::fmt::Debug {
         Self: Sized;
     /// Execute the instruction.
     fn execute(
-        &self,
+        self: Box<Self>,
         context: &mut ExecutionContext,
         cast: &mut AsciiCast,
     ) -> Result<(), ErrorType>;

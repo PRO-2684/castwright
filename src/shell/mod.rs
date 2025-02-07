@@ -20,10 +20,7 @@ pub fn execute_command(
     let (shell, args) = context.shell.split_at(1);
     let shell = shell[0].as_str();
     let command = [command];
-    let args = args
-        .iter()
-        .map(|s| s.as_str())
-        .chain(command.into_iter());
+    let args = args.iter().map(|s| s.as_str()).chain(command.into_iter());
 
     let expr = cmd(shell, args).dir(&context.directory);
     let reader = expr.stderr_to_stdout().reader()?;

@@ -13,7 +13,7 @@ impl Instruction for EmptyInstruction {
     }
     /// Execute the instruction
     fn execute(
-        &self,
+        self: Box<Self>,
         _context: &mut ExecutionContext,
         _cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
@@ -42,7 +42,7 @@ mod tests {
 
         let mut context = ExecutionContext::new();
         let mut writer = Vec::new();
-        instruction
+        Box::new(instruction)
             .execute(&mut context, &mut AsciiCast::new(&mut writer))
             .unwrap();
 

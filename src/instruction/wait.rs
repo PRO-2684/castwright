@@ -18,7 +18,7 @@ impl Instruction for WaitInstruction {
     }
     /// Execute the instruction
     fn execute(
-        &self,
+        self: Box<Self>,
         context: &mut ExecutionContext,
         _cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
@@ -41,7 +41,9 @@ mod tests {
         let mut context = ExecutionContext::new();
         let mut writer = Vec::new();
         let mut cast = AsciiCast::new(&mut writer);
-        instruction.execute(&mut context, &mut cast).unwrap();
+        Box::new(instruction)
+            .execute(&mut context, &mut cast)
+            .unwrap();
         assert_eq!(context.elapsed, 1_000_000);
     }
 }

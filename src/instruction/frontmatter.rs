@@ -87,24 +87,25 @@ impl Instruction for FrontMatterInstruction {
     }
     /// Execute the front matter instruction.
     fn execute(
-        &self,
+        self: Box<Self>,
         context: &mut ExecutionContext,
         cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
-        match self {
+        let inner = *self;
+        match inner {
             FrontMatterInstruction::Width(width) => {
-                cast.width(*width)?;
+                cast.width(width)?;
             }
             FrontMatterInstruction::Height(height) => {
-                cast.height(*height)?;
+                cast.height(height)?;
             }
             FrontMatterInstruction::Title(title) => {
-                cast.title(title.clone())?;
+                cast.title(title)?;
             }
             FrontMatterInstruction::Shell(shell) => {
-                context.shell = shell.clone();
+                context.shell = shell;
             }
-            // FrontMatterInstruction::Quit(quit) => { cast.quit(quit.clone())?; },
+            // FrontMatterInstruction::Quit(quit) => { cast.quit(quit)?; },
             FrontMatterInstruction::Idle(idle) => {
                 cast.idle_time_limit(idle.as_secs_f64())?;
             }
@@ -149,7 +150,10 @@ mod tests {
             ("width: 80", Width(80)),
             ("height: 24", Height(24)),
             ("title: Hello, world!", Title("Hello, world!".to_string())),
-            ("shell: [\"/bin/bash\", \"-c\"]", Shell(vec!["/bin/bash".to_string(), "-c".to_string()])),
+            (
+                "shell: [\"/bin/bash\", \"-c\"]",
+                Shell(vec!["/bin/bash".to_string(), "-c".to_string()]),
+            ),
             ("quit: exit", Quit("exit".to_string())),
             ("idle: 1s", Idle(Duration::from_secs(1))),
             (

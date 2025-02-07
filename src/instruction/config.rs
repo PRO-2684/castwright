@@ -108,7 +108,7 @@ impl Instruction for ConfigInstruction {
     }
     /// Execute the configuration instruction.
     fn execute(
-        &self,
+        self: Box<Self>,
         context: &mut ExecutionContext,
         _cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
@@ -116,35 +116,31 @@ impl Instruction for ConfigInstruction {
         // Modify the configuration
         if self.persistent {
             let config = &mut context.persistent;
-            match &self.instruction_type {
-                Prompt(prompt) => config.prompt = prompt.clone(),
-                SecondaryPrompt(secondary_prompt) => {
-                    config.secondary_prompt = secondary_prompt.clone()
-                }
-                LineContinuation(line_continuation) => {
-                    config.line_continuation = line_continuation.clone()
-                }
-                Hidden(hidden) => config.hidden = *hidden,
-                Expect(expect) => config.expect = *expect,
-                Interval(interval) => config.interval = *interval,
-                StartLag(delay) => config.start_lag = *delay,
-                EndLag(delay) => config.end_lag = *delay,
+            match self.instruction_type {
+                Prompt(prompt) => config.prompt = prompt,
+                SecondaryPrompt(secondary_prompt) => config.secondary_prompt = secondary_prompt,
+                LineContinuation(line_continuation) => config.line_continuation = line_continuation,
+                Hidden(hidden) => config.hidden = hidden,
+                Expect(expect) => config.expect = expect,
+                Interval(interval) => config.interval = interval,
+                StartLag(delay) => config.start_lag = delay,
+                EndLag(delay) => config.end_lag = delay,
             }
         } else {
             let config = &mut context.temporary;
-            match &self.instruction_type {
-                Prompt(prompt) => config.prompt = Some(prompt.clone()),
+            match self.instruction_type {
+                Prompt(prompt) => config.prompt = Some(prompt),
                 SecondaryPrompt(secondary_prompt) => {
-                    config.secondary_prompt = Some(secondary_prompt.clone())
+                    config.secondary_prompt = Some(secondary_prompt)
                 }
                 LineContinuation(line_continuation) => {
-                    config.line_continuation = Some(line_continuation.clone())
+                    config.line_continuation = Some(line_continuation)
                 }
-                Hidden(hidden) => config.hidden = Some(*hidden),
-                Expect(expect) => config.expect = Some(*expect),
-                Interval(interval) => config.interval = Some(*interval),
-                StartLag(delay) => config.start_lag = Some(*delay),
-                EndLag(delay) => config.end_lag = Some(*delay),
+                Hidden(hidden) => config.hidden = Some(hidden),
+                Expect(expect) => config.expect = Some(expect),
+                Interval(interval) => config.interval = Some(interval),
+                StartLag(delay) => config.start_lag = Some(delay),
+                EndLag(delay) => config.end_lag = Some(delay),
             }
         }
         Ok(())
@@ -263,8 +259,7 @@ mod tests {
             "interval 2ms",
         ];
         for line in instructions.iter() {
-            ConfigInstruction::parse(line, &mut parse_context)
-                .unwrap()
+            Box::new(ConfigInstruction::parse(line, &mut parse_context).unwrap())
                 .execute(&mut context, &mut cast)
                 .unwrap();
         }

@@ -45,7 +45,7 @@ impl Instruction for CommandInstruction {
     }
     /// Execute the instruction
     fn execute(
-        &self,
+        self: Box<Self>,
         context: &mut ExecutionContext,
         cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
