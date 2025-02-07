@@ -1,6 +1,6 @@
 [package]
 name = "castwright"
-version = "0.0.4"
+version = "0.0.5"
 edition = "2021"
 include = ["/src", "LICENSE", "README.md"]
 repository = "https://github.com/PRO-2684/castwright"
