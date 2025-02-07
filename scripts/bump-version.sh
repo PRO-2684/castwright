@@ -8,13 +8,30 @@ PATCH=$(echo $VERSION | cut -d. -f3)
 PATCH=$((PATCH + 1))
 VERSION="$MAJOR.$MINOR.$PATCH"
 
-# Update the version in Cargo.toml
+# Update the version in Cargo.toml and demo.cwrt
 sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
+sed -i "s/title: CastWright Demo (v.*)/title: CastWright Demo (v$VERSION)/" tests/demo.cwrt
+
+# Generate demo asciicast
+cargo build --release
+cp ./target/release/castwright ~/.cargo/bin/castwright
+castwright -i tests/demo.cwrt -o /tmp/demo.cwrt -t -x
+
+# Upload demo asciicast
+ASCIICAST_LINK=$(asciinema upload /tmp/demo.cwrt | rg --no-filename 'https://asciinema.org/a/\w+')
+# Escape the slashes
+ASCIICAST_LINK_ESCAPE=$(echo $ASCIICAST_LINK | sed 's/\//\\\//g')
+
+# Update the version and link in README.md
+sed -i "s/\[!\[CastWright Demo (v.*)\](.*)\](.*)/\[!\[CastWright Demo (v$VERSION)\]($ASCIICAST_LINK_ESCAPE.svg)\]($ASCIICAST_LINK_ESCAPE)/" README.md
+echo "CastWright Demo (v$VERSION): $ASCIICAST_LINK"
 
 # Commit the change
 git add Cargo.toml
 cargo generate-lockfile
 git add Cargo.lock
+git add tests/demo.cwrt
+git add README.md
 git commit -S -m "Bump version to v$VERSION"
 
 # Tag
