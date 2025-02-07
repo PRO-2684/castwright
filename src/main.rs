@@ -78,7 +78,7 @@ fn main() -> Result<(), DispError<Error>> {
 
     let mut writer: &mut BufWriter<dyn Write> = match &args.output {
         Some(path) => &mut BufWriter::new(file(path, true)?),
-        None => &mut BufWriter::new(std::io::stdout()),
+        None => &mut BufWriter::new(std::io::stdout().lock()),
     };
 
     CastWright::new()
