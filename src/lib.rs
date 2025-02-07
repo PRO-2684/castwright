@@ -2,8 +2,7 @@
 //!
 //! ## Note
 //!
-//! - This project is still in the early stages of development, with some core features missing or incomplete.
-//! - If you see this message, it means that you're viewing the documentation of the `castwright` library. For the CLI, please refer to the [README](https://github.com/PRO-2684/castwright#castwright); for the CastWright script format, please refer to the [REFERENCE](https://github.com/PRO-2684/castwright/blob/main/REFERENCE.md).
+//! If you see this message, it means that you're viewing the documentation of the `castwright` library. For the CLI, please refer to the [README](https://github.com/PRO-2684/castwright#-castwright); for the CastWright script format, please refer to the [REFERENCE](https://github.com/PRO-2684/castwright/blob/main/REFERENCE.md).
 //!
 //! ## Usage
 //!
@@ -24,7 +23,7 @@
 //!     "#;
 //!     let text = text.trim();
 //!     let mut reader = BufReader::new(text.as_bytes());
-//!     let mut stdout = std::io::stdout().lock();
+//!     let mut stdout = std::io::stdout().lock(); // Consider wrapping in a BufWriter for better performance
 //!     let castwright = CastWright::new();
 //!     castwright.run(&mut reader, &mut stdout)?;
 //!     Ok(())
@@ -268,7 +267,7 @@ impl ExecutionContext {
 ///
 /// ## Running
 ///
-/// To parse and execute a CastWright script and write the resulting asciicast, use the [`run`](`CastWright::run`) method, which takes mutable references to a reader and a writer.
+/// To parse and execute a CastWright script and write the resulting asciicast, use the [`run`](`CastWright::run`) method, which takes mutable references to a reader and a writer. For better performance, a buffered writer is recommended.
 ///
 /// ## Example
 ///
