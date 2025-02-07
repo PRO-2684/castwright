@@ -18,7 +18,7 @@ pub enum FrontMatterInstruction {
     /// Title of the asciicast.
     Title(String),
     /// The shell to use.
-    Shell(String),
+    Shell(Vec<String>),
     /// The quit command.
     Quit(String),
     /// Idle time limit.
@@ -59,8 +59,12 @@ impl Instruction for FrontMatterInstruction {
                     Ok(FrontMatterInstruction::Title(value))
                 }
                 "shell" => {
-                    let value = util::parse_loose_string(value)?;
-                    Ok(FrontMatterInstruction::Shell(value))
+                    let shell: Vec<String> = from_str(value)?;
+                    // Ensure that the vector is not empty.
+                    if shell.is_empty() {
+                        return Err(ErrorType::MalformedInstruction);
+                    }
+                    Ok(FrontMatterInstruction::Shell(shell))
                 }
                 "quit" => {
                     let value = util::parse_loose_string(value)?;
@@ -145,7 +149,7 @@ mod tests {
             ("width: 80", Width(80)),
             ("height: 24", Height(24)),
             ("title: Hello, world!", Title("Hello, world!".to_string())),
-            ("shell: /bin/bash", Shell("/bin/bash".to_string())),
+            ("shell: [\"/bin/bash\", \"-c\"]", Shell(vec!["/bin/bash".to_string(), "-c".to_string()])),
             ("quit: exit", Quit("exit".to_string())),
             ("idle: 1s", Idle(Duration::from_secs(1))),
             (
@@ -189,6 +193,7 @@ mod tests {
             "idle:",
             "idle: 1",
             "idle: 1.0",
+            "shell: []", // Empty shell.
         ];
         for line in instructions.iter() {
             let parsed = FrontMatterInstruction::parse(line, &mut parse_context).unwrap_err();

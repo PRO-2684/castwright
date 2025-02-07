@@ -210,7 +210,7 @@ struct ExecutionContext {
     /// Temporary configuration.
     temporary: TemporaryConfiguration,
     /// The shell to use.
-    shell: String,
+    shell: Vec<String>,
     /// Working directory. Must be an absolute path.
     directory: PathBuf,
     /// Elapsed time in microseconds (µs).
@@ -233,7 +233,7 @@ impl ExecutionContext {
         Self {
             persistent: Configuration::new(),
             temporary: TemporaryConfiguration::new(),
-            shell: "bash".to_string(),
+            shell: vec!["bash".to_string(), "-c".to_string()],
             directory: PathBuf::from(".")
                 .canonicalize()
                 .expect("Failed to canonicalize current directory"),

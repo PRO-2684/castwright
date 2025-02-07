@@ -13,12 +13,20 @@ pub fn execute_command(
     command: &str,
 ) -> Result<ReaderIterator, ErrorType> {
     // Check if the command is a built-in command
-    if execute_built_in_command(context, command)? {
+    if execute_built_in_command(context, &command)? {
         return Ok(ReaderIterator::new());
     }
     // Spawn the command
-    let command = cmd!(&context.shell, "-c", command).dir(&context.directory);
-    let reader = command.stderr_to_stdout().reader()?;
+    let (shell, args) = context.shell.split_at(1);
+    let shell = shell[0].as_str();
+    let command = [command];
+    let args = args
+        .iter()
+        .map(|s| s.as_str())
+        .chain(command.into_iter());
+
+    let expr = cmd(shell, args).dir(&context.directory);
+    let reader = expr.stderr_to_stdout().reader()?;
     let iter = ReaderIterator::from_handle(reader);
 
     Ok(iter)
@@ -128,9 +136,9 @@ mod tests {
 
     #[test]
     fn echo_stdout() {
-        let command = "echo hello";
+        let command = "echo hello".to_string();
         let mut context = ExecutionContext::new();
-        let reader = execute_command(&mut context, command).unwrap();
+        let reader = execute_command(&mut context, &command).unwrap();
         let mut output = String::new();
         for chunk in reader {
             output.push_str(&chunk.unwrap());
@@ -140,9 +148,9 @@ mod tests {
 
     #[test]
     fn echo_stderr() {
-        let command = "echo hello 1>&2";
+        let command = "echo hello 1>&2".to_string();
         let mut context = ExecutionContext::new();
-        let reader = execute_command(&mut context, command).unwrap();
+        let reader = execute_command(&mut context, &command).unwrap();
         let mut output = String::new();
         for chunk in reader {
             output.push_str(&chunk.unwrap());
@@ -152,9 +160,9 @@ mod tests {
 
     #[test]
     fn echo_both() {
-        let command = "echo hello; echo world 1>&2";
+        let command = "echo hello; echo world 1>&2".to_string();
         let mut context = ExecutionContext::new();
-        let reader = execute_command(&mut context, command).unwrap();
+        let reader = execute_command(&mut context, &command).unwrap();
         let expected = "hello\r\nworld\r\n";
         let mut actual = String::new();
         for chunk in reader {
@@ -166,9 +174,9 @@ mod tests {
 
     #[test]
     fn echo_with_delay() {
-        let command = "echo hello; sleep 1; echo world 1>&2";
+        let command = "echo hello; sleep 1; echo world 1>&2".to_string();
         let mut context = ExecutionContext::new();
-        let reader = execute_command(&mut context, command).unwrap();
+        let reader = execute_command(&mut context, &command).unwrap();
         let expected = vec!["hello\r\n", "world\r\n"];
         let mut actual = Vec::new();
 

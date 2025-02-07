@@ -17,7 +17,7 @@ The front matter must be enclosed by a pair of triple dashes (`---`). It consist
 ```yaml
 ---
 title: My Asciicast
-shell: bash
+shell: ["bash", "-c"]
 idle: 5s
 ---
 ```
@@ -34,9 +34,12 @@ The following keys are supported in the front matter:
     - **Type**: [LooseString](#loosestring).
     - **Default**: None.
 - `shell`: Set the shell to be used for executing commands.
-    - **Type**: [LooseString](#loosestring), which represents the shell executable.
-    - **Default**: `bash`.
-    - Provided shell must accept `-c` flag for executing commands.
+    - **Type**: A list of [String](#string).
+    - **Default**: `["bash", "-c"]`.
+    - Notes:
+        - The first element of the list is the shell executable, so the list must contain at least one element.
+        - The rest of the elements are the flags to pass to the shell executable.
+        - For example, `["bash", "-c"]` will execute commands like `bash -c "command"`.
 - `quit`: Set the quit command to be used for exiting the shell. (Not implemented yet)
     - **Type**: [LooseString](#loosestring), which represents the quit command.
     - **Default**: `exit`.
@@ -48,7 +51,7 @@ The following keys are supported in the front matter:
     - **Default**: `["SHELL", "TERM"]`. (As [specified by asciinema](https://docs.asciinema.org/manual/asciicast/v2/#env))
     - Notes:
         - If you don't want to capture any environment variables, you can provide an empty list `[]`.
-        - If the environment variable is not set or not valid unicode, it will be ignored.
+        - If the environment variable is not set or not valid Unicode, it will be ignored.
 
 Internally, front matter delimiters and key-value pairs are also treated as instructions.
 
@@ -112,13 +115,13 @@ A configuration instruction configures the behavior of [command](#command) and [
     - **Parameter**: `success`, `failure`, or `any`. If omitted, defaults to `success`.
     - **Default**: `@@expect success`
 - `interval`: Set the typing interval between characters in a command.
-    - **Parameter**: An [Duration](#duration).
+    - **Parameter**: A [Duration](#duration).
     - **Default**: `@@interval 100ms`
 - `start-lag`: Set the start lag. i.e. Additional delay after displaying the prompt, before printing the command for command instructions, or before printing the content for print instructions.
-    - **Parameter**: An [Duration](#duration).
+    - **Parameter**: A [Duration](#duration).
     - **Default**: `@@start-lag 0s`
 - `end-lag`: Set the end lag. i.e. Additional delay after printing the command for command instructions, or after printing the content for print instructions.
-    - **Parameter**: An [Duration](#duration).
+    - **Parameter**: A [Duration](#duration).
     - **Default**: `@@end-lag 0s`
 
 #### Persistent

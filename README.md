@@ -16,7 +16,7 @@
 > [!NOTE]
 > The name `castwright` is a portmanteau of `asciicast` and `playwright`.
 
-Have you re-recorded the same session over and over again, either to hit the right speed or to avoid mistakes? Ever wanted to automate the process of recording terminal sessions, like shell scripts automate the process of running commands? Well, CastWright is here to help.
+Have you recorded the same session over and over again, either to hit the right speed or to avoid mistakes? Ever wanted to automate the process of recording terminal sessions, like shell scripts automate the process of running commands? Well, CastWright is here to help.
 
 <details><summary>Click to see CastWright Demo</summary>
 
@@ -30,7 +30,7 @@ Have you re-recorded the same session over and over again, either to hit the rig
 
 - **Fast**: CastWright is designed to be fast, with running time close to actually executing the given shell commands.
 - **Efficient**: CastWright guarantees constant memory usage, by leveraging streaming I/O.
-- **Preview**: Preview your asciicast automatically, saving you the time for executing `&& asciinema play name.cast` and the configured delays.
+- **Preview**: Preview your asciicast without delays whilst CastWright is working, saving you the time for sitting through the entire recording.
 - **Intuitive**: CastWright scripts are very intuitive and similar to an interactive shell, with friendly error messages, making it easy to understand, write, and maintain.
 - **Customization**: CastWright scripts provide various instructions for customizing the produced asciicast, like typing speed or title.
 
@@ -55,6 +55,7 @@ Pre-built binaries are available at [Releases](https://github.com/PRO-2684/castw
 ### Command Line Interface
 
 ```shell
+$ castwright --help
 Usage: castwright [-i <input>] [-o <output>] [-x] [-t] [-v]
 
 🎥 Scripted terminal recording.
