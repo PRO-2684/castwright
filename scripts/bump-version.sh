@@ -15,10 +15,10 @@ sed -i "s/title: CastWright Demo (v.*)/title: CastWright Demo (v$VERSION)/" test
 # Generate demo asciicast
 cargo build --release
 cp ./target/release/castwright ~/.cargo/bin/castwright
-castwright -i tests/demo.cwrt -o /tmp/demo.cwrt -t -x
+castwright -i tests/demo.cwrt -o /tmp/demo.cast -t -x
 
 # Upload demo asciicast
-ASCIICAST_LINK=$(asciinema upload /tmp/demo.cwrt | rg --no-filename 'https://asciinema.org/a/\w+')
+ASCIICAST_LINK=$(asciinema upload /tmp/demo.cast | rg --no-filename 'https://asciinema.org/a/\w+')
 # Escape the slashes
 ASCIICAST_LINK_ESCAPE=$(echo $ASCIICAST_LINK | sed 's/\//\\\//g')
 
