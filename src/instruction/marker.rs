@@ -29,7 +29,6 @@ impl Instruction for MarkerInstruction {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::instruction::{Instruction, ParseContext};
 
     #[test]
     fn marker_instruction() {

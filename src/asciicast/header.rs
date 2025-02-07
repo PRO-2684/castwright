@@ -1,6 +1,6 @@
 //! Module for modeling and serializing an [asciicast v2 header](https://docs.asciinema.org/manual/asciicast/v2/#header).
 
-use crate::util::{capture_env_vars, get_terminal_size};
+use super::util::{capture_env_vars, get_terminal_size};
 use serde::ser::SerializeStruct;
 use serde::Serialize;
 use std::collections::HashMap;
