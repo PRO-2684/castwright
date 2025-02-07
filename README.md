@@ -20,7 +20,7 @@ Have you recorded the same session over and over again, either to hit the right 
 
 <details><summary>Click to see CastWright Demo</summary>
 
-> Source: [demo.cwrt](./tests/input/demo.cwrt)
+> Source: [demo.cwrt](./tests/demo.cwrt)
 
 [![CastWright Demo (v0.0.5)](https://asciinema.org/a/QJXpE7EHPgFh3ISn4cfYQki1a.svg)](https://asciinema.org/a/QJXpE7EHPgFh3ISn4cfYQki1a)
 
