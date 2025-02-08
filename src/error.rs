@@ -9,12 +9,12 @@ use thiserror::Error as ThisError;
 #[derive(ThisError, Debug)]
 pub enum ErrorType {
     // Foreign errors
-    /// An io error occurred while reading the file.
-    #[error("IO error: \"{0}\"")]
-    Io(IoError),
     /// A `serde_json` error occurred while parsing.
     #[error("JSON error: \"{0}\"")]
     Json(JsonError),
+    /// An io error occurred while reading the file.
+    #[error("IO error: \"{0}\"")]
+    Io(IoError),
     /// Subprocess does not exit with expected status code.
     #[error("Shell {0}")]
     Subprocess(String),
@@ -68,27 +68,27 @@ impl ErrorType {
     }
 }
 
-impl From<IoError> for ErrorType {
-    fn from(error: IoError) -> Self {
-        Self::Io(error)
-    }
-}
-
 impl From<JsonError> for ErrorType {
     fn from(error: JsonError) -> Self {
         Self::Json(error)
     }
 }
 
-impl From<SystemTimeError> for ErrorType {
-    fn from(error: SystemTimeError) -> Self {
-        Self::SystemTime(error)
+impl From<IoError> for ErrorType {
+    fn from(error: IoError) -> Self {
+        Self::Io(error)
     }
 }
 
 impl From<ParseIntError> for ErrorType {
     fn from(_: ParseIntError) -> Self {
         Self::MalformedInstruction
+    }
+}
+
+impl From<SystemTimeError> for ErrorType {
+    fn from(error: SystemTimeError) -> Self {
+        Self::SystemTime(error)
     }
 }
 
