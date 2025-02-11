@@ -11,6 +11,7 @@ VERSION="$MAJOR.$MINOR.$PATCH"
 # Update the version in Cargo.toml and demo.cwrt
 sed -i "s/^version = \".*\"/version = \"$VERSION\"/" Cargo.toml
 sed -i "s/title: CastWright Demo (v.*)/title: CastWright Demo (v$VERSION)/" tests/demo.cwrt
+cargo generate-lockfile
 
 # Generate demo asciicast
 cargo build --release
@@ -28,7 +29,6 @@ echo "CastWright Demo (v$VERSION): $ASCIICAST_LINK"
 
 # Commit the change
 git add Cargo.toml
-cargo generate-lockfile
 git add Cargo.lock
 git add tests/demo.cwrt
 git add README.md
