@@ -105,6 +105,10 @@ Multi- line command
 
 In addition, CastWright provides various instructions for customizing the produced asciicast, like typing speed or title. See [`REFERENCE.md`](./doc/REFERENCE.md) for a detailed reference, or example CastWright scripts under the [`tests`](./tests/) directory.
 
+### As a Library
+
+CastWright can also be used as a [Rust library](https://docs.rs/castwright), providing a simple API for [creating an asciicast from a CastWright script](https://docs.rs/castwright/latest/castwright/index.html#example). In addition, the library provides an [`AsciiCast` struct](https://docs.rs/castwright/latest/castwright/struct.AsciiCast.html) for creating asciicasts in a **streaming** fashion.
+
 ## 🚫 Caveats
 
 You can find a list of known caveats in [`CAVEATS.md`](./doc/CAVEATS.md#shell-session). Most notably, each command is executed in a separate shell session, which may not be ideal for some use cases.
