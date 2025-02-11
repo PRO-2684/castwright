@@ -22,7 +22,7 @@ Have you recorded the same session over and over again, either to hit the right 
 
 > Source: [demo.cwrt](./tests/demo.cwrt)
 
-[![CastWright Demo (v0.0.5)](https://asciinema.org/a/QJXpE7EHPgFh3ISn4cfYQki1a.svg)](https://asciinema.org/a/QJXpE7EHPgFh3ISn4cfYQki1a)
+[![CastWright Demo (v0.0.6)](https://asciinema.org/a/oPWfIYaGz15rj7rSNB0H0zEW0.svg)](https://asciinema.org/a/oPWfIYaGz15rj7rSNB0H0zEW0)
 
 </details>
 
