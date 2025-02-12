@@ -13,17 +13,14 @@ pub fn execute_command(
     command: &str,
 ) -> Result<ReaderIterator, ErrorType> {
     // Check if the command is a built-in command
-    if execute_built_in_command(context, &command)? {
+    if execute_built_in_command(context, command)? {
         return Ok(ReaderIterator::new());
     }
     // Spawn the command
     let (shell, args) = context.shell.split_at(1);
     let shell = shell[0].as_str();
     let command = [command];
-    let args = args
-        .iter()
-        .map(|s| s.as_str())
-        .chain(command.into_iter());
+    let args = args.iter().map(std::string::String::as_str).chain(command);
 
     let expr = cmd(shell, args).dir(&context.directory);
     let reader = expr.stderr_to_stdout().reader()?;
@@ -42,14 +39,14 @@ pub struct ReaderIterator {
 
 impl ReaderIterator {
     /// Create a new `ReaderIterator` that does nothing.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self {
             reader: None,
             buffer: [0; 1024],
         }
     }
     /// Create a new `ReaderIterator` from a `ReaderHandle`.
-    pub fn from_handle(reader: ReaderHandle) -> Self {
+    pub const fn from_handle(reader: ReaderHandle) -> Self {
         Self {
             reader: Some(reader),
             buffer: [0; 1024],
@@ -209,7 +206,7 @@ mod tests {
             ("hello\r\nworld\n", "hello\r\nworld\r\n"),
             ("hello\rworld", "hello\rworld"),
         ];
-        for (input, expected) in cases.iter() {
+        for (input, expected) in &cases {
             let actual = replace_newline(input);
             assert_eq!(actual, *expected);
         }

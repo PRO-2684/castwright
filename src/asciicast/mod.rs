@@ -12,7 +12,7 @@ use std::{collections::HashMap, io::Write};
 ///
 /// ## Instantiation
 ///
-/// Can be instantiated using the [`AsciiCast::new`] method, which accepts a mutable reference to a writer and returns an asciicast instance. The instance streams content to the writer as methods are called. See ["Header"](#header) and ["Events"](#events) section for more information.
+/// Can be instantiated using the [`AsciiCast::new`] method, which accepts a mutable reference to a writer and returns an asciicast instance. The instance streams content to the writer as methods are called. See [Header](#header) and [Events](#events) section for more information.
 ///
 /// ## Header
 ///
@@ -120,31 +120,55 @@ impl<'a> AsciiCast<'a> {
 
     // Header
     /// Set the [initial terminal width](https://docs.asciinema.org/manual/asciicast/v2/#width).
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error if the header has already been written.
     pub fn width(&mut self, width: u16) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.width = width;
         Ok(self)
     }
     /// Set the [initial terminal height](https://docs.asciinema.org/manual/asciicast/v2/#height).
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error if the header has already been written.
     pub fn height(&mut self, height: u16) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.height = height;
         Ok(self)
     }
     /// Set the [unix timestamp of the beginning of the recording session](https://docs.asciinema.org/manual/asciicast/v2/#timestamp) in seconds.
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error if the header has already been written.
     pub fn timestamp(&mut self, timestamp: u64) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.timestamp = Some(timestamp);
         Ok(self)
     }
     /// Set the [idle time limit](https://docs.asciinema.org/manual/asciicast/v2/#idle_time_limit).
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error if the header has already been written.
     pub fn idle_time_limit(&mut self, idle_time_limit: f64) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.idle_time_limit = Some(idle_time_limit);
         Ok(self)
     }
     /// Set the [title of the asciicast](https://docs.asciinema.org/manual/asciicast/v2/#title).
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error if the header has already been written.
     pub fn title(&mut self, title: String) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.title = Some(title);
         Ok(self)
     }
     /// Set the [captured environment variables](https://docs.asciinema.org/manual/asciicast/v2/#env).
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error if the header has already been written.
     pub fn capture(&mut self, env_vars: HashMap<String, String>) -> Result<&mut Self, ErrorType> {
         self.get_header_mut()?.env = if env_vars.is_empty() {
             None
@@ -154,6 +178,10 @@ impl<'a> AsciiCast<'a> {
         Ok(self)
     }
     /// Write the header to the writer.
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error if the header has already been written, or [`Json`](ErrorType::Json) error if there was an error while serializing the header, or an [`Io`](ErrorType::Io) error if writing to the writer fails.
     pub fn write_header(&mut self) -> Result<&mut Self, ErrorType> {
         let header = self.header.take().ok_or(ErrorType::HeaderAlreadyWritten)?;
         to_writer(&mut self.writer, &header)?;
@@ -161,47 +189,71 @@ impl<'a> AsciiCast<'a> {
         Ok(self)
     }
     /// Try to write the header to the writer. Does nothing if the header has already been written.
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`Json`](ErrorType::Json) error if there was an error while serializing the header, or an [`Io`](ErrorType::Io) error if writing to the writer fails.
     fn try_write_header(&mut self) -> Result<(), ErrorType> {
         if self.header.is_some() {
             self.write_header()?;
         }
         Ok(())
     }
-    /// Get a mutable reference to the header, errors if the header has already been written.
+    /// Get a mutable reference to the header.
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error if the header has already been written.
     fn get_header_mut(&mut self) -> Result<&mut Header, ErrorType> {
-        if let Some(header) = &mut self.header {
-            Ok(header)
-        } else {
-            Err(ErrorType::HeaderAlreadyWritten)
-        }
+        self.header.as_mut().ok_or(ErrorType::HeaderAlreadyWritten)
     }
 
     // Events
     /// Write an [output event](https://docs.asciinema.org/manual/asciicast/v2/#o-output-data-written-to-a-terminal).
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`Json`](ErrorType::Json) error if serialization fails, or an [`Io`](ErrorType::Io) error if writing to the writer fails.
     pub fn output(&mut self, time: u128, data: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
         self.event(&Event::output(time, data))?;
         Ok(self)
     }
     /// Write an [input event](https://docs.asciinema.org/manual/asciicast/v2/#i-input-data-read-from-a-terminal).
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`Json`](ErrorType::Json) error if serialization fails, or an [`Io`](ErrorType::Io) error if writing to the writer fails.
     pub fn input(&mut self, time: u128, data: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
         self.event(&Event::input(time, data))?;
         Ok(self)
     }
     /// Write a [marker event](https://docs.asciinema.org/manual/asciicast/v2/#m-marker).
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`Json`](ErrorType::Json) error if serialization fails, or an [`Io`](ErrorType::Io) error if writing to the writer fails.
     pub fn marker(&mut self, time: u128, name: &str) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
         self.event(&Event::marker(time, name))?;
         Ok(self)
     }
     /// Write a [resize event](https://docs.asciinema.org/manual/asciicast/v2/#r-resize).
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`Json`](ErrorType::Json) error if serialization fails, or an [`Io`](ErrorType::Io) error if writing to the writer fails.
     pub fn resize(&mut self, time: u128, columns: u16, rows: u16) -> Result<&mut Self, ErrorType> {
         self.try_write_header()?;
-        self.event(&Event::resize(time, &format!("{}x{}", columns, rows)))?;
+        self.event(&Event::resize(time, &format!("{columns}x{rows}")))?;
         Ok(self)
     }
     /// Write an event to the writer.
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`Json`](ErrorType::Json) error if serialization fails, or an [`Io`](ErrorType::Io) error if writing to the writer fails.
     fn event(&mut self, event: &Event) -> Result<(), ErrorType> {
         event.write(&mut self.writer)?;
         writeln!(&mut self.writer)?;
@@ -213,6 +265,10 @@ impl<'a> AsciiCast<'a> {
     ///
     /// - Writes the header if it hasn't been written yet
     /// - Flushes the writer
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`Json`](ErrorType::Json) error if there was an error while serializing the header, or an [`Io`](ErrorType::Io) error if writing or flushing fails.
     pub fn finish(&mut self) -> Result<(), ErrorType> {
         self.try_write_header()?;
         self.writer.flush()?;
@@ -223,7 +279,7 @@ impl<'a> AsciiCast<'a> {
 impl Drop for AsciiCast<'_> {
     fn drop(&mut self) {
         if let Err(err) = self.finish() {
-            eprintln!("Error while calling `finish` on AsciiCast: {}", err);
+            eprintln!("Error while calling `finish` on AsciiCast: {err}");
         }
     }
 }

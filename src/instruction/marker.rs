@@ -3,7 +3,7 @@
 use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
 /// A marker instruction.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct MarkerInstruction(String);
 
 impl Instruction for MarkerInstruction {

@@ -2,7 +2,7 @@
 //!
 //! ## Note
 //!
-//! If you see this message, it means that you're viewing the documentation of the `castwright` library. For the CLI, please refer to the [README](https://github.com/PRO-2684/castwright#-castwright); for the CastWright script format, please refer to the [REFERENCE](https://github.com/PRO-2684/castwright/blob/main/REFERENCE.md).
+//! If you see this message, it means that you're viewing the documentation of the `castwright` library. For the CLI, please refer to the [README](https://github.com/PRO-2684/castwright#-castwright); for the `CastWright` script format, please refer to the [REFERENCE](https://github.com/PRO-2684/castwright/blob/main/REFERENCE.md).
 //!
 //! ## Usage
 //!
@@ -33,6 +33,7 @@
 //! See `src/main.rs` for a complete example.
 
 #![deny(missing_docs)]
+#![warn(clippy::all, clippy::nursery, clippy::pedantic, clippy::cargo)]
 
 mod asciicast;
 mod error;
@@ -51,7 +52,7 @@ use std::{
     path::PathBuf,
 };
 
-/// The version of the CastWright library.
+/// The version of the `CastWright` library.
 pub const VERSION: &str = env!("CARGO_PKG_VERSION");
 
 /// Front matter parsing state.
@@ -121,15 +122,15 @@ impl Configuration {
         Self::default()
     }
     /// Combine with a temporary configuration.
-    fn combine(&self, temporary: TemporaryConfiguration) -> Cow<Configuration> {
-        if !temporary.is_empty() {
+    fn combine(&self, temporary: TemporaryConfiguration) -> Cow<Self> {
+        if temporary.is_empty() {
+            // No temporary configuration - use a borrowed reference to the persistent configuration
+            Cow::Borrowed(self)
+        } else {
             // Temporary configuration exists - clone and merge persistent configuration
             let mut config = self.clone();
             config.merge(temporary);
             Cow::Owned(config)
-        } else {
-            // No temporary configuration - use a borrowed reference to the persistent configuration
-            Cow::Borrowed(self)
         }
     }
 }
@@ -155,7 +156,7 @@ impl TemporaryConfiguration {
         Self::default()
     }
     /// Check if the temporary configuration is empty.
-    fn is_empty(&self) -> bool {
+    const fn is_empty(&self) -> bool {
         self.prompt.is_none()
             && self.secondary_prompt.is_none()
             && self.line_continuation.is_none()
@@ -187,7 +188,7 @@ struct ParseContext {
 
 impl ParseContext {
     /// Create a new `ParseContext`.
-    fn new() -> Self {
+    const fn new() -> Self {
         Self {
             front_matter_state: FrontMatterState::None,
             start: ' ',
@@ -196,7 +197,7 @@ impl ParseContext {
     }
     /// Create a context with a different starting character.
     #[cfg(test)]
-    fn with_start(&self, start: char) -> Self {
+    const fn with_start(&self, start: char) -> Self {
         Self { start, ..*self }
     }
 }
@@ -246,12 +247,14 @@ impl ExecutionContext {
     /// Print given string if preview is enabled.
     fn preview(&self, s: &str) {
         if self.preview {
-            print!("{}", s);
+            print!("{s}");
         }
     }
 }
 
-/// The `CastWright` struct represents the main entry point for the CastWright library. An instance of `CastWright` can be configured, parses and executes CastWright scripts, and writes the resulting asciicast to a writer.
+/// The `CastWright` struct represents the main entry point for the `CastWright` library.
+///
+/// An instance of `CastWright` can be configured. It parses and executes `CastWright` scripts, and writes the resulting asciicast to a writer.
 ///
 /// ## Instantiation
 ///
@@ -267,7 +270,7 @@ impl ExecutionContext {
 ///
 /// ## Running
 ///
-/// To parse and execute a CastWright script and write the resulting asciicast, use the [`run`](`CastWright::run`) method, which takes mutable references to a reader and a writer. For better performance, a buffered writer is recommended.
+/// To parse and execute a `CastWright` script and write the resulting asciicast, use the [`run`](`CastWright::run`) method, which takes mutable references to a reader and a writer. For better performance, a buffered writer is recommended.
 ///
 /// ## Example
 ///
@@ -316,22 +319,30 @@ pub struct CastWright {
 
 impl CastWright {
     /// Create a new `CastWright` instance.
+    #[must_use]
     pub fn new() -> Self {
         Self::default()
     }
     /// Set whether to execute and capture the output of shell commands.
-    pub fn execute(self, execute: bool) -> Self {
+    #[must_use]
+    pub const fn execute(self, execute: bool) -> Self {
         Self { execute, ..self }
     }
     /// Set whether to include timestamp information in the output.
-    pub fn timestamp(self, timestamp: bool) -> Self {
+    #[must_use]
+    pub const fn timestamp(self, timestamp: bool) -> Self {
         Self { timestamp, ..self }
     }
     /// Set whether to preview the asciicast.
-    pub fn preview(self, preview: bool) -> Self {
+    #[must_use]
+    pub const fn preview(self, preview: bool) -> Self {
         Self { preview, ..self }
     }
-    /// Interpret and run a CastWright script from a reader, writing the asciicast to a writer.
+    /// Interpret and run a `CastWright` script from a reader, writing the asciicast to a writer.
+    ///
+    /// ## Errors
+    ///
+    /// This method returns an error if the script contains any syntax errors, or any errors occur during execution.
     pub fn run(&self, reader: &mut impl BufRead, writer: &mut impl Write) -> Result<(), Error> {
         let mut parse_context = ParseContext::new();
         let mut execution_context = ExecutionContext::new();
@@ -346,7 +357,7 @@ impl CastWright {
         }
 
         for (line_number, line) in reader.lines().enumerate() {
-            self.run_line(line, &mut parse_context, &mut execution_context, &mut cast)
+            Self::run_line(line, &mut parse_context, &mut execution_context, &mut cast)
                 .map_err(|e| e.with_line(line_number + 1))?;
             line_cnt += 1;
         }
@@ -361,9 +372,8 @@ impl CastWright {
             Ok(())
         }
     }
-    /// Interpret and run a line of a CastWright script.
+    /// Interpret and run a line of a `CastWright` script.
     fn run_line(
-        &self,
         line: Result<String, std::io::Error>,
         parse_context: &mut ParseContext,
         execution_context: &mut ExecutionContext,
@@ -384,7 +394,7 @@ mod tests {
     fn version_correct() {
         // Assert that `VERSION` exists in `Cargo.toml`
         let content = std::fs::read_to_string("Cargo.toml").unwrap();
-        assert!(content.contains(&format!("version = \"{}\"", VERSION)));
+        assert!(content.contains(&format!("version = \"{VERSION}\"")));
     }
 
     #[test]
@@ -406,10 +416,10 @@ mod tests {
 
     #[test]
     fn expected_closing_delimiter() {
-        let text = r#"
+        let text = r"
             ---
             width: 123
-        "#;
+        ";
         let text = text.trim();
         let mut reader = BufReader::new(text.as_bytes());
         assert_eq!(
@@ -422,12 +432,12 @@ mod tests {
 
     #[test]
     fn front_matter_exists() {
-        let text = r#"
+        let text = r"
             ---
             width: 123
             ---
             ---
-        "#;
+        ";
         let text = text.trim();
         let mut reader = BufReader::new(text.as_bytes());
         assert_eq!(

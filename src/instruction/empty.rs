@@ -3,7 +3,7 @@
 use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
 /// An empty instruction.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct EmptyInstruction;
 
 impl Instruction for EmptyInstruction {
@@ -24,7 +24,7 @@ impl Instruction for EmptyInstruction {
 
 impl EmptyInstruction {
     /// Create a new `EmptyInstruction`.
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self
     }
 }

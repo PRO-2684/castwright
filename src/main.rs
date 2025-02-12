@@ -1,9 +1,11 @@
+#![warn(clippy::all, clippy::nursery, clippy::pedantic, clippy::cargo)]
+
 use argh::FromArgs;
 use castwright::{CastWright, Error, ErrorType, VERSION};
 use disperror::DispError;
 use std::{
     fs::File,
-    io::{BufRead, BufReader, Write, BufWriter},
+    io::{BufRead, BufReader, BufWriter, Write},
     path::Path,
 };
 
@@ -12,7 +14,7 @@ use std::{
 #[argh(help_triggers("-h", "--help"))]
 struct Args {
     // Input and output
-    /// the path to the input file (CastWright script `.cwrt`), or stdin if not provided
+    /// the path to the input file (`CastWright` script `.cwrt`), or stdin if not provided
     #[argh(option, short = 'i')]
     input: Option<String>,
     /// the path to the output file (asciicast `.cast`), or stdout if not provided; If provided, preview mode will be enabled
@@ -46,13 +48,13 @@ fn file(path: &str, create: bool) -> Result<File, Error> {
 
 /// Display a link in the terminal.
 fn link(text: &str, url: &str) {
-    print!("\x1b]8;;{}\x07{}\x1b]8;;\x07", url, text);
+    print!("\x1b]8;;{url}\x07{text}\x1b]8;;\x07");
 }
 
 /// Show version information.
 fn version() {
     let github_base = "https://github.com/PRO-2684/castwright";
-    println!("🎥 CastWright v{}", VERSION);
+    println!("🎥 CastWright v{VERSION}");
     link("GitHub", github_base);
     print!(" | ");
     link("Releases", &format!("{github_base}/releases"));

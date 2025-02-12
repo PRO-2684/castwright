@@ -23,6 +23,7 @@ impl Serialize for Event<'_> {
         use serde::ser::SerializeSeq;
         // Note that an `Event` is serialized as an array, instead of an object.
         let mut state = serializer.serialize_seq(Some(3))?;
+        #[allow(clippy::cast_precision_loss)]
         let time = self.time as f64 / 1_000_000.0;
         state.serialize_element(&time)?;
         state.serialize_element(&self.code)?;
@@ -33,7 +34,7 @@ impl Serialize for Event<'_> {
 
 impl<'a> Event<'a> {
     /// Create a new output event.
-    pub fn output(time: u128, data: &'a str) -> Self {
+    pub const fn output(time: u128, data: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Output,
@@ -41,7 +42,7 @@ impl<'a> Event<'a> {
         }
     }
     /// Create a new input event.
-    pub fn input(time: u128, data: &'a str) -> Self {
+    pub const fn input(time: u128, data: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Input,
@@ -49,7 +50,7 @@ impl<'a> Event<'a> {
         }
     }
     /// Create a new marker event.
-    pub fn marker(time: u128, name: &'a str) -> Self {
+    pub const fn marker(time: u128, name: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Marker,
@@ -57,7 +58,7 @@ impl<'a> Event<'a> {
         }
     }
     /// Create a new resize event.
-    pub fn resize(time: u128, dim: &'a str) -> Self {
+    pub const fn resize(time: u128, dim: &'a str) -> Self {
         Self {
             time,
             code: EventCode::Resize,
@@ -87,7 +88,7 @@ impl Serialize for EventCode {
     where
         S: serde::Serializer,
     {
-        use EventCode::*;
+        use EventCode::{Input, Marker, Output, Resize};
 
         match self {
             Output => serializer.serialize_str("o"),
@@ -135,7 +136,7 @@ mod tests {
             ),
         ];
 
-        for (event, expected) in pairs.iter() {
+        for (event, expected) in &pairs {
             let mut serialized = Vec::new();
             event.write(&mut serialized)?;
             let serialized = String::from_utf8(serialized).unwrap();

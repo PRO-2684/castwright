@@ -35,7 +35,7 @@ pub(super) struct Header {
 fn serialize_or_skip<S, T>(
     state: &mut S,
     key: &'static str,
-    value: &Option<T>,
+    value: Option<&T>,
 ) -> Result<(), S::Error>
 where
     S: SerializeStruct,
@@ -75,10 +75,10 @@ impl Serialize for Header {
         state.serialize_field("height", &self.height)?;
 
         // Skip `None` fields
-        serialize_or_skip(&mut state, "timestamp", &self.timestamp)?;
-        serialize_or_skip(&mut state, "idle_time_limit", &self.idle_time_limit)?;
-        serialize_or_skip(&mut state, "title", &self.title)?;
-        serialize_or_skip(&mut state, "env", &self.env)?;
+        serialize_or_skip(&mut state, "timestamp", self.timestamp.as_ref())?;
+        serialize_or_skip(&mut state, "idle_time_limit", self.idle_time_limit.as_ref())?;
+        serialize_or_skip(&mut state, "title", self.title.as_ref())?;
+        serialize_or_skip(&mut state, "env", self.env.as_ref())?;
 
         state.end()
     }
@@ -88,7 +88,7 @@ impl Header {
     /// Create a new header with default width and height.
     pub fn new() -> Self {
         let (width, height) = get_terminal_size();
-        Header {
+        Self {
             version: 2,
             width,
             height,

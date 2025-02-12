@@ -89,7 +89,7 @@ fn success_tests() {
         let castwright = CastWright::new().execute(true).timestamp(true);
         castwright
             .run(&mut reader, &mut writer)
-            .expect(&format!("Test case `{name}` should succeed"));
+            .unwrap_or_else(|_| panic!("Test case `{name}` should succeed"));
     }
 }
 

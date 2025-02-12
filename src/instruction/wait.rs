@@ -3,7 +3,7 @@
 use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
 /// A wait instruction.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct WaitInstruction(u128);
 
 impl Instruction for WaitInstruction {

@@ -41,9 +41,7 @@ pub fn parse_loose_string(s: &str) -> Result<String, ErrorType> {
 }
 /// Detect terminal size, defaulting to 80x24 if it fails.
 pub fn get_terminal_size() -> (u16, u16) {
-    terminal_size()
-        .map(|(Width(w), Height(h))| (w, h))
-        .unwrap_or((80, 24))
+    terminal_size().map_or((80, 24), |(Width(w), Height(h))| (w, h))
 }
 /// Captures given environment variables.
 pub fn capture_env_vars(env_vars: Vec<String>) -> HashMap<String, String> {
@@ -76,11 +74,11 @@ mod tests {
             ("3us", Duration::from_micros(3)),
             ("0", Duration::from_secs(0)),
         ];
-        for (input, expected) in durations.iter() {
+        for (input, expected) in &durations {
             assert_eq!(parse_duration(input).unwrap(), *expected);
         }
         let bad_durations = ["1", "1x", "s", ""];
-        for input in bad_durations.iter() {
+        for input in &bad_durations {
             let err = parse_duration(input).unwrap_err();
             assert!(
                 matches!(err, ErrorType::MalformedInstruction),
@@ -96,7 +94,7 @@ mod tests {
             ("world", "world"),
             ("\" hello \\\"world \"", " hello \"world "),
         ];
-        for (input, expected) in strings.iter() {
+        for (input, expected) in &strings {
             assert_eq!(parse_loose_string(input).unwrap(), *expected);
         }
     }
@@ -104,7 +102,7 @@ mod tests {
     #[test]
     fn loose_string_error() {
         let strings = ["\"hello\" world\"", "\"hello\" world\" again\""];
-        for input in strings.iter() {
+        for input in &strings {
             let err = parse_loose_string(input).unwrap_err();
             assert!(
                 matches!(err, ErrorType::Json(_)),

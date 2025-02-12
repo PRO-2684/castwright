@@ -5,7 +5,7 @@ use std::io::Error as IoError;
 use std::{num::ParseIntError, time::SystemTimeError};
 use thiserror::Error as ThisError;
 
-/// Possible types of errors that can occur while parsing or executing a single line of a CastWright script. Each variant represents a specific type of error, and can be converted to an [`Error`] with the [`with_line`](`ErrorType::with_line`) method. (See the [`Error`] struct for examples)
+/// Possible types of errors that can occur while parsing or executing a single line of a `CastWright` script. Each variant represents a specific type of error, and can be converted to an [`Error`] with the [`with_line`](`ErrorType::with_line`) method. (See the [`Error`] struct for examples)
 #[derive(ThisError, Debug)]
 pub enum ErrorType {
     // Foreign errors
@@ -63,7 +63,8 @@ pub enum ErrorType {
 
 impl ErrorType {
     /// Add line number information to the error, so as to form a [`Error`].
-    pub fn with_line(self, line: usize) -> Error {
+    #[must_use]
+    pub const fn with_line(self, line: usize) -> Error {
         Error { error: self, line }
     }
 }
@@ -117,7 +118,9 @@ impl PartialEq for ErrorType {
     }
 }
 
-/// The `Error` struct represents an error that occurred during parsing or execution, with the line number denoting its position. To construct an `Error` manually, you should call [`with_line`](`ErrorType::with_line`) on an [`ErrorType`] enum variant. Usually, you'll only need this struct in a function signature to propagate errors.
+/// The `Error` struct represents an error that occurred during parsing or execution, with the line number denoting its position.
+///
+/// To construct an `Error` manually, you should call [`with_line`](`ErrorType::with_line`) on an [`ErrorType`] enum variant. Usually, you'll only need this struct in a function signature to propagate errors.
 ///
 /// ## Example
 ///

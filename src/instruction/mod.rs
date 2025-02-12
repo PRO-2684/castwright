@@ -11,16 +11,16 @@ mod wait;
 use super::{
     execute_command, util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, ParseContext,
 };
-pub(super) use command::CommandInstruction;
-pub(super) use config::ConfigInstruction;
-pub(super) use empty::EmptyInstruction;
-pub(super) use frontmatter::FrontMatterInstruction;
-pub(super) use marker::MarkerInstruction;
-pub(super) use print::PrintInstruction;
-pub(super) use wait::WaitInstruction;
+pub use command::CommandInstruction;
+pub use config::ConfigInstruction;
+pub use empty::EmptyInstruction;
+pub use frontmatter::FrontMatterInstruction;
+pub use marker::MarkerInstruction;
+pub use print::PrintInstruction;
+pub use wait::WaitInstruction;
 
 /// Trait for instructions.
-pub(super) trait Instruction: std::fmt::Debug {
+pub trait Instruction: std::fmt::Debug {
     /// Parse a line into `Self`. Remember to:
     ///
     /// Check `expect_continuation` for non-empty instructions, like:
@@ -48,7 +48,7 @@ pub(super) trait Instruction: std::fmt::Debug {
 }
 
 /// Parse an instruction from a string.
-pub(super) fn parse_instruction(
+pub fn parse_instruction(
     s: &str,
     context: &mut ParseContext,
 ) -> Result<Box<dyn Instruction>, ErrorType> {
@@ -133,7 +133,7 @@ mod tests {
                 ),
             ),
         ];
-        for (input, expected) in instructions.iter() {
+        for (input, expected) in &instructions {
             assert_eq!(&parse_instruction(input, &mut context).unwrap(), expected);
         }
     }
@@ -166,7 +166,7 @@ mod tests {
                 ),
             ),
         ];
-        for (input, expected) in instructions.iter() {
+        for (input, expected) in &instructions {
             assert_eq!(&parse_instruction(input, &mut context).unwrap(), expected);
         }
     }
@@ -176,7 +176,7 @@ mod tests {
         let empty_lines = ["", " ", "\t", "\t ", " \t", "\n", "\r\n", "# some comment"];
         let mut context = ParseContext::new();
         let expected: Box<dyn Instruction> = Box::new(EmptyInstruction::new());
-        for line in empty_lines.iter() {
+        for line in &empty_lines {
             assert_eq!(&parse_instruction(line, &mut context).unwrap(), &expected);
         }
     }
@@ -185,7 +185,7 @@ mod tests {
     fn invalid_instruction() {
         let unknown_instructions = ["invalid", "&", "^"];
         let mut context = ParseContext::new();
-        for line in unknown_instructions.iter() {
+        for line in &unknown_instructions {
             let err = parse_instruction(line, &mut context).unwrap_err();
             assert!(
                 matches!(err, ErrorType::UnknownInstruction,),
@@ -193,7 +193,7 @@ mod tests {
             );
         }
         let malformed_instructions = ["@", "@@"];
-        for line in malformed_instructions.iter() {
+        for line in &malformed_instructions {
             let err = parse_instruction(line, &mut context).unwrap_err();
             assert!(
                 matches!(err, ErrorType::MalformedInstruction,),

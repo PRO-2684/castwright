@@ -4,7 +4,7 @@ use super::{execute_command, AsciiCast, ErrorType, ExecutionContext, Instruction
 use std::io::Write;
 
 /// A command instruction.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct CommandInstruction {
     /// The command to execute.
     command: String,
@@ -90,8 +90,8 @@ impl Instruction for CommandInstruction {
         }
         context.preview(&self.command);
 
+        context.elapsed += interval;
         if self.continuation {
-            context.elapsed += interval;
             cast.output(context.elapsed, &config.line_continuation)?;
             context.preview(&config.line_continuation);
 
@@ -103,7 +103,6 @@ impl Instruction for CommandInstruction {
             context.command.push_str(&self.command);
             context.command.push(' ');
         } else {
-            context.elapsed += interval;
             context.elapsed += config.end_lag;
             cast.output(context.elapsed, "\r\n")?;
             context.preview("\r\n");
@@ -130,7 +129,7 @@ impl Instruction for CommandInstruction {
                         // 1. Ensure that the output is flushed in real-time
                         // 2. Use lock to improve performance in case there are many chunks
                         if context.preview {
-                            print!("{}", chunk);
+                            print!("{chunk}");
                             lock.flush()?;
                         }
                     }
@@ -201,7 +200,7 @@ mod tests {
             ((" hello \\", true), ("hello", true, true)),
             (("world\\", false), ("world", false, true)),
         ];
-        for ((input, start_input), (command, start_output, continuation)) in instructions.iter() {
+        for ((input, start_input), (command, start_output, continuation)) in &instructions {
             assert_eq!(start_input, start_output);
             let mut context = ParseContext::new();
             context.start = if *start_input { '$' } else { '>' };
@@ -221,7 +220,7 @@ mod tests {
             (Ok(()), Some(true)),
             (Err(ErrorType::Subprocess("error".to_string())), Some(false)),
         ];
-        for (result, expect) in should_succeed.into_iter() {
+        for (result, expect) in should_succeed {
             let desc = format!("handle_error({result:?}, {expect:?})");
             assert!(handle_error(result, expect).is_ok(), "{desc}");
         }
@@ -232,7 +231,7 @@ mod tests {
             (io_error(), Some(true)),
             (io_error(), Some(false)),
         ];
-        for (result, expect) in should_fail.into_iter() {
+        for (result, expect) in should_fail {
             let desc = format!("handle_error({result:?}, {expect:?})");
             assert!(handle_error(result, expect).is_err(), "{desc}");
         }

@@ -39,7 +39,7 @@ impl Instruction for ConfigInstruction {
         }
         let s = s.trim();
         // The first character ('@') has been removed, thus the check is for the second character
-        let persistent = s.starts_with("@");
+        let persistent = s.starts_with('@');
         let s = if persistent { &s[1..] } else { s }; // Remove the '@' if it's present
         let mut iter = s.split_whitespace();
         let Some(first) = iter.next() else {
@@ -61,15 +61,11 @@ impl Instruction for ConfigInstruction {
             }
             "hidden" => {
                 let hidden = iter.next();
-                if let Some(word) = hidden {
-                    match word {
-                        "true" => Ok(ConfigInstructionType::Hidden(true)),
-                        "false" => Ok(ConfigInstructionType::Hidden(false)),
-                        _ => Err(ErrorType::MalformedInstruction),
-                    }
-                } else {
-                    Ok(ConfigInstructionType::Hidden(true)) // Default to true
-                }
+                hidden.map_or(Ok(ConfigInstructionType::Hidden(true)), |word| match word {
+                    "true" => Ok(ConfigInstructionType::Hidden(true)),
+                    "false" => Ok(ConfigInstructionType::Hidden(false)),
+                    _ => Err(ErrorType::MalformedInstruction),
+                })
             }
             "expect" => {
                 let expect = iter.next();
@@ -112,39 +108,44 @@ impl Instruction for ConfigInstruction {
         context: &mut ExecutionContext,
         _cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
-        use ConfigInstructionType::*;
         // Modify the configuration
         if self.persistent {
             let config = &mut context.persistent;
             match &self.instruction_type {
-                Prompt(prompt) => config.prompt = prompt.clone(),
-                SecondaryPrompt(secondary_prompt) => {
-                    config.secondary_prompt = secondary_prompt.clone()
+                ConfigInstructionType::Prompt(prompt) => config.prompt.clone_from(prompt),
+                ConfigInstructionType::SecondaryPrompt(secondary_prompt) => {
+                    config.secondary_prompt.clone_from(secondary_prompt);
                 }
-                LineContinuation(line_continuation) => {
-                    config.line_continuation = line_continuation.clone()
+                ConfigInstructionType::LineContinuation(line_continuation) => {
+                    config.line_continuation.clone_from(line_continuation);
                 }
-                Hidden(hidden) => config.hidden = *hidden,
-                Expect(expect) => config.expect = *expect,
-                Interval(interval) => config.interval = *interval,
-                StartLag(delay) => config.start_lag = *delay,
-                EndLag(delay) => config.end_lag = *delay,
+                ConfigInstructionType::Hidden(hidden) => config.hidden = *hidden,
+                ConfigInstructionType::Expect(expect) => config.expect = *expect,
+                ConfigInstructionType::Interval(interval) => config.interval = *interval,
+                ConfigInstructionType::StartLag(delay) => config.start_lag = *delay,
+                ConfigInstructionType::EndLag(delay) => config.end_lag = *delay,
             }
         } else {
             let config = &mut context.temporary;
             match &self.instruction_type {
-                Prompt(prompt) => config.prompt = Some(prompt.clone()),
-                SecondaryPrompt(secondary_prompt) => {
-                    config.secondary_prompt = Some(secondary_prompt.clone())
+                ConfigInstructionType::Prompt(prompt) => {
+                    config.prompt.clone_from(&Some(prompt.clone()));
                 }
-                LineContinuation(line_continuation) => {
-                    config.line_continuation = Some(line_continuation.clone())
+                ConfigInstructionType::SecondaryPrompt(secondary_prompt) => {
+                    config
+                        .secondary_prompt
+                        .clone_from(&Some(secondary_prompt.clone()));
                 }
-                Hidden(hidden) => config.hidden = Some(*hidden),
-                Expect(expect) => config.expect = Some(*expect),
-                Interval(interval) => config.interval = Some(*interval),
-                StartLag(delay) => config.start_lag = Some(*delay),
-                EndLag(delay) => config.end_lag = Some(*delay),
+                ConfigInstructionType::LineContinuation(line_continuation) => {
+                    config
+                        .line_continuation
+                        .clone_from(&Some(line_continuation.clone()));
+                }
+                ConfigInstructionType::Hidden(hidden) => config.hidden = Some(*hidden),
+                ConfigInstructionType::Expect(expect) => config.expect = Some(*expect),
+                ConfigInstructionType::Interval(interval) => config.interval = Some(*interval),
+                ConfigInstructionType::StartLag(delay) => config.start_lag = Some(*delay),
+                ConfigInstructionType::EndLag(delay) => config.end_lag = Some(*delay),
             }
         }
         Ok(())
@@ -178,7 +179,7 @@ mod tests {
             ("@start-lag 1s", StartLag(1_000_000)),
             ("@end-lag 1s", EndLag(1_000_000)),
         ];
-        for (line, expected) in instructions.iter() {
+        for (line, expected) in &instructions {
             assert_eq!(
                 ConfigInstruction::parse(line, &mut context)
                     .unwrap()
@@ -199,7 +200,7 @@ mod tests {
             ("interval 2ms", false),
             ("@start-lag 1s", true),
         ];
-        for (line, expected) in instructions.iter() {
+        for (line, expected) in &instructions {
             assert_eq!(
                 ConfigInstruction::parse(line, &mut context)
                     .unwrap()
@@ -219,7 +220,7 @@ mod tests {
             "start-lag",
             "start-lag 1",
         ];
-        for line in malformed_instructions.iter() {
+        for line in &malformed_instructions {
             let parsed = ConfigInstruction::parse(line, &mut context).unwrap_err();
             assert!(
                 matches!(parsed, ErrorType::MalformedInstruction,),
@@ -240,7 +241,7 @@ mod tests {
             "quit \"exit \"",
             "idle 1s",
         ];
-        for line in unknown_instructions.iter() {
+        for line in &unknown_instructions {
             let parsed = ConfigInstruction::parse(line, &mut context).unwrap_err();
             assert!(
                 matches!(parsed, ErrorType::UnknownConfig,),
@@ -262,7 +263,7 @@ mod tests {
             "hidden",
             "interval 2ms",
         ];
-        for line in instructions.iter() {
+        for line in &instructions {
             ConfigInstruction::parse(line, &mut parse_context)
                 .unwrap()
                 .execute(&mut context, &mut cast)

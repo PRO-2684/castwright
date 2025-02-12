@@ -61,7 +61,7 @@ Usage: castwright [-i <input>] [-o <output>] [-x] [-t] [-v]
 🎥 Scripted terminal recording.
 
 Options:
-  -i, --input       the path to the input file (CastWright script `.cwrt`), or
+  -i, --input       the path to the input file (`CastWright` script `.cwrt`), or
                     stdin if not provided
   -o, --output      the path to the output file (asciicast `.cast`), or stdout
                     if not provided; If provided, preview mode will be enabled

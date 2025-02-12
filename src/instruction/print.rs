@@ -3,7 +3,7 @@
 use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
 
 /// A print instruction.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct PrintInstruction(String);
 
 impl Instruction for PrintInstruction {
@@ -13,8 +13,8 @@ impl Instruction for PrintInstruction {
         if context.expect_continuation {
             return Err(ErrorType::ExpectedContinuation);
         }
-        let content = util::parse_loose_string(s)?;
-        Ok(Self(content))
+        let text = util::parse_loose_string(s)?;
+        Ok(Self(text))
     }
     /// Execute the instruction
     fn execute(
