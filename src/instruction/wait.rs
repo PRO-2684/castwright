@@ -13,7 +13,9 @@ impl Instruction for WaitInstruction {
         if context.expect_continuation {
             return Err(ErrorType::ExpectedContinuation);
         }
+
         let time = util::parse_duration(s)?;
+
         Ok(Self(time.as_micros()))
     }
     /// Execute the instruction

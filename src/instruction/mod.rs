@@ -58,6 +58,7 @@ pub fn parse_instruction(
     };
     let trimmed = s[1..].trim().to_string();
     context.start = first;
+
     match first {
         '@' => Ok(Box::new(ConfigInstruction::parse(&trimmed, context)?)),
         '%' => Ok(Box::new(PrintInstruction::parse(&trimmed, context)?)),

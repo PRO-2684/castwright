@@ -18,6 +18,7 @@ impl Instruction for CommandInstruction {
     /// Parse a trimmed line into a `CommandInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         context.front_matter_state.end()?;
+
         let s = s.trim();
         let start = match context.start {
             '$' => true,
@@ -26,17 +27,21 @@ impl Instruction for CommandInstruction {
             // _ => unreachable!("Should be handled by frontmatter.rs"),
         };
         let continuation = s.ends_with('\\');
+
         if start && context.expect_continuation {
             return Err(ErrorType::ExpectedContinuation);
         } else if !start && !context.expect_continuation {
             return Err(ErrorType::UnexpectedContinuation);
         }
         context.expect_continuation = continuation;
+
         let command = if continuation {
+            // Remove the trailing `\`
             s[..s.len() - 1].trim_end()
         } else {
             s
         };
+
         Ok(Self {
             command: command.to_string(),
             start,
@@ -224,6 +229,7 @@ mod tests {
             let desc = format!("handle_error({result:?}, {expect:?})");
             assert!(handle_error(result, expect).is_ok(), "{desc}");
         }
+
         let should_fail: [(Result<(), ErrorType>, Option<_>); 5] = [
             (Ok(()), Some(false)),
             (Err(ErrorType::Subprocess("error".to_string())), Some(true)),

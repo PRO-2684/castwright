@@ -93,36 +93,33 @@ impl From<SystemTimeError> for ErrorType {
     }
 }
 
+#[cfg(test)]
 impl PartialEq for ErrorType {
     fn eq(&self, other: &Self) -> bool {
-        matches!(
-            (self, other),
-            (Self::Io(_), Self::Io(_))
-                | (Self::Json(_), Self::Json(_))
-                | (Self::Subprocess(_), Self::Subprocess(_))
-                | (Self::SystemTime(_), Self::SystemTime(_))
-                | (Self::ExpectedKeyValuePair, Self::ExpectedKeyValuePair)
-                | (
-                    Self::ExpectedClosingDelimiter,
-                    Self::ExpectedClosingDelimiter
-                )
-                | (Self::FrontMatterExists, Self::FrontMatterExists)
-                | (Self::UnknownInstruction, Self::UnknownInstruction)
-                | (Self::MalformedInstruction, Self::MalformedInstruction)
-                | (Self::ExpectedContinuation, Self::ExpectedContinuation)
-                | (Self::UnexpectedContinuation, Self::UnexpectedContinuation)
-                | (Self::UnknownConfig, Self::UnknownConfig)
-                | (Self::UnknownFrontMatter, Self::UnknownFrontMatter)
-                | (Self::HeaderAlreadyWritten, Self::HeaderAlreadyWritten)
-        )
+        // Compare the debug representations of the error types.
+        // This is a rather crude way to compare instructions, but is acceptable since it is only used in tests.
+        format!("{self:?}") == format!("{other:?}")
     }
 }
 
 /// The `Error` struct represents an error that occurred during parsing or execution, with the line number denoting its position.
 ///
+/// To get the [type](`ErrorType`) of error that occurred, use the [`error`](`Error::error`) method. To get the line number where the error occurred, use the [`line`](`Error::line`) method.
+///
 /// To construct an `Error` manually, you should call [`with_line`](`ErrorType::with_line`) on an [`ErrorType`] enum variant. Usually, you'll only need this struct in a function signature to propagate errors.
 ///
 /// ## Example
+///
+/// ### Accessing error information
+///
+/// ```rust
+/// use castwright::{Error, ErrorType};
+///
+/// let error_type = ErrorType::UnknownInstruction;
+/// let error = error_type.with_line(1);
+/// assert!(matches!(error.error(), ErrorType::UnknownInstruction));
+/// assert_eq!(error.line(), 1);
+/// ```
 ///
 /// ### Propagating an error in `fn main`
 ///
@@ -159,11 +156,25 @@ impl PartialEq for ErrorType {
 /// // Should get the following output:
 /// // Error: Error { error: UnknownInstruction, line: 1 }
 /// ```
-#[derive(ThisError, Debug, PartialEq)]
+#[cfg_attr(test, derive(PartialEq))]
+#[derive(ThisError, Debug)]
 #[error("{error} at line {line}")]
 pub struct Error {
     /// The type of error that occurred.
     error: ErrorType,
     /// The line number where the error occurred, starting at 1. If `0`, the error is not related to a specific line.
     line: usize,
+}
+
+impl Error {
+    /// Get the type of error that occurred.
+    #[must_use]
+    pub const fn error(&self) -> &ErrorType {
+        &self.error
+    }
+    /// Get the line number where the error occurred.
+    #[must_use]
+    pub const fn line(&self) -> usize {
+        self.line
+    }
 }

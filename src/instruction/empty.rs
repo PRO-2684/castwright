@@ -45,8 +45,8 @@ mod tests {
         instruction
             .execute(&mut context, &mut AsciiCast::new(&mut writer))
             .unwrap();
-
         assert!(context.temporary.is_empty());
+
         let lines = writer.lines().collect::<Result<Vec<_>, _>>().unwrap();
         assert_eq!(lines.len(), 1); // Only the header
     }

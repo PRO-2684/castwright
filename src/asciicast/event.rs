@@ -25,6 +25,7 @@ impl Serialize for Event<'_> {
         let mut state = serializer.serialize_seq(Some(3))?;
         #[allow(clippy::cast_precision_loss)]
         let time = self.time as f64 / 1_000_000.0;
+
         state.serialize_element(&time)?;
         state.serialize_element(&self.code)?;
         state.serialize_element(&self.data)?;

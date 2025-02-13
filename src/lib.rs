@@ -53,7 +53,7 @@ use std::{
 };
 
 /// The version of the `CastWright` library.
-pub const VERSION: &str = env!("CARGO_PKG_VERSION");
+pub const VERSION: &str = env!("CARGO_PKG_VERSION", "can't determine version");
 
 /// Front matter parsing state.
 #[derive(Debug, PartialEq, Clone, Copy)]

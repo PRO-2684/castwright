@@ -20,13 +20,11 @@ pub fn execute_command(
     let (shell, args) = context.shell.split_at(1);
     let shell = shell[0].as_str();
     let command = [command];
-    let args = args.iter().map(std::string::String::as_str).chain(command);
+    let args = args.iter().map(String::as_str).chain(command);
 
     let expr = cmd(shell, args).dir(&context.directory);
     let reader = expr.stderr_to_stdout().reader()?;
-    let iter = ReaderIterator::from_handle(reader);
-
-    Ok(iter)
+    Ok(reader.into())
 }
 
 /// Iterator over `ReaderHandle`, replacing `\n` with `\r\n`.
@@ -46,6 +44,8 @@ impl ReaderIterator {
         }
     }
     /// Create a new `ReaderIterator` from a `ReaderHandle`.
+    ///
+    /// Alternatively, `ReaderIterator` implements `From<ReaderHandle>`, so you can call `.into()` on a `ReaderHandle`.
     pub const fn from_handle(reader: ReaderHandle) -> Self {
         Self {
             reader: Some(reader),
@@ -82,6 +82,12 @@ impl Iterator for ReaderIterator {
                 }
             }
         }
+    }
+}
+
+impl From<ReaderHandle> for ReaderIterator {
+    fn from(reader: ReaderHandle) -> Self {
+        Self::from_handle(reader)
     }
 }
 

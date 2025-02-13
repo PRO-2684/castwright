@@ -37,6 +37,7 @@ impl Instruction for ConfigInstruction {
         if context.expect_continuation {
             return Err(ErrorType::ExpectedContinuation);
         }
+
         let s = s.trim();
         // The first character ('@') has been removed, thus the check is for the second character
         let persistent = s.starts_with('@');
@@ -45,6 +46,7 @@ impl Instruction for ConfigInstruction {
         let Some(first) = iter.next() else {
             return Err(ErrorType::MalformedInstruction);
         };
+
         let len = first.len();
         let instruction_type = match first {
             "prompt" => {
@@ -97,6 +99,7 @@ impl Instruction for ConfigInstruction {
             }
             _ => Err(ErrorType::UnknownConfig),
         }?;
+
         Ok(Self {
             instruction_type,
             persistent,
@@ -148,6 +151,7 @@ impl Instruction for ConfigInstruction {
                 ConfigInstructionType::EndLag(delay) => config.end_lag = Some(*delay),
             }
         }
+
         Ok(())
     }
 }
@@ -263,12 +267,14 @@ mod tests {
             "hidden",
             "interval 2ms",
         ];
+
         for line in &instructions {
             ConfigInstruction::parse(line, &mut parse_context)
                 .unwrap()
                 .execute(&mut context, &mut cast)
                 .unwrap();
         }
+
         let resolved = context.persistent.combine(context.temporary.get(true));
         assert_eq!(resolved.prompt, "~> ".to_string());
         assert_eq!(resolved.secondary_prompt, "| ".to_string());

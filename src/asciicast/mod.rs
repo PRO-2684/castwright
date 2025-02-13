@@ -8,7 +8,7 @@ use header::Header;
 use serde_json::ser::to_writer;
 use std::{collections::HashMap, io::Write};
 
-/// An asciicast v2 instance, streaming content to a writer.
+/// An [asciicast v2](https://docs.asciinema.org/manual/asciicast/v2/) instance, streaming content to a writer.
 ///
 /// ## Instantiation
 ///
@@ -111,6 +111,8 @@ pub struct AsciiCast<'a> {
 
 impl<'a> AsciiCast<'a> {
     /// Create a new asciicast.
+    ///
+    /// Alternatively, `AsciiCast` implements `From<&mut T> for AsciiCast where T: Write`, so you can use `(&mut writer).into()` to create an asciicast instance.
     pub fn new(writer: &'a mut dyn Write) -> Self {
         Self {
             header: Some(Header::new()),
@@ -276,6 +278,15 @@ impl<'a> AsciiCast<'a> {
     }
 }
 
+impl<'a, T> From<&'a mut T> for AsciiCast<'a>
+where
+    T: Write,
+{
+    fn from(writer: &'a mut T) -> Self {
+        Self::new(writer)
+    }
+}
+
 impl Drop for AsciiCast<'_> {
     fn drop(&mut self) {
         if let Err(err) = self.finish() {
@@ -343,8 +354,8 @@ mod tests {
 
     #[test]
     fn explicit_header_already_written() -> Result<(), ErrorType> {
-        let mut writer = Vec::new();
-        let mut asciicast = AsciiCast::new(&mut writer);
+        let mut writer = std::io::sink();
+        let mut asciicast: AsciiCast = (&mut writer).into();
         asciicast.width(80)?;
         asciicast.write_header()?;
         match asciicast.width(80) {
@@ -356,8 +367,8 @@ mod tests {
 
     #[test]
     fn implicit_header_already_written() -> Result<(), ErrorType> {
-        let mut writer = Vec::new();
-        let mut asciicast = AsciiCast::new(&mut writer);
+        let mut writer = std::io::sink();
+        let mut asciicast: AsciiCast = (&mut writer).into();
         asciicast.width(80)?;
         asciicast.output(0, "Hello, world!")?;
         match asciicast.width(80) {

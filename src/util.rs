@@ -31,7 +31,7 @@ pub fn parse_duration(s: &str) -> Result<Duration, ErrorType> {
         _ => Err(ErrorType::MalformedInstruction),
     }
 }
-/// Parse a loose string. If starting with `"`, will deserialize it. Else, return the string as it is.
+/// Parse a loose string. If starting with `"`, try to deserialize it. Else, return the string as it is.
 pub fn parse_loose_string(s: &str) -> Result<String, ErrorType> {
     if s.starts_with('"') && s.ends_with('"') {
         Ok(serde_json::from_str(s)?)
@@ -54,7 +54,7 @@ pub fn capture_env_vars(env_vars: Vec<String>) -> HashMap<String, String> {
     }
     env_map
 }
-/// Get current timestamp in seconds. Returns `None` if the system clock is before the Unix epoch.
+/// Get current timestamp in seconds. Returns [`ErrorType::SystemTime`] if the system time is invalid.
 pub fn timestamp() -> Result<u64, ErrorType> {
     let timestamp = SystemTime::now()
         .duration_since(UNIX_EPOCH)

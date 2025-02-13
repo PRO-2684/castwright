@@ -13,7 +13,9 @@ impl Instruction for PrintInstruction {
         if context.expect_continuation {
             return Err(ErrorType::ExpectedContinuation);
         }
+
         let text = util::parse_loose_string(s)?;
+
         Ok(Self(text))
     }
     /// Execute the instruction

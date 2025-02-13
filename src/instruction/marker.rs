@@ -13,6 +13,7 @@ impl Instruction for MarkerInstruction {
         if context.expect_continuation {
             return Err(ErrorType::ExpectedContinuation);
         }
+
         Ok(Self(s.to_string()))
     }
     /// Execute the instruction
@@ -22,6 +23,7 @@ impl Instruction for MarkerInstruction {
         cast: &mut AsciiCast,
     ) -> Result<(), ErrorType> {
         cast.marker(context.elapsed, &self.0)?;
+
         Ok(())
     }
 }
