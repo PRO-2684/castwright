@@ -104,9 +104,7 @@ impl PartialEq for ErrorType {
 
 /// The `Error` struct represents an error that occurred during parsing or execution, with the line number denoting its position.
 ///
-/// To get the [type](`ErrorType`) of error that occurred, use the [`error`](`Error::error`) method. To get the line number where the error occurred, use the [`line`](`Error::line`) method.
-///
-/// To construct an `Error` manually, you should call [`with_line`](`ErrorType::with_line`) on an [`ErrorType`] enum variant. Usually, you'll only need this struct in a function signature to propagate errors.
+/// Usually, you'll only need this struct in a function signature to propagate errors. To construct an `Error` manually, provide an [`ErrorType`] and a line number. Alternatively, you can call [`with_line`](`ErrorType::with_line`) on an [`ErrorType`] enum variant.
 ///
 /// ## Example
 ///
@@ -117,8 +115,8 @@ impl PartialEq for ErrorType {
 ///
 /// let error_type = ErrorType::UnknownInstruction;
 /// let error = error_type.with_line(1);
-/// assert!(matches!(error.error(), ErrorType::UnknownInstruction));
-/// assert_eq!(error.line(), 1);
+/// assert!(matches!(error.error, ErrorType::UnknownInstruction));
+/// assert_eq!(error.line, 1);
 /// ```
 ///
 /// ### Propagating an error in `fn main`
@@ -151,6 +149,11 @@ impl PartialEq for ErrorType {
 /// fn main() -> Result<(), Error> {
 ///     let error_type = ErrorType::UnknownInstruction;
 ///     let error = error_type.with_line(1);
+///     // Or:
+///     // let error = Error {
+///     //     error: ErrorType::UnknownInstruction,
+///     //     line: 1,
+///     // };
 ///     Err(error)
 /// }
 /// // Should get the following output:
@@ -161,20 +164,7 @@ impl PartialEq for ErrorType {
 #[error("{error} at line {line}")]
 pub struct Error {
     /// The type of error that occurred.
-    error: ErrorType,
+    pub error: ErrorType,
     /// The line number where the error occurred, starting at 1. If `0`, the error is not related to a specific line.
-    line: usize,
-}
-
-impl Error {
-    /// Get the type of error that occurred.
-    #[must_use]
-    pub const fn error(&self) -> &ErrorType {
-        &self.error
-    }
-    /// Get the line number where the error occurred.
-    #[must_use]
-    pub const fn line(&self) -> usize {
-        self.line
-    }
+    pub line: usize,
 }
