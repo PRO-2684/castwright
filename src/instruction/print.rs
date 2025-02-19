@@ -1,12 +1,12 @@
 //! Module for print instructions.
 
-use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
+use super::{util, AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
 
 /// A print instruction.
 #[derive(Debug, PartialEq, Eq)]
 pub struct PrintInstruction(String);
 
-impl Instruction for PrintInstruction {
+impl InstructionTrait for PrintInstruction {
     /// Parse a trimmed line into an `PrintInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         context.front_matter_state.end()?;
@@ -22,7 +22,7 @@ impl Instruction for PrintInstruction {
     fn execute(
         &self,
         context: &mut ExecutionContext,
-        cast: &mut AsciiCast,
+        cast: &mut AsciiCast<impl std::io::Write>,
     ) -> Result<(), ErrorType> {
         let config = context.persistent.combine(context.temporary.get(true));
         let interval = config.interval;

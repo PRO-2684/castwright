@@ -1,12 +1,12 @@
 //! Module for empty instructions.
 
-use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
+use super::{AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
 
 /// An empty instruction.
 #[derive(Debug, PartialEq, Eq)]
 pub struct EmptyInstruction;
 
-impl Instruction for EmptyInstruction {
+impl InstructionTrait for EmptyInstruction {
     /// Parse a line into an `EmptyInstruction`.
     fn parse(_s: &str, _context: &mut ParseContext) -> Result<Self, ErrorType> {
         Ok(Self)
@@ -15,7 +15,7 @@ impl Instruction for EmptyInstruction {
     fn execute(
         &self,
         _context: &mut ExecutionContext,
-        _cast: &mut AsciiCast,
+        _cast: &mut AsciiCast<impl std::io::Write>,
     ) -> Result<(), ErrorType> {
         // Do nothing
         Ok(())

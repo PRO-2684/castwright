@@ -104,16 +104,36 @@ use std::{collections::HashMap, io::Write};
 /// # let second_line = content.lines().nth(1).unwrap();
 /// # assert_eq!(second_line, r#"[0.000000,"o","Hello, world!"]"#);
 /// ```
-pub struct AsciiCast<'a> {
+pub struct AsciiCast<'a, T>
+where
+    T: Write + ?Sized, {
     header: Option<Header>,
-    writer: &'a mut dyn Write,
+    writer: &'a mut T,
 }
 
-impl<'a> AsciiCast<'a> {
+impl<'a, T> AsciiCast<'a, T>
+where
+    T: Write + ?Sized, {
     /// Create a new asciicast.
     ///
-    /// Alternatively, `AsciiCast` implements `From<&mut T> for AsciiCast where T: Write`, so you can use `(&mut writer).into()` to create an asciicast instance.
-    pub fn new(writer: &'a mut dyn Write) -> Self {
+    /// Alternatively, `AsciiCast` implements `From<&mut T> for AsciiCast<T> where T: Write`, so you can use `into()` to create an asciicast instance:
+    ///
+    /// ## Example
+    ///
+    /// ```rust
+    /// use std::io::sink;
+    /// use castwright::AsciiCast;
+    /// let mut writer = sink();
+    /// let mut asciicast = AsciiCast::new(&mut writer);
+    /// ```
+    ///
+    /// ```rust
+    /// use std::io::{Sink, sink};
+    /// use castwright::AsciiCast;
+    /// let mut writer = sink();
+    /// let mut asciicast: AsciiCast<Sink> = (&mut writer).into();
+    /// ```
+    pub fn new(writer: &'a mut T) -> Self {
         Self {
             header: Some(Header::new()),
             writer,
@@ -278,16 +298,18 @@ impl<'a> AsciiCast<'a> {
     }
 }
 
-impl<'a, T> From<&'a mut T> for AsciiCast<'a>
+impl<'a, T> From<&'a mut T> for AsciiCast<'a, T>
 where
-    T: Write,
+    T: Write + ?Sized,
 {
     fn from(writer: &'a mut T) -> Self {
         Self::new(writer)
     }
 }
 
-impl Drop for AsciiCast<'_> {
+impl<T> Drop for AsciiCast<'_, T>
+where
+    T: Write + ?Sized, {
     fn drop(&mut self) {
         if let Err(err) = self.finish() {
             eprintln!("Error while calling `finish` on AsciiCast: {err}");
@@ -355,7 +377,7 @@ mod tests {
     #[test]
     fn explicit_header_already_written() -> Result<(), ErrorType> {
         let mut writer = std::io::sink();
-        let mut asciicast: AsciiCast = (&mut writer).into();
+        let mut asciicast = AsciiCast::new(&mut writer);
         asciicast.width(80)?;
         asciicast.write_header()?;
         match asciicast.width(80) {
@@ -368,7 +390,7 @@ mod tests {
     #[test]
     fn implicit_header_already_written() -> Result<(), ErrorType> {
         let mut writer = std::io::sink();
-        let mut asciicast: AsciiCast = (&mut writer).into();
+        let mut asciicast = AsciiCast::new(&mut writer);
         asciicast.width(80)?;
         asciicast.output(0, "Hello, world!")?;
         match asciicast.width(80) {

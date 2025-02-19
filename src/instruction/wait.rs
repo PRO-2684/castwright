@@ -1,12 +1,12 @@
 //! Module for wait instructions.
 
-use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
+use super::{util, AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
 
 /// A wait instruction.
 #[derive(Debug, PartialEq, Eq)]
 pub struct WaitInstruction(u128);
 
-impl Instruction for WaitInstruction {
+impl InstructionTrait for WaitInstruction {
     /// Parse a trimmed line into an `WaitInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         context.front_matter_state.end()?;
@@ -22,7 +22,7 @@ impl Instruction for WaitInstruction {
     fn execute(
         &self,
         context: &mut ExecutionContext,
-        _cast: &mut AsciiCast,
+        _cast: &mut AsciiCast<impl std::io::Write>,
     ) -> Result<(), ErrorType> {
         context.elapsed += self.0;
         Ok(())

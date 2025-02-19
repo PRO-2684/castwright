@@ -1,6 +1,6 @@
 //! Module for config instructions.
 
-use super::{util, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
+use super::{util, AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
 
 /// A configuration instruction type.
 #[derive(Debug, PartialEq)]
@@ -30,7 +30,7 @@ pub struct ConfigInstruction {
     persistent: bool,
 }
 
-impl Instruction for ConfigInstruction {
+impl InstructionTrait for ConfigInstruction {
     /// Parse a trimmed line into a `ConfigInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         context.front_matter_state.end()?;
@@ -109,7 +109,7 @@ impl Instruction for ConfigInstruction {
     fn execute(
         &self,
         context: &mut ExecutionContext,
-        _cast: &mut AsciiCast,
+        _cast: &mut AsciiCast<impl std::io::Write>,
     ) -> Result<(), ErrorType> {
         // Modify the configuration
         if self.persistent {
@@ -258,8 +258,8 @@ mod tests {
     fn execute_config_instruction() {
         let mut parse_context = ParseContext::new();
         let mut context = ExecutionContext::new();
-        let mut sink = std::io::sink(); // Drop all output
-        let mut cast = AsciiCast::new(&mut sink);
+        let sink = &mut std::io::sink(); // Drop all output
+        let mut cast = AsciiCast::new(sink);
         let instructions = [
             "prompt \"~> \"",
             "secondary \"| \"",

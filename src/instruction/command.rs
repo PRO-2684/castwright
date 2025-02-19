@@ -1,6 +1,6 @@
 //! Module for command instructions.
 
-use super::{execute_command, AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
+use super::{execute_command, AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
 use std::io::Write;
 
 /// A command instruction.
@@ -14,7 +14,7 @@ pub struct CommandInstruction {
     continuation: bool,
 }
 
-impl Instruction for CommandInstruction {
+impl InstructionTrait for CommandInstruction {
     /// Parse a trimmed line into a `CommandInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         context.front_matter_state.end()?;
@@ -52,7 +52,7 @@ impl Instruction for CommandInstruction {
     fn execute(
         &self,
         context: &mut ExecutionContext,
-        cast: &mut AsciiCast,
+        cast: &mut AsciiCast<impl std::io::Write>,
     ) -> Result<(), ErrorType> {
         let temp = context.temporary.get(!self.continuation);
         let config = context.persistent.combine(temp);

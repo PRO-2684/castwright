@@ -1,12 +1,12 @@
 //! Module for marker instructions.
 
-use super::{AsciiCast, ErrorType, ExecutionContext, Instruction, ParseContext};
+use super::{AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
 
 /// A marker instruction.
 #[derive(Debug, PartialEq, Eq)]
 pub struct MarkerInstruction(String);
 
-impl Instruction for MarkerInstruction {
+impl InstructionTrait for MarkerInstruction {
     /// Parse a trimmed line into an `MarkerInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType> {
         context.front_matter_state.end()?;
@@ -20,7 +20,7 @@ impl Instruction for MarkerInstruction {
     fn execute(
         &self,
         context: &mut ExecutionContext,
-        cast: &mut AsciiCast,
+        cast: &mut AsciiCast<impl std::io::Write>,
     ) -> Result<(), ErrorType> {
         cast.marker(context.elapsed, &self.0)?;
 

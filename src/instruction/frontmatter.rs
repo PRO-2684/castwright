@@ -1,7 +1,7 @@
 //! Module for front matter instructions.
 
 use super::{
-    util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, Instruction, ParseContext,
+    util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, InstructionTrait, ParseContext,
 };
 use serde_json::de::from_str;
 use std::time::Duration;
@@ -27,7 +27,7 @@ pub enum FrontMatterInstruction {
     Capture(Vec<String>),
 }
 
-impl Instruction for FrontMatterInstruction {
+impl InstructionTrait for FrontMatterInstruction {
     /// Parse a line into a `FrontMatterInstruction`.
     fn parse(s: &str, context: &mut ParseContext) -> Result<Self, ErrorType>
     where
@@ -89,7 +89,7 @@ impl Instruction for FrontMatterInstruction {
     fn execute(
         &self,
         context: &mut ExecutionContext,
-        cast: &mut AsciiCast,
+        cast: &mut AsciiCast<impl std::io::Write>,
     ) -> Result<(), ErrorType> {
         match self {
             Self::Width(width) => {

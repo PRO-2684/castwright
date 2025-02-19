@@ -43,7 +43,7 @@ mod util;
 
 pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
-use instruction::parse_instruction;
+use instruction::{Instruction, InstructionTrait};
 use optfield::optfield;
 use shell::execute_command;
 use std::{
@@ -377,9 +377,9 @@ impl CastWright {
         line: Result<String, std::io::Error>,
         parse_context: &mut ParseContext,
         execution_context: &mut ExecutionContext,
-        cast: &mut AsciiCast,
+        cast: &mut AsciiCast<impl std::io::Write>,
     ) -> Result<(), ErrorType> {
-        let instruction = parse_instruction(&line?, parse_context)?;
+        let instruction = Instruction::parse(&line?, parse_context)?;
         instruction.execute(execution_context, cast)?;
         Ok(())
     }
