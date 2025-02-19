@@ -106,14 +106,16 @@ use std::{collections::HashMap, io::Write};
 /// ```
 pub struct AsciiCast<'a, T>
 where
-    T: Write + ?Sized, {
+    T: Write + ?Sized,
+{
     header: Option<Header>,
     writer: &'a mut T,
 }
 
 impl<'a, T> AsciiCast<'a, T>
 where
-    T: Write + ?Sized, {
+    T: Write + ?Sized,
+{
     /// Create a new asciicast.
     ///
     /// Alternatively, `AsciiCast` implements `From<&mut T> for AsciiCast<T> where T: Write`, so you can use `into()` to create an asciicast instance:
@@ -309,7 +311,8 @@ where
 
 impl<T> Drop for AsciiCast<'_, T>
 where
-    T: Write + ?Sized, {
+    T: Write + ?Sized,
+{
     fn drop(&mut self) {
         if let Err(err) = self.finish() {
             eprintln!("Error while calling `finish` on AsciiCast: {err}");

@@ -76,7 +76,9 @@ impl InstructionTrait for Instruction {
             '#' => Ok(Self::Empty(EmptyInstruction::new())),
             '$' | '>' => Ok(Self::Command(CommandInstruction::parse(&trimmed, context)?)),
             '~' => Ok(Self::Wait(WaitInstruction::parse(&trimmed, context)?)),
-            _ => Ok(Self::FrontMatter(FrontMatterInstruction::parse(s, context)?)),
+            _ => Ok(Self::FrontMatter(FrontMatterInstruction::parse(
+                s, context,
+            )?)),
         }
     }
 
@@ -117,7 +119,9 @@ mod tests {
         let instructions: [(&str, Instruction); 10] = [
             (
                 " @interval 2ms",
-                Instruction::Config(ConfigInstruction::parse("interval 2ms", &mut context).unwrap()),
+                Instruction::Config(
+                    ConfigInstruction::parse("interval 2ms", &mut context).unwrap(),
+                ),
             ),
             (
                 " %print",
@@ -140,7 +144,9 @@ mod tests {
             ),
             (
                 " @ interval 2ms",
-                Instruction::Config(ConfigInstruction::parse("interval 2ms", &mut context).unwrap()),
+                Instruction::Config(
+                    ConfigInstruction::parse("interval 2ms", &mut context).unwrap(),
+                ),
             ),
             (
                 "% print",
@@ -173,7 +179,9 @@ mod tests {
         let instructions: [(&str, Instruction); 5] = [
             (
                 "@interval 2ms",
-                Instruction::Config(ConfigInstruction::parse("interval 2ms", &mut context).unwrap()),
+                Instruction::Config(
+                    ConfigInstruction::parse("interval 2ms", &mut context).unwrap(),
+                ),
             ),
             (
                 "%print",
