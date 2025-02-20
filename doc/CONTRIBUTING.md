@@ -56,7 +56,7 @@ If you have an idea for a new feature or an improvement to an existing feature, 
 
 ### Documentation
 
-If you add or change functionality, please update the relevant documentation in the `README.md` and `REFERENCE.md` files.
+Checkout [`DEV.md`](./DEV.md) for more information on how to compile, run, and test the project. If you add or change functionality, please update the relevant documentation in [`README.md`](../README.md) and [`REFERENCE.md`](./REFERENCE.md).
 
 ## Code of Conduct
 

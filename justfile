@@ -1,6 +1,10 @@
 alias r := run
 alias t := test
 
+# Bump version
+bump:
+    ./scripts/bump-version.sh
+
 # Compile and run
 run *args:
     cargo run --features="cli" -- {{args}}
