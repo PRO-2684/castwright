@@ -12,14 +12,21 @@ categories = ["command-line-utilities", "development-tools"]
 rust-version = "1.79.0"
 
 [dependencies]
-argh = "0.1.13"
-disperror = "0.1.0"
+argh = { version = "0.1.13", optional = true }
+disperror = { version = "0.1.2", optional = true }
 duct = "0.13.7"
 optfield = "0.4.0"
 serde = "1.0.217"
-serde_json = "1.0.137"
+serde_json = "1.0.138"
 terminal_size = "0.4.1"
 thiserror = "2.0.11"
+
+[[bin]]
+name = "castwright"
+required-features = ["cli"]
+
+[features]
+cli = ["argh", "disperror"]
 
 [profile.release]
 strip = true  # Automatically strip symbols from the binary.
