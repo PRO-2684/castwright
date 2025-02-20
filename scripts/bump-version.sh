@@ -14,7 +14,7 @@ sed -i "s/title: CastWright Demo (v.*)/title: CastWright Demo (v$VERSION)/" test
 cargo generate-lockfile
 
 # Generate demo asciicast
-cargo build --release
+cargo build --release --bin castwright --features="cli"
 cp ./target/release/castwright ~/.cargo/bin/castwright
 castwright -i tests/demo.cwrt -o /tmp/demo.cast -t -x
 
