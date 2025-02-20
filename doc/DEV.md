@@ -11,23 +11,23 @@ Available recipes:
     test *args # Run tests - drop-in replacement for `cargo test` [alias: t]
 ```
 
-## <u>B</u>uild release binary
+## <ins>B</ins>uild release binary
 
 - Via `just`: `just b`
 - Via `cargo`: `cargo build --release --bin castwright --features="cli"`
 
-## Bump <u>v</u>ersion
+## Bump <ins>v</ins>ersion
 
 - Via script: `./scripts/bump-version.sh`
 - Via `just`: `just v`
 
-## Compile and <u>r</u>un
+## Compile and <ins>r</ins>un
 
 - Via `just`: `just r -h`
 - Via script: `./scripts/run.sh -h`
 - Via `cargo`: `cargo run --features="cli" -- -h`
 
-## <u>T</u>ests
+## <ins>T</ins>ests
 
 - Via `just`: `just t`
 - Via VSCode: Run `workbench.action.tasks.test` task
