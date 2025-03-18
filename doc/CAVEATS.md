@@ -50,6 +50,7 @@ This is a technique widely used by the community, including [autocast](https://g
 1. It is not universal. Different shells have different prompts.
 2. It is reliable most of the time, but not always. False positives can occur if the prompt appears in the output of the command. For example, if you're using [Nu Shell](https://www.nushell.sh/), the default prompt is `~> `, which can appear in the output of a command.
 3. It is not elegant. It is a rather hacky solution in my point of view that can break easily.
+4. Cannot capture return codes.
 
 #### Integrate a Modified Shell
 
@@ -66,6 +67,10 @@ Another solution is to implement common builtin shell commands, like `cd`. This 
 1. It is not universal. Different shells have different commands, although most of them are similar.
 2. Which commands to implement should be decided.
 
-### Contributing
+#### Expecting OSC 133/633 Escape Sequence
+
+Very similar to [Expecting the Shell Prompt](#expecting-the-shell-prompt), but should be more robust and can capture return codes (OSC 163 only). Requires the shell to support the feature. See relevant documentations for details: [OSC 133 (iTerm2's documentation on Proprietary Escape Codes)](https://iterm2.com/documentation-escape-codes.html#FTCS_PROMPT:~:text=s%20source%20code.-,FTCS_PROMPT,-OSC%20133%20%3B%20A), [OSC 633 (VSCode Terminal Shell Integration)](https://code.visualstudio.com/docs/terminal/shell-integration#_vs-code-custom-sequences-osc-633-st).
+
+## Contributing
 
 [`src/shell.rs`](../src/shell.rs) contains the implementation of executing shell commands. You may want to start there and define a new structure like `ShellSession` if you are interested in contributing a solution to this issue.
