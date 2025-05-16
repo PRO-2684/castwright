@@ -127,6 +127,10 @@ impl InstructionTrait for CommandInstruction {
                 let result = || -> Result<(), ErrorType> {
                     for chunk in reader {
                         let chunk = chunk?;
+                        let Some(chunk) = chunk else {
+                            // No output yet, but command is still running
+                            continue;
+                        };
                         let now = std::time::Instant::now();
                         context.elapsed += now.duration_since(prev).as_micros();
                         prev = now;

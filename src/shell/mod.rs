@@ -4,8 +4,7 @@ mod cd;
 
 use super::{ErrorType, ExecutionContext};
 use cd::Cd;
-// use duct::{cmd, ReaderHandle};
-use std::{io::{self, ErrorKind, PipeReader, Read}, process::Command};
+use std::{io::{self, PipeReader, Read}, process::{Child, Command}};
 
 /// Execute a command using given shell, returning its output as an iterator, with `\n` replaced by `\r\n`.
 pub fn execute_command(
@@ -23,37 +22,42 @@ pub fn execute_command(
     let args = args.iter().map(String::as_str).chain(command);
     let (recv, send) = io::pipe()?;
 
-    Command::new(shell)
+    let child = Command::new(shell)
         .args(args)
         .current_dir(&context.directory)
         .stdout(send.try_clone()?)
         .stderr(send)
         .spawn()?;
 
-    Ok(recv.into())
+    Ok(ReaderIterator::from_child(
+        child,
+        recv,
+    ))
 }
 
 /// Iterator over [`PipeReader`], replacing `\n` with `\r\n`.
 pub struct ReaderIterator {
+    /// Child process handle.
+    child: Option<Child>,
+    /// Inner pipe reader.
+    reader: Option<PipeReader>,
     /// Buffer for reading output.
     buffer: [u8; 1024],
-    /// Inner reader handle.
-    reader: Option<PipeReader>,
 }
 
 impl ReaderIterator {
     /// Create a new [`ReaderIterator`] that reads nothing.
     pub const fn new() -> Self {
         Self {
+            child: None,
             reader: None,
             buffer: [0; 1024],
         }
     }
-    /// Create a new [`ReaderIterator`] from a [`PipeReader`].
-    ///
-    /// Alternatively, [`ReaderIterator`] implements `From<PipeReader>`, so you can call `.into()` on a [`PipeReader`].
-    pub const fn from_handle(reader: PipeReader) -> Self {
+    /// Create a new [`ReaderIterator`] from a [`Child`] and [`PipeReader`].
+    pub const fn from_child(child: Child, reader: PipeReader) -> Self {
         Self {
+            child: Some(child),
             reader: Some(reader),
             buffer: [0; 1024],
         }
@@ -61,39 +65,63 @@ impl ReaderIterator {
 }
 
 impl Iterator for ReaderIterator {
-    type Item = Result<String, ErrorType>;
+    type Item = Result<Option<String>, ErrorType>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        let Some(child) = &mut self.child else {
+            // No child, or the child has been discarded
+            return None;
+        };
         let Some(reader) = &mut self.reader else {
             // No reader, or the reader has been discarded
             return None;
         };
         match reader.read(&mut self.buffer) {
-            Ok(0) => None,
+            Ok(0) => {
+                // Check the exit status of the child process
+                match child.try_wait() {
+                    Ok(Some(status)) => {
+                        if status.success() {
+                            // The command exited successfully
+                            return None;
+                        }
+                        // FIXME: The message not used?
+                        Some(Err(ErrorType::Subprocess(format!("command exited with {status}"))))
+                    }
+                    Ok(None) => {
+                        // Still running, but no output
+                        Some(Ok(None))
+                    }
+                    Err(e) => {
+                        // Discard the child and reader
+                        self.child.take().map(|mut child| {
+                            // Wait for the child to finish
+                            let _ = child.wait();
+                        });
+                        self.reader.take();
+
+                        Some(Err(ErrorType::Io(e)))
+                    }
+                }
+            },
             Ok(n) => {
                 let raw = String::from_utf8_lossy(&self.buffer[..n]).to_string();
                 // Replace `\n` with `\r\n`
                 let output = replace_newline(&raw);
 
-                Some(Ok(output))
+                Some(Ok(Some(output)))
             }
             Err(e) => {
-                // Discard the reader
+                // Discard the child and reader
+                self.child.take().map(|mut child| {
+                    // Wait for the child to finish
+                    let _ = child.wait();
+                });
                 self.reader.take();
 
-                if matches!(e.kind(), ErrorKind::Other) {
-                    Some(Err(ErrorType::Subprocess(e.to_string())))
-                } else {
-                    Some(Err(ErrorType::Io(e)))
-                }
+                Some(Err(ErrorType::Io(e)))
             }
         }
-    }
-}
-
-impl From<PipeReader> for ReaderIterator {
-    fn from(reader: PipeReader) -> Self {
-        Self::from_handle(reader)
     }
 }
 
@@ -150,7 +178,9 @@ mod tests {
         let reader = execute_command(&mut context, &command).unwrap();
         let mut output = String::new();
         for chunk in reader {
-            output.push_str(&chunk.unwrap());
+            if let Some(chunk) = chunk.unwrap() {
+                output.push_str(&chunk);
+            }
         }
         assert_eq!(output, "hello\r\n");
     }
@@ -162,7 +192,10 @@ mod tests {
         let reader = execute_command(&mut context, &command).unwrap();
         let mut output = String::new();
         for chunk in reader {
-            output.push_str(&chunk.unwrap());
+            // output.push_str(&chunk.unwrap().unwrap());
+            if let Some(chunk) = chunk.unwrap() {
+                output.push_str(&chunk);
+            }
         }
         assert_eq!(output, "hello\r\n");
     }
@@ -175,7 +208,9 @@ mod tests {
         let expected = "hello\r\nworld\r\n";
         let mut actual = String::new();
         for chunk in reader {
-            actual.push_str(&chunk.unwrap());
+            if let Some(chunk) = chunk.unwrap() {
+                actual.push_str(&chunk);
+            }
         }
 
         assert_eq!(actual, expected);
@@ -193,8 +228,10 @@ mod tests {
         let mut second = None;
 
         for chunk in reader {
-            let output = chunk.unwrap();
-            actual.push(output);
+            let Some(chunk) = chunk.unwrap() else {
+                continue;
+            };
+            actual.push(chunk);
             if first.is_none() {
                 first = Some(std::time::Instant::now());
             } else {

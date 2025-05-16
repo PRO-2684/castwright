@@ -15,7 +15,7 @@ pub enum ErrorType {
     /// An io error occurred while reading the file.
     #[error("IO error: \"{0}\"")]
     Io(IoError),
-    /// Subprocess does not exit with expected status code.
+    /// Subprocess does not exit successfully.
     #[error("Shell {0}")]
     Subprocess(String),
     /// System time error.
