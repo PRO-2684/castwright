@@ -68,7 +68,7 @@ enum FrontMatterState {
 
 impl FrontMatterState {
     /// Take in an occurrence of `---`.
-    fn next(&mut self) -> Result<(), ErrorType> {
+    const fn next(&mut self) -> Result<(), ErrorType> {
         match self {
             Self::None => *self = Self::Start,
             Self::Start => *self = Self::End,
@@ -77,7 +77,7 @@ impl FrontMatterState {
         Ok(())
     }
     /// End the front matter parsing, since an instruction has been encountered.
-    fn end(&mut self) -> Result<(), ErrorType> {
+    const fn end(&mut self) -> Result<(), ErrorType> {
         match self {
             Self::None => *self = Self::End,
             Self::Start => return Err(ErrorType::ExpectedKeyValuePair),

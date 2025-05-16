@@ -200,7 +200,7 @@ mod tests {
 
     /// Create an `io::Error` for testing.
     fn io_error() -> Result<(), ErrorType> {
-        Err(ErrorType::Io(io::Error::new(io::ErrorKind::Other, "error")))
+        Err(ErrorType::Io(io::Error::other("error")))
     }
 
     #[test]

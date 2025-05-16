@@ -96,10 +96,9 @@ impl Iterator for ReaderIterator {
                     }
                     Err(e) => {
                         // Discard the child and reader
-                        self.child.take().map(|mut child| {
-                            // Wait for the child to finish
+                        if let Some(mut child) = self.child.take() {
                             let _ = child.wait();
-                        });
+                        }
                         self.reader.take();
 
                         Some(Err(ErrorType::Io(e)))
@@ -115,10 +114,9 @@ impl Iterator for ReaderIterator {
             }
             Err(e) => {
                 // Discard the child and reader
-                self.child.take().map(|mut child| {
-                    // Wait for the child to finish
+                if let Some(mut child) = self.child.take() {
                     let _ = child.wait();
-                });
+                }
                 self.reader.take();
 
                 Some(Err(ErrorType::Io(e)))

@@ -386,7 +386,7 @@ mod tests {
         match asciicast.width(80) {
             Ok(_) => panic!("Expected error"),
             Err(err) => assert_eq!(err, ErrorType::HeaderAlreadyWritten),
-        };
+        }
         Ok(())
     }
 
@@ -399,7 +399,7 @@ mod tests {
         match asciicast.width(80) {
             Ok(_) => panic!("Expected error"),
             Err(err) => assert_eq!(err, ErrorType::HeaderAlreadyWritten),
-        };
+        }
         Ok(())
     }
 }
