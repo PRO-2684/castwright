@@ -4,8 +4,8 @@ mod cd;
 
 use super::{ErrorType, ExecutionContext};
 use cd::Cd;
-use duct::{cmd, ReaderHandle};
-use std::io::{ErrorKind, Read};
+// use duct::{cmd, ReaderHandle};
+use std::{io::{self, ErrorKind, PipeReader, Read}, process::Command};
 
 /// Execute a command using given shell, returning its output as an iterator, with `\n` replaced by `\r\n`.
 pub fn execute_command(
@@ -21,32 +21,38 @@ pub fn execute_command(
     let shell = shell[0].as_str();
     let command = [command];
     let args = args.iter().map(String::as_str).chain(command);
+    let (recv, send) = io::pipe()?;
 
-    let expr = cmd(shell, args).dir(&context.directory);
-    let reader = expr.stderr_to_stdout().reader()?;
-    Ok(reader.into())
+    Command::new(shell)
+        .args(args)
+        .current_dir(&context.directory)
+        .stdout(send.try_clone()?)
+        .stderr(send)
+        .spawn()?;
+
+    Ok(recv.into())
 }
 
-/// Iterator over `ReaderHandle`, replacing `\n` with `\r\n`.
+/// Iterator over [`PipeReader`], replacing `\n` with `\r\n`.
 pub struct ReaderIterator {
     /// Buffer for reading output.
     buffer: [u8; 1024],
     /// Inner reader handle.
-    reader: Option<ReaderHandle>,
+    reader: Option<PipeReader>,
 }
 
 impl ReaderIterator {
-    /// Create a new `ReaderIterator` that does nothing.
+    /// Create a new [`ReaderIterator`] that reads nothing.
     pub const fn new() -> Self {
         Self {
             reader: None,
             buffer: [0; 1024],
         }
     }
-    /// Create a new `ReaderIterator` from a `ReaderHandle`.
+    /// Create a new [`ReaderIterator`] from a [`PipeReader`].
     ///
-    /// Alternatively, `ReaderIterator` implements `From<ReaderHandle>`, so you can call `.into()` on a `ReaderHandle`.
-    pub const fn from_handle(reader: ReaderHandle) -> Self {
+    /// Alternatively, [`ReaderIterator`] implements `From<PipeReader>`, so you can call `.into()` on a [`PipeReader`].
+    pub const fn from_handle(reader: PipeReader) -> Self {
         Self {
             reader: Some(reader),
             buffer: [0; 1024],
@@ -85,8 +91,8 @@ impl Iterator for ReaderIterator {
     }
 }
 
-impl From<ReaderHandle> for ReaderIterator {
-    fn from(reader: ReaderHandle) -> Self {
+impl From<PipeReader> for ReaderIterator {
+    fn from(reader: PipeReader) -> Self {
         Self::from_handle(reader)
     }
 }
