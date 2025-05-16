@@ -5,7 +5,7 @@ use std::{
     collections::HashMap,
     time::{Duration, SystemTime, UNIX_EPOCH},
 };
-use terminal_size::{terminal_size, Height, Width};
+use terminal_size::{Height, Width, terminal_size};
 
 /// Parse a string into a `Duration`. Supported suffixes: s, ms, us.
 pub fn parse_duration(s: &str) -> Result<Duration, ErrorType> {

@@ -1,6 +1,6 @@
 //! Module for wait instructions.
 
-use super::{util, AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
+use super::{AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext, util};
 
 /// A wait instruction.
 #[derive(Debug, PartialEq, Eq)]

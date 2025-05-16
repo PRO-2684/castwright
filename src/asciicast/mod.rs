@@ -2,7 +2,7 @@
 
 mod event;
 mod header;
-use super::{util, ErrorType};
+use super::{ErrorType, util};
 use event::Event;
 use header::Header;
 use serde_json::ser::to_writer;

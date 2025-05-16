@@ -1,8 +1,8 @@
 //! Module for modeling and serializing an [asciicast v2 header](https://docs.asciinema.org/manual/asciicast/v2/#header).
 
 use super::util::{capture_env_vars, get_terminal_size};
-use serde::ser::SerializeStruct;
 use serde::Serialize;
+use serde::ser::SerializeStruct;
 use std::collections::HashMap;
 
 /// The header of an asciicast v2 file.

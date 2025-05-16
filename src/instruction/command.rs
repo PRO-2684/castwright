@@ -1,7 +1,7 @@
 //! Module for command instructions.
 
 use super::{
-    execute_command, AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext,
+    AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext, execute_command,
 };
 use std::io::Write;
 

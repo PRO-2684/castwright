@@ -4,7 +4,10 @@ mod cd;
 
 use super::{ErrorType, ExecutionContext};
 use cd::Cd;
-use std::{io::{self, PipeReader, Read}, process::{Child, Command}};
+use std::{
+    io::{self, PipeReader, Read},
+    process::{Child, Command},
+};
 
 /// Execute a command using given shell, returning its output as an iterator, with `\n` replaced by `\r\n`.
 pub fn execute_command(
@@ -29,10 +32,7 @@ pub fn execute_command(
         .stderr(send)
         .spawn()?;
 
-    Ok(ReaderIterator::from_child(
-        child,
-        recv,
-    ))
+    Ok(ReaderIterator::from_child(child, recv))
 }
 
 /// Iterator over [`PipeReader`], replacing `\n` with `\r\n`.
@@ -86,7 +86,9 @@ impl Iterator for ReaderIterator {
                             return None;
                         }
                         // FIXME: The message not used?
-                        Some(Err(ErrorType::Subprocess(format!("command exited with {status}"))))
+                        Some(Err(ErrorType::Subprocess(format!(
+                            "command exited with {status}"
+                        ))))
                     }
                     Ok(None) => {
                         // Still running, but no output
@@ -103,7 +105,7 @@ impl Iterator for ReaderIterator {
                         Some(Err(ErrorType::Io(e)))
                     }
                 }
-            },
+            }
             Ok(n) => {
                 let raw = String::from_utf8_lossy(&self.buffer[..n]).to_string();
                 // Replace `\n` with `\r\n`

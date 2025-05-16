@@ -1,6 +1,6 @@
 //! Module for print instructions.
 
-use super::{util, AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
+use super::{AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext, util};
 
 /// A print instruction.
 #[derive(Debug, PartialEq, Eq)]

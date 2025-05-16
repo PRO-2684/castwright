@@ -1,6 +1,6 @@
 //! Module for config instructions.
 
-use super::{util, AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext};
+use super::{AsciiCast, ErrorType, ExecutionContext, InstructionTrait, ParseContext, util};
 
 /// A configuration instruction type.
 #[derive(Debug, PartialEq)]

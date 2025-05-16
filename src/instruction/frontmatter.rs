@@ -1,7 +1,7 @@
 //! Module for front matter instructions.
 
 use super::{
-    util, AsciiCast, ErrorType, ExecutionContext, FrontMatterState, InstructionTrait, ParseContext,
+    AsciiCast, ErrorType, ExecutionContext, FrontMatterState, InstructionTrait, ParseContext, util,
 };
 use serde_json::de::from_str;
 use std::time::Duration;
