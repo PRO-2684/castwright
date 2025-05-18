@@ -3,7 +3,6 @@
 use super::{
     AsciiCast, ErrorType, ExecutionContext, FrontMatterState, InstructionTrait, ParseContext, util,
 };
-use pty_process::Size;
 use serde_json::de::from_str;
 use std::time::Duration;
 
@@ -94,18 +93,12 @@ impl InstructionTrait for FrontMatterInstruction {
     ) -> Result<(), ErrorType> {
         match self {
             Self::Width(width) => {
+                context.width = *width;
                 cast.width(*width)?;
-                let height = cast.get_height()?;
-                if let Err(e) = context.pty.resize(Size::new(height, *width)) {
-                    return Err(e.into());
-                };
             }
             Self::Height(height) => {
+                context.height = *height;
                 cast.height(*height)?;
-                let width = cast.get_width()?;
-                if let Err(e) = context.pty.resize(Size::new(*height, width)) {
-                    return Err(e.into());
-                };
             }
             Self::Title(title) => {
                 cast.title(title.clone())?;
@@ -159,8 +152,8 @@ mod tests {
             ("height: 24", Height(24)),
             ("title: Hello, world!", Title("Hello, world!".to_string())),
             (
-                "shell: [\"/bin/bash\", \"-c\"]",
-                Shell(vec!["/bin/bash".to_string(), "-c".to_string()]),
+                "shell: [\"/bin/bash\", \"-i\", \"-c\"]",
+                Shell(vec!["/bin/bash".to_string(), "-i".to_string(), "-c".to_string()]),
             ),
             ("quit: exit", Quit("exit".to_string())),
             ("idle: 1s", Idle(Duration::from_secs(1))),

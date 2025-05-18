@@ -45,8 +45,8 @@ pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
 use instruction::{Instruction, InstructionTrait};
 use optfield::optfield;
-use pty_process::blocking::{Pts, Pty, self};
 use shell::execute_command;
+use util::get_terminal_size;
 use std::{
     borrow::Cow,
     io::{BufRead, Write},
@@ -216,6 +216,10 @@ struct ExecutionContext {
     directory: PathBuf,
     /// Elapsed time in microseconds (µs).
     elapsed: u128,
+    /// Current terminal width.
+    width: u16,
+    /// Current terminal height.
+    height: u16,
 
     // Configuration
     /// Whether to actually execute the commands.
@@ -226,30 +230,24 @@ struct ExecutionContext {
     // Instruction-specific
     /// Previous commands to be concatenated.
     command: String,
-
-    // Pty
-    pty: Pty,
-    pts: Pts,
 }
 
 impl ExecutionContext {
     /// Create a new `ExecutionContext` with default values.
     fn new() -> Self {
-        // Create a new Pty and Pts
-        let (pty, pts) = blocking::open().unwrap();
         Self {
             persistent: Configuration::new(),
             temporary: TemporaryConfiguration::new(),
-            shell: vec!["bash".to_string(), "-c".to_string()],
+            shell: vec!["bash".to_string(), "-i".to_string(), "-c".to_string()],
             directory: PathBuf::from(".")
                 .canonicalize()
                 .expect("Failed to canonicalize current directory"),
             elapsed: 0,
+            width: 80,
+            height: 24,
             execute: false,
             preview: false,
             command: String::new(),
-            pty,
-            pts,
         }
     }
 
@@ -353,12 +351,17 @@ impl CastWright {
     ///
     /// This method returns an error if the script contains any syntax errors, or any errors occur during execution.
     pub fn run(&self, reader: &mut impl BufRead, writer: &mut impl Write) -> Result<(), Error> {
+        let (width, height) = get_terminal_size();
         let mut parse_context = ParseContext::new();
         let mut execution_context = ExecutionContext::new();
         let mut cast = AsciiCast::new(writer);
         let mut line_cnt = 0;
+        cast.width(width).map_err(|e| e.with_line(0))?;
+        cast.height(height).map_err(|e| e.with_line(0))?;
         execution_context.execute = self.execute;
         execution_context.preview = self.preview;
+        execution_context.width = width;
+        execution_context.height = height;
 
         if self.timestamp {
             let timestamp = util::timestamp().map_err(|e| e.with_line(0))?;

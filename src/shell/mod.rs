@@ -5,9 +5,10 @@ mod cd;
 use super::{ErrorType, ExecutionContext};
 use cd::Cd;
 use std::{
-    io::{self, PipeReader, Read},
-    process::{Child, Command},
+    io::Read,
+    process::Child,
 };
+use pty_process::{blocking::{open, Command, Pty}, Size};
 
 /// Execute a command using given shell, returning its output as an iterator, with `\n` replaced by `\r\n`.
 pub fn execute_command(
@@ -18,29 +19,29 @@ pub fn execute_command(
     if execute_built_in_command(context, command)? {
         return Ok(ReaderIterator::new());
     }
+
     // Spawn the command
     let (shell, args) = context.shell.split_at(1);
     let shell = shell[0].as_str();
     let command = [command];
     let args = args.iter().map(String::as_str).chain(command);
-    let (recv, send) = io::pipe()?;
+    let (pty, pts) = open()?;
+    pty.resize(Size::new(context.height, context.width))?;
 
     let child = Command::new(shell)
         .args(args)
         .current_dir(&context.directory)
-        .stdout(send.try_clone()?)
-        .stderr(send)
-        .spawn()?;
+        .spawn(pts)?;
 
-    Ok(ReaderIterator::from_child(child, recv))
+    Ok(ReaderIterator::from_child(child, pty))
 }
 
-/// Iterator over [`PipeReader`], replacing `\n` with `\r\n`.
+/// Iterator over a reader, replacing `\n` with `\r\n`.
 pub struct ReaderIterator {
     /// Child process handle.
     child: Option<Child>,
     /// Inner pipe reader.
-    reader: Option<PipeReader>,
+    reader: Option<Pty>,
     /// Buffer for reading output.
     buffer: [u8; 1024],
 }
@@ -54,8 +55,8 @@ impl ReaderIterator {
             buffer: [0; 1024],
         }
     }
-    /// Create a new [`ReaderIterator`] from a [`Child`] and [`PipeReader`].
-    pub const fn from_child(child: Child, reader: PipeReader) -> Self {
+    /// Create a new [`ReaderIterator`] from a [`Child`] and reference to [`Pty`].
+    pub const fn from_child(child: Child, reader: Pty) -> Self {
         Self {
             child: Some(child),
             reader: Some(reader),
@@ -76,6 +77,7 @@ impl Iterator for ReaderIterator {
             // No reader, or the reader has been discarded
             return None;
         };
+        // FIXME: Match `child.try_wait` first, and then read from `reader`
         match reader.read(&mut self.buffer) {
             Ok(0) => {
                 // Check the exit status of the child process

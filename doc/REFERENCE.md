@@ -17,7 +17,7 @@ The front matter must be enclosed by a pair of triple dashes (`---`). It consist
 ```yaml
 ---
 title: My Asciicast
-shell: ["bash", "-c"]
+shell: ["bash", "-i", "-c"]
 idle: 5s
 ---
 ```
@@ -35,11 +35,11 @@ The following keys are supported in the front matter:
     - **Default**: None.
 - `shell`: Set the shell to be used for executing commands.
     - **Type**: A list of [String](#string).
-    - **Default**: `["bash", "-c"]`.
+    - **Default**: `["bash", "-i", "-c"]`.
     - Notes:
         - The first element of the list is the shell executable, so the list must contain at least one element.
         - The rest of the elements are the flags to pass to the shell executable.
-        - For example, `["bash", "-c"]` will execute commands like `bash -c "command"`.
+        - For example, `["bash", "-i", "-c"]` will execute commands like `bash -i -c "command"`.
 - `quit`: Set the quit command to be used for exiting the shell. (Not implemented yet)
     - **Type**: [LooseString](#loosestring), which represents the quit command.
     - **Default**: `exit`.

@@ -119,6 +119,10 @@ impl InstructionTrait for CommandInstruction {
             command.push_str(&self.command);
 
             if context.execute {
+                // Make borrow checker happy
+                let preview = context.preview;
+                let mut elapsed = context.elapsed;
+
                 let expect = config.expect;
                 let mut prev = std::time::Instant::now();
                 let reader = execute_command(context, &command)?;
@@ -126,26 +130,26 @@ impl InstructionTrait for CommandInstruction {
 
                 let result = || -> Result<(), ErrorType> {
                     for chunk in reader {
-                        let chunk = chunk?;
-                        let Some(chunk) = chunk else {
+                        let Some(chunk) = chunk? else {
                             // No output yet, but command is still running
                             continue;
                         };
                         let now = std::time::Instant::now();
-                        context.elapsed += now.duration_since(prev).as_micros();
+                        elapsed += now.duration_since(prev).as_micros();
                         prev = now;
 
-                        cast.output(context.elapsed, &chunk)?;
+                        cast.output(elapsed, &chunk)?;
                         // context.preview(&chunk);
                         // 1. Ensure that the output is flushed in real-time
                         // 2. Use lock to improve performance in case there are many chunks
-                        if context.preview {
+                        if preview {
                             print!("{chunk}");
                             lock.flush()?;
                         }
                     }
                     Ok(())
                 }();
+                context.elapsed = elapsed;
 
                 handle_error(result, expect)?;
             }
