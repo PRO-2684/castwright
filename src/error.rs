@@ -4,6 +4,7 @@ use serde_json::Error as JsonError;
 use std::io::Error as IoError;
 use std::{num::ParseIntError, time::SystemTimeError};
 use thiserror::Error as ThisError;
+use pty_process::Error as PtyError;
 
 /// Possible types of errors that can occur while parsing or executing a single line of a `CastWright` script. Each variant represents a specific type of error, and can be converted to an [`Error`] with the [`with_line`](`ErrorType::with_line`) method. (See the [`Error`] struct for examples)
 #[derive(ThisError, Debug)]
@@ -90,6 +91,15 @@ impl From<ParseIntError> for ErrorType {
 impl From<SystemTimeError> for ErrorType {
     fn from(error: SystemTimeError) -> Self {
         Self::SystemTime(error)
+    }
+}
+
+impl From<PtyError> for ErrorType {
+    fn from(error: PtyError) -> Self {
+        match error {
+            PtyError::Io(e) => Self::Io(e),
+            PtyError::Rustix(e) => Self::Io(IoError::from(e)),
+        }
     }
 }
 

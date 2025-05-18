@@ -161,6 +161,22 @@ where
         self.get_header_mut()?.height = height;
         Ok(self)
     }
+    /// Get the [initial terminal width](https://docs.asciinema.org/manual/asciicast/v2/#width). Only available before the header has been written.
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error if the header has already been written.
+    pub(crate) fn get_width(&self) -> Result<u16, ErrorType> {
+        self.header.as_ref().ok_or(ErrorType::HeaderAlreadyWritten).map(|h| h.width)
+    }
+    /// Get the [initial terminal height](https://docs.asciinema.org/manual/asciicast/v2/#height). Only available before the header has been written.
+    ///
+    /// ## Errors
+    ///
+    /// Returns a [`HeaderAlreadyWritten`](ErrorType::HeaderAlreadyWritten) error if the header has already been written.
+    pub(crate) fn get_height(&self) -> Result<u16, ErrorType> {
+        self.header.as_ref().ok_or(ErrorType::HeaderAlreadyWritten).map(|h| h.height)
+    }
     /// Set the [unix timestamp of the beginning of the recording session](https://docs.asciinema.org/manual/asciicast/v2/#timestamp) in seconds.
     ///
     /// ## Errors

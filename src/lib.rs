@@ -45,6 +45,7 @@ pub use asciicast::AsciiCast;
 pub use error::{Error, ErrorType};
 use instruction::{Instruction, InstructionTrait};
 use optfield::optfield;
+use pty_process::blocking::{Pts, Pty, self};
 use shell::execute_command;
 use std::{
     borrow::Cow,
@@ -225,11 +226,17 @@ struct ExecutionContext {
     // Instruction-specific
     /// Previous commands to be concatenated.
     command: String,
+
+    // Pty
+    pty: Pty,
+    pts: Pts,
 }
 
 impl ExecutionContext {
     /// Create a new `ExecutionContext` with default values.
     fn new() -> Self {
+        // Create a new Pty and Pts
+        let (pty, pts) = blocking::open().unwrap();
         Self {
             persistent: Configuration::new(),
             temporary: TemporaryConfiguration::new(),
@@ -241,6 +248,8 @@ impl ExecutionContext {
             execute: false,
             preview: false,
             command: String::new(),
+            pty,
+            pts,
         }
     }
 

@@ -3,6 +3,7 @@
 use super::{
     AsciiCast, ErrorType, ExecutionContext, FrontMatterState, InstructionTrait, ParseContext, util,
 };
+use pty_process::Size;
 use serde_json::de::from_str;
 use std::time::Duration;
 
@@ -94,9 +95,17 @@ impl InstructionTrait for FrontMatterInstruction {
         match self {
             Self::Width(width) => {
                 cast.width(*width)?;
+                let height = cast.get_height()?;
+                if let Err(e) = context.pty.resize(Size::new(height, *width)) {
+                    return Err(e.into());
+                };
             }
             Self::Height(height) => {
                 cast.height(*height)?;
+                let width = cast.get_width()?;
+                if let Err(e) = context.pty.resize(Size::new(*height, width)) {
+                    return Err(e.into());
+                };
             }
             Self::Title(title) => {
                 cast.title(title.clone())?;
