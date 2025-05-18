@@ -123,7 +123,7 @@ You can find a list of known caveats in [`CAVEATS.md`](./doc/CAVEATS.md#shell-se
 - [x] Integration tests.
 - [x] Actual command execution and output capture.
     - [ ] Use a single shell session, instead of spawning a new one for each command.
-- [ ] Executing commands in pty (https://docs.rs/pty-process/).
+- [x] Executing commands in pty (https://docs.rs/pty-process/).
 
 ## 🎉 Credits
 
