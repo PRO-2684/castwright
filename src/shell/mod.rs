@@ -66,9 +66,13 @@ impl ReaderIterator {
 }
 
 impl Iterator for ReaderIterator {
+    /// - `Ok(None)` if no output is available yet.
+    /// - `Ok(Some(output))` if we have some output.
+    /// - `Err(ErrorType::Subprocess(...))` if the command exited with an error.
     type Item = Result<Option<String>, ErrorType>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // End the iteration if the child process has exited (as marked by absence of `child` and `reader`).
         let Some(child) = &mut self.child else {
             // No child, or the child has been discarded
             return None;
@@ -77,53 +81,72 @@ impl Iterator for ReaderIterator {
             // No reader, or the reader has been discarded
             return None;
         };
-        // FIXME: Match `child.try_wait` first, and then read from `reader`
-        match reader.read(&mut self.buffer) {
-            Ok(0) => {
-                // Check the exit status of the child process
-                match child.try_wait() {
-                    Ok(Some(status)) => {
-                        if status.success() {
-                            // The command exited successfully
-                            return None;
-                        }
-                        // FIXME: The message not used?
-                        Some(Err(ErrorType::Subprocess(format!(
-                            "command exited with {status}"
-                        ))))
-                    }
-                    Ok(None) => {
-                        // Still running, but no output
-                        Some(Ok(None))
-                    }
-                    Err(e) => {
-                        // Discard the child and reader
-                        if let Some(mut child) = self.child.take() {
-                            let _ = child.wait();
-                        }
-                        self.reader.take();
+        // Check the exit status of the child process
+        match child.try_wait() {
+            // The child process has exited
+            Ok(Some(status)) => {
+                // Discard the child and reader
+                let _ = self.child.take().unwrap().wait();
+                self.reader.take();
 
-                        Some(Err(ErrorType::Io(e)))
-                    }
-                }
+                let item = if status.success() {
+                    Ok(None)
+                } else {
+                    // FIXME: The message not used?
+                    Err(ErrorType::Subprocess(format!(
+                        "command exited with {status}"
+                    )))
+                };
+                return Some(item);
             }
+            // Still running
+            Ok(None) => {}
+            // Got an error while trying to wait
+            Err(e) => {
+                // Discard the child and reader
+                let _ = self.child.take().unwrap().wait();
+                self.reader.take();
+
+                return Some(Err(ErrorType::Io(e)));
+            }
+        };
+        // Still running, try to read from the reader
+        let item = match reader.read(&mut self.buffer) {
+            // No output available yet
+            Ok(0) => Ok(None),
+            // Read some output
             Ok(n) => {
                 let raw = String::from_utf8_lossy(&self.buffer[..n]).to_string();
                 // Replace `\n` with `\r\n`
                 let output = replace_newline(&raw);
 
-                Some(Ok(Some(output)))
+                Ok(Some(output))
             }
+            // Got an error while trying to read
             Err(e) => {
-                // Discard the child and reader
-                if let Some(mut child) = self.child.take() {
-                    let _ = child.wait();
-                }
                 self.reader.take();
 
-                Some(Err(ErrorType::Io(e)))
+                if e.raw_os_error() == Some(5) {
+                    // For some reason, the PTY process has exited, but the child process is still running.
+                    // stackoverflow.com/questions/72150987
+                    let status = match self.child.take().unwrap().wait() {
+                        Ok(status) => status,
+                        Err(e) => return Some(Err(ErrorType::Io(e))),
+                    };
+                    if status.success() {
+                        Ok(None)
+                    } else {
+                        Err(ErrorType::Subprocess(format!(
+                            "command exited with {status}"
+                        )))
+                    }
+                } else {
+                    // Other IO error
+                    Err(ErrorType::Io(e))
+                }
             }
-        }
+        };
+        Some(item)
     }
 }
 
