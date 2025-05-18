@@ -3,32 +3,38 @@
 ## Available `just` recipes
 
 ```bash
-$ just --list
+$ jiu -l
+CastWright: 🎥 Scripted terminal recording.
+
 Available recipes:
-    build      # Build release binary [alias: b]
-    bump       # Bump version [alias: v]
-    run *args  # Compile and run (debug) [alias: r]
-    test *args # Run tests - drop-in replacement for `cargo test` [alias: t]
-```
+  build/b            # Build release binary
+  run/r *rest        # Compile and run
+  test/t *rest       # Run tests
+  version/v ?version # Set or get version
+  ```
 
 ## <ins>B</ins>uild release binary
 
-- Via `just`: `just b`
+- Via `jiu`: `jiu b`
 - Via `cargo`: `cargo build --release --bin castwright --features="cli"`
 
-## Bump <ins>v</ins>ersion
+## Set or get <ins>v</ins>ersion
 
-- Via script: `./scripts/bump-version.sh`
-- Via `just`: `just v`
+- Via script
+    - Get: `./scripts/version.sh`
+    - Set: `./scripts/version.sh 0.1.0`
+- Via `jiu`
+    - Get: `jiu v`
+    - Set: `jiu v 0.1.0`
 
 ## Compile and <ins>r</ins>un
 
-- Via `just`: `just r -h`
+- Via `jiu`: `jiu r -h`
 - Via script: `./scripts/run.sh -h`
 - Via `cargo`: `cargo run --features="cli" -- -h`
 
 ## <ins>T</ins>ests
 
-- Via `just`: `just t`
+- Via `jiu`: `jiu t`
 - Via VSCode: Run `workbench.action.tasks.test` task
 - Via `cargo`: `cargo test`
