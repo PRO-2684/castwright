@@ -18,7 +18,7 @@ $ cd tests/input
 $ castwright -v
 
 $ # Let's see a simple example
-$ cat sleep.cwrt
+$ bat sleep.cwrt
 
 @interval 50ms
 $ # Run the `.cwrt` script with `castwright` to get an asciicast

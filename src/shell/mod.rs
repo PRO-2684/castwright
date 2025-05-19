@@ -127,8 +127,8 @@ impl Iterator for ReaderIterator {
                 self.reader.take();
 
                 if e.raw_os_error() == Some(5) {
-                    // FIXME: For some reason, the PTY process has exited, but the child process is still running.
-                    // stackoverflow.com/questions/72150987
+                    // Workaround for getting `Input/output error` if trying to read from a closed PTY
+                    // See stackoverflow.com/questions/72150987
                     let status = match self.child.take().unwrap().wait() {
                         Ok(status) => status,
                         Err(e) => return Some(Err(ErrorType::Io(e))),
